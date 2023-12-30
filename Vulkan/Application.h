@@ -24,5 +24,7 @@ private:
     void TerminateVulkan();
 
     GLFWwindow* m_Window;
+
     VkInstance m_VkInstance;
+    VkDebugUtilsMessengerEXT m_DebugMessanger;
 };
