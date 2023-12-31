@@ -1,5 +1,6 @@
 #pragma once
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 
@@ -23,8 +24,13 @@ private:
     void InitVulkan();
     void TerminateVulkan();
 
-    GLFWwindow* m_Window;
+    GLFWwindow* m_Window = nullptr;
 
-    VkInstance m_VkInstance;
-    VkDebugUtilsMessengerEXT m_DebugMessanger;
+    VkInstance               m_VkInstance     = VK_NULL_HANDLE;
+    VkDebugUtilsMessengerEXT m_DebugMessanger = VK_NULL_HANDLE;
+    VkPhysicalDevice         m_PhysicalDevice = VK_NULL_HANDLE;
+    VkDevice                 m_LogicDevice    = VK_NULL_HANDLE;
+    VkQueue                  m_PresentQueue   = VK_NULL_HANDLE;
+    VkQueue                  m_GraphicsQueue  = VK_NULL_HANDLE;
+    VkSurfaceKHR             m_Surface        = VK_NULL_HANDLE;
 };
