@@ -14,3 +14,13 @@ target_include_directories(VulkanHelpers
 target_compile_definitions(VulkanHelpers PRIVATE
     DE_VK_ENABLE_VALIDATION_LAYER=1
 )
+
+target_shaders(
+    TARGET
+        VulkanHelpers
+    SHADERS
+        Triangle.vert
+        Triangle.frag
+    PATH
+        Shaders
+)

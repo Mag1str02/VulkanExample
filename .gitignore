@@ -13,6 +13,7 @@ DummyEngine/Presets
 Sandbox/imgui.ini
 Sandbox/DummyEditor
 Sandbox/Logs/**
+Sandbox/Shaders/**
 Sandbox/Cache/**
 Sandbox/**.dll
 Sandbox/**.a

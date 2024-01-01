@@ -6,6 +6,8 @@ set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fPIC")
 
 project(VulkanExample)
 
+include(shaders.cmake)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../Sandbox)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../Sandbox)
 
