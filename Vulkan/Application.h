@@ -3,6 +3,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
+
 #include <vector>
 
 class Application {
@@ -27,6 +28,7 @@ private:
 
     GLFWwindow* m_Window = nullptr;
 
+protected:
     VkInstance               m_VkInstance     = VK_NULL_HANDLE;
     VkDebugUtilsMessengerEXT m_DebugMessanger = VK_NULL_HANDLE;
     VkPhysicalDevice         m_PhysicalDevice = VK_NULL_HANDLE;
@@ -35,6 +37,8 @@ private:
     VkQueue                  m_GraphicsQueue  = VK_NULL_HANDLE;
     VkSurfaceKHR             m_Surface        = VK_NULL_HANDLE;
     VkSwapchainKHR           m_SwapChain      = VK_NULL_HANDLE;
+
+    uint32_t m_GraphicsQueueFamilyIndex;
 
     std::vector<VkImage>     m_SwapChainImages;
     std::vector<VkImageView> m_SwapChainImageViews;

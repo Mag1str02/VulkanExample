@@ -1,6 +1,7 @@
 add_library(VulkanHelpers 
     Application.cpp
     Assert.cpp
+    ShaderModule.cpp
 )
 
 target_link_libraries(VulkanHelpers 

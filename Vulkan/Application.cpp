@@ -295,9 +295,11 @@ Application::~Application() {
     TerminateGLFW();
 }
 void Application::Run() {
+    OnStartUp();
     while (!glfwWindowShouldClose(m_Window)) {
         Loop();
     }
+    OnShutDown();
 }
 
 void Application::Loop() {
@@ -421,6 +423,8 @@ void Application::InitVulkan() {
         DE_ASSERT(m_PhysicalDevice != VK_NULL_HANDLE, "Failed to create logic device");
         vkGetDeviceQueue(m_LogicDevice, *queueFamilies.m_GraphicsFamily, 0, &m_GraphicsQueue);
         vkGetDeviceQueue(m_LogicDevice, *queueFamilies.m_PresentFamily, 0, &m_PresentQueue);
+
+        m_GraphicsQueueFamilyIndex = *queueFamilies.m_GraphicsFamily;
     }
 
     // Setup swapchain
