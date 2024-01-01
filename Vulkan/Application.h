@@ -3,6 +3,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
+#include <vector>
 
 class Application {
 public:
@@ -33,4 +34,10 @@ private:
     VkQueue                  m_PresentQueue   = VK_NULL_HANDLE;
     VkQueue                  m_GraphicsQueue  = VK_NULL_HANDLE;
     VkSurfaceKHR             m_Surface        = VK_NULL_HANDLE;
+    VkSwapchainKHR           m_SwapChain      = VK_NULL_HANDLE;
+
+    std::vector<VkImage>     m_SwapChainImages;
+    std::vector<VkImageView> m_SwapChainImageViews;
+    VkFormat                 m_SwapChainImageFormat;
+    VkExtent2D               m_SwapChainExtent;
 };
