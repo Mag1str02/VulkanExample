@@ -13,8 +13,13 @@ public:
         CreatePipelineLayout();
         CreatePipeline();
         CreateFramebuffers();
+        CreateSyncObjects();
     }
     virtual void OnShutDown() override {
+        vkDeviceWaitIdle(m_LogicDevice);
+        vkDestroySemaphore(m_LogicDevice, m_ImageAvailableSemaphore, nullptr);
+        vkDestroySemaphore(m_LogicDevice, m_RenderFinishedSemaphore, nullptr);
+        vkDestroyFence(m_LogicDevice, m_InFlightFence, nullptr);
         vkDestroyCommandPool(m_LogicDevice, m_CommandPool, nullptr);
 
         for (auto framebuffer : m_SwapChainFramebuffers) {
@@ -25,9 +30,58 @@ public:
         vkDestroyPipelineLayout(m_LogicDevice, m_PipelineLayout, nullptr);
         vkDestroyRenderPass(m_LogicDevice, m_RenderPass, nullptr);
     }
-    virtual void OnLoop() override {}
+    virtual void OnLoop() override {
+        vkWaitForFences(m_LogicDevice, 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+        vkResetFences(m_LogicDevice, 1, &m_InFlightFence);
+
+        uint32_t imageIndex;
+        vkAcquireNextImageKHR(m_LogicDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+        vkResetCommandBuffer(m_CommandBuffer, 0);
+        RecordCommandBuffer(m_CommandBuffer, imageIndex);
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+        VkSemaphore          signalSemaphores[] = {m_RenderFinishedSemaphore};
+        VkSemaphore          waitSemaphores[]   = {m_ImageAvailableSemaphore};
+        VkPipelineStageFlags waitStages[]       = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        submitInfo.waitSemaphoreCount           = 1;
+        submitInfo.pWaitSemaphores              = waitSemaphores;
+        submitInfo.pWaitDstStageMask            = waitStages;
+        submitInfo.commandBufferCount           = 1;
+        submitInfo.pCommandBuffers              = &m_CommandBuffer;
+        submitInfo.signalSemaphoreCount         = 1;
+        submitInfo.pSignalSemaphores            = signalSemaphores;
+
+        vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFence);
+
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores    = signalSemaphores;
+
+        VkSwapchainKHR swapChains[] = {m_SwapChain};
+        presentInfo.swapchainCount  = 1;
+        presentInfo.pSwapchains     = swapChains;
+        presentInfo.pImageIndices   = &imageIndex;
+        presentInfo.pResults        = nullptr;  // Optional
+        vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+    }
 
 private:
+    void CreateSyncObjects() {
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        VkFenceCreateInfo fenceInfo{};
+        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+
+        vkCreateSemaphore(m_LogicDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore);
+        vkCreateSemaphore(m_LogicDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore);
+        vkCreateFence(m_LogicDevice, &fenceInfo, nullptr, &m_InFlightFence);
+    }
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -38,14 +92,14 @@ private:
             throw std::runtime_error("failed to begin recording command buffer!");
         }
 
+        VkClearValue clearColor = {{{1.0f, 0.0f, 0.0f, 1.0f}}};
+
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass        = m_RenderPass;
         renderPassInfo.framebuffer       = m_SwapChainFramebuffers[imageIndex];
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = m_SwapChainExtent;
-
-        VkClearValue clearColor        = {{{1.0f, 0.0f, 0.0f, 1.0f}}};
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues    = &clearColor;
         vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -73,7 +127,6 @@ private:
         }
     }
     void CreateFramebuffers() {
-        m_SwapChainFramebuffers.resize(m_SwapChainImageViews.size());
         for (const auto& imageView : m_SwapChainImageViews) {
             std::vector<VkImageView> attachments = {imageView};
 
@@ -204,6 +257,14 @@ private:
         DE_ASSERT(res == VK_SUCCESS, "Failed to create graphics pipeline");
     }
     void CreateRenderPass() {
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass    = 0;
+        dependency.srcStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format         = m_SwapChainImageFormat;
         colorAttachment.samples        = VK_SAMPLE_COUNT_1_BIT;
@@ -229,6 +290,8 @@ private:
         renderPassInfo.pAttachments    = &colorAttachment;
         renderPassInfo.subpassCount    = 1;
         renderPassInfo.pSubpasses      = &subpass;
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies   = &dependency;
 
         auto res = vkCreateRenderPass(m_LogicDevice, &renderPassInfo, nullptr, &m_RenderPass);
         DE_ASSERT(res == VK_SUCCESS, "failed to create render pass!");
@@ -277,6 +340,10 @@ private:
     std::vector<VkFramebuffer> m_SwapChainFramebuffers;
     VkCommandPool              m_CommandPool;
     VkCommandBuffer            m_CommandBuffer;
+
+    VkSemaphore m_ImageAvailableSemaphore;
+    VkSemaphore m_RenderFinishedSemaphore;
+    VkFence     m_InFlightFence;
 };
 
 int main() {
