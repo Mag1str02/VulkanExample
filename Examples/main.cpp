@@ -1,8 +1,10 @@
-#include <Vulkan/Application.h>
-#include <Vulkan/Assert.h>
+#include <Vulkan/Utils/Assert.h>
 #include <Vulkan/ShaderModule.h>
+#include <Vulkan/Application.h>
 
 #include "shaders_generated.h"
+
+using namespace Vulkan;
 
 class TestApplication : public Application {
 public:

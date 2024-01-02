@@ -4,24 +4,24 @@
 
 #include "Base.h"
 
-class ShaderModule {
-public:
-    static Result<Ref<ShaderModule>> Create(const std::vector<uint32_t>& shaderCode, VkDevice device);
+namespace Vulkan {
 
-    ShaderModule(ShaderModule&& other);
-    ShaderModule& operator=(ShaderModule&& other);
+    class ShaderModule {
+    public:
+        static Result<Ref<ShaderModule>> Create(const std::vector<uint32_t>& shaderCode, VkDevice device);
+        ~ShaderModule();
 
-    ShaderModule(const ShaderModule& other)            = delete;
-    ShaderModule& operator=(const ShaderModule& other) = delete;
+        NO_COPY_CONSTRUCTORS(ShaderModule);
+        MOVE_CONSTRUCTORS(ShaderModule);
 
-    ~ShaderModule();
+        VkPipelineShaderStageCreateInfo GetShaderStage(VkShaderStageFlagBits stage);
 
-    VkPipelineShaderStageCreateInfo GetShaderStage(VkShaderStageFlagBits stage);
+    private:
+        ShaderModule(VkShaderModule handle, VkDevice device);
+        void Swap(ShaderModule& other);
 
-private:
-    ShaderModule(VkShaderModule handle, VkDevice device);
-    void Destroy();
+        VkShaderModule m_Handle = VK_NULL_HANDLE;
+        VkDevice       m_Device = VK_NULL_HANDLE;
+    };
 
-    VkShaderModule        m_Handle = VK_NULL_HANDLE;
-    VkDevice              m_Device = VK_NULL_HANDLE;
-};
+}  // namespace Vulkan

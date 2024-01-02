@@ -29,8 +29,6 @@ private:
     GLFWwindow* m_Window = nullptr;
 
 protected:
-    VkInstance               m_VkInstance     = VK_NULL_HANDLE;
-    VkDebugUtilsMessengerEXT m_DebugMessanger = VK_NULL_HANDLE;
     VkPhysicalDevice         m_PhysicalDevice = VK_NULL_HANDLE;
     VkDevice                 m_LogicDevice    = VK_NULL_HANDLE;
     VkQueue                  m_PresentQueue   = VK_NULL_HANDLE;

@@ -1,6 +1,10 @@
 add_library(VulkanHelpers 
+    Utils/Assert.cpp
     Application.cpp
-    Assert.cpp
+    Config.cpp
+    Debugger.cpp
+    Instance.cpp
+    Renderer.cpp
     ShaderModule.cpp
 )
 
