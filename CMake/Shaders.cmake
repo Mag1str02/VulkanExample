@@ -1,5 +1,11 @@
-macro( target_shaders )
+find_program (SPIRV_COMPILER_PATH ${SPIRV_COMPILER})
+if (${SPIRV_COMPILER_PATH} STREQUAL "SPIRV_COMPILER_PATH-NOTFOUND")
+    message(FATAL_ERROR "Failed to find SPIRV compiler: ${SPIRV_COMPILER_PATH}")
+else()
+    message(STATUS "Found SPIRV compiler: ${SPIRV_COMPILER_PATH}")
+endif()
 
+macro( target_shaders )
     set( _OPTIONS_ARGS )
     set( _ONE_VALUE_ARGS TARGET PATH)
     set( _MULTI_VALUE_ARGS SHADERS )
@@ -34,5 +40,4 @@ macro( target_shaders )
         add_dependencies(${_CUSTOM_TARGET_NAME} ${_DIRECTORY_TARGET_NAME})
         add_dependencies(${_TARGET_SHADERS_TARGET} ${_CUSTOM_TARGET_NAME})
     endforeach()
-    
 endmacro()
