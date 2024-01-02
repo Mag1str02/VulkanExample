@@ -7,7 +7,7 @@ endif()
 
 macro( target_shaders )
     set( _OPTIONS_ARGS )
-    set( _ONE_VALUE_ARGS TARGET PATH)
+    set( _ONE_VALUE_ARGS TARGET)
     set( _MULTI_VALUE_ARGS SHADERS )
 
     cmake_parse_arguments( _TARGET_SHADERS "${_OPTIONS_ARGS}" "${_ONE_VALUE_ARGS}" "${_MULTI_VALUE_ARGS}" ${ARGN} )
@@ -18,26 +18,22 @@ macro( target_shaders )
     if (NOT _TARGET_SHADERS_TARGET)
         message( FATAL_ERROR "No TARGET in target_shaders")
     endif()
-    if (NOT _TARGET_SHADERS_PATH)
-        message( FATAL_ERROR "No PATH in target_shaders")
-    endif()
 
-    foreach(SHADER ${_TARGET_SHADERS_SHADERS})
-        set(_CUSTOM_TARGET_NAME SHADER_COMPILATION_${TARGET_SHADERS_TARGET}_${SHADER})
-        set(_DIRECTORY_TARGET_NAME DIRECTORY_CREATE_${TARGET_SHADERS_TARGET}_${SHADER})
-        add_custom_target(${_CUSTOM_TARGET_NAME}
+    set(_GENERATION_TARGET_NAME SHADER_GENERATION_FOR_${_TARGET_SHADERS_TARGET})
+    set(_GENERATED_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/shaders_generated.h)
+    set(_GENERATED_CPP ${CMAKE_CURRENT_SOURCE_DIR}/shaders_generated.cpp)
+    add_custom_target(${_GENERATION_TARGET_NAME}
             COMMAND
-                glslc ${PROJECT_SOURCE_DIR}/${_TARGET_SHADERS_PATH}/${SHADER} -o ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_TARGET_SHADERS_PATH}/${SHADER}.spv 
+                ShaderGenerator ${SPIRV_COMPILER_PATH} ${_GENERATED_HEADER} ${_GENERATED_CPP} ${CMAKE_CURRENT_SOURCE_DIR} ${_TARGET_SHADERS_SHADERS}
             DEPENDS
-                ${PROJECT_SOURCE_DIR}/${_TARGET_SHADERS_PATH}/${SHADER}
+                ${_TARGET_SHADERS_SHADERS}
             BYPRODUCTS
-                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_TARGET_SHADERS_PATH}/${SHADER}.spv
-        )
-        add_custom_target(${_DIRECTORY_TARGET_NAME}
-            COMMAND
-                ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_TARGET_SHADERS_PATH}
-        )
-        add_dependencies(${_CUSTOM_TARGET_NAME} ${_DIRECTORY_TARGET_NAME})
-        add_dependencies(${_TARGET_SHADERS_TARGET} ${_CUSTOM_TARGET_NAME})
-    endforeach()
+                ${_GENERATED_HEADER} ${_GENERATED_CPP}
+    )
+    add_dependencies(${_GENERATION_TARGET_NAME} ShaderGenerator)
+    add_dependencies(${_TARGET_SHADERS_TARGET} ${_GENERATION_TARGET_NAME})
+    target_sources(${_TARGET_SHADERS_TARGET} PUBLIC
+        ${_GENERATED_CPP}
+    )
+
 endmacro()

@@ -4,3 +4,6 @@
 [submodule "Dependencies/GLM"]
 	path = Dependencies/GLM
 	url = https://github.com/g-truc/glm
+[submodule "Dependencies/TPL"]
+	path = Dependencies/TPL
+	url = https://gitlab.com/eidheim/tiny-process-library

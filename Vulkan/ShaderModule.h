@@ -6,7 +6,7 @@
 
 class ShaderModule {
 public:
-    static Result<Ref<ShaderModule>> Create(const fs::path& path, VkDevice device);
+    static Result<Ref<ShaderModule>> Create(const std::vector<uint32_t>& shaderCode, VkDevice device);
 
     ShaderModule(ShaderModule&& other);
     ShaderModule& operator=(ShaderModule&& other);

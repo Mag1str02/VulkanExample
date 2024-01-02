@@ -1,5 +1,7 @@
 **.exe
 **/tempCodeRunnerFile.cpp
+**/shaders_generated.h
+**/shaders_generated.cpp
 
 .vscode/
 .cache/

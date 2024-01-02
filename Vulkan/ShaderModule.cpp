@@ -1,23 +1,10 @@
 #include "ShaderModule.h"
 
-Result<Ref<ShaderModule>> ShaderModule::Create(const fs::path& path, VkDevice device) {
-    std::ifstream file(path, std::ios::ate | std::ios::binary);
-
-    if (!file.is_open()) {
-        return std::unexpected("Failed to open shader file: " + path.string());
-    }
-
-    size_t fileSize = (size_t)file.tellg();
-
-    std::vector<char> byteCode(fileSize);
-    file.seekg(0);
-    file.read(byteCode.data(), fileSize);
-    file.close();
-
+Result<Ref<ShaderModule>> ShaderModule::Create(const std::vector<uint32_t>& shaderCode, VkDevice device) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = byteCode.size();
-    createInfo.pCode    = reinterpret_cast<const uint32_t*>(byteCode.data());
+    createInfo.codeSize = shaderCode.size() * 4;
+    createInfo.pCode    = shaderCode.data();
 
     VkShaderModule shaderModule;
     auto           res = vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);

@@ -2,6 +2,8 @@
 #include <Vulkan/Assert.h>
 #include <Vulkan/ShaderModule.h>
 
+#include "shaders_generated.h"
+
 class TestApplication : public Application {
 public:
     TestApplication() = default;
@@ -23,9 +25,7 @@ public:
         vkDestroyPipelineLayout(m_LogicDevice, m_PipelineLayout, nullptr);
         vkDestroyRenderPass(m_LogicDevice, m_RenderPass, nullptr);
     }
-    virtual void OnLoop() override {
-        
-    }
+    virtual void OnLoop() override {}
 
 private:
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
@@ -234,8 +234,12 @@ private:
         DE_ASSERT(res == VK_SUCCESS, "failed to create render pass!");
     }
     void CreatePipelineLayout() {
-        auto triangleVert = ShaderModule::Create("Shaders/Triangle.vert.spv", m_LogicDevice);
-        auto triangleFrag = ShaderModule::Create("Shaders/Triangle.frag.spv", m_LogicDevice);
+        auto triangleVertCode     = GetVertexShaderCode("Triangle");
+        auto triangleFragmentCode = GetFragmentShaderCode("Triangle");
+        DE_ASSERT(triangleVertCode.has_value(), "Failed");
+        DE_ASSERT(triangleFragmentCode.has_value(), "Failed");
+        auto triangleVert = ShaderModule::Create(*triangleVertCode.value(), m_LogicDevice);
+        auto triangleFrag = ShaderModule::Create(*triangleFragmentCode.value(), m_LogicDevice);
         DE_ASSERT(triangleVert.has_value(), "Failed");
         DE_ASSERT(triangleFrag.has_value(), "Failed");
         m_TriangleVert = triangleVert.value();
