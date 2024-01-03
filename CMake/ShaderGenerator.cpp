@@ -143,6 +143,9 @@ private:
                 throw std::runtime_error(std::format("Shader with name {} already exists", shaderName));
             }
             m_ShaderStorage[type][shaderName] = ReadFile(inputFile);
+            inputFile.close();
+            outputFile.close();
+            fs::remove(shaderFilepath);
         }
     }
 
