@@ -2,6 +2,27 @@
 
 #include <GLFW/glfw3.h>
 
+namespace Vulkan {
+    std::unordered_set<uint32_t> QueueFamilyIndices::GetUniqueIndicies() const {
+        std::unordered_set<uint32_t> res;
+        for (const auto& [_, i] : m_Families) {
+            res.insert(i);
+        }
+        return res;
+    }
+    std::optional<uint32_t> QueueFamilyIndices::GetFamilyIndex(Queue::Family family) const {
+        if (auto it = m_Families.find(family); it != m_Families.end()) {
+            return it->second;
+        }
+        return {};
+    }
+
+    void QueueFamilyIndices::AddMapping(Queue::Family family, uint32_t index) {
+        m_Families.emplace(family, index);
+    }
+
+}  // namespace Vulkan
+
 namespace Vulkan::Helpers {
     static const std::vector<const char*> s_ValidationLayers = {
         "VK_LAYER_KHRONOS_validation",
@@ -89,17 +110,6 @@ namespace Vulkan::Helpers {
         }
     }  // namespace
 
-    std::unordered_set<uint32_t> QueueFamilyIndices::GetUniqueQueueIndicies() const {
-        std::unordered_set<uint32_t> res;
-        if (m_GraphicsFamily) {
-            res.insert(*m_GraphicsFamily);
-        }
-        if (m_PresentFamily) {
-            res.insert(*m_PresentFamily);
-        }
-        return res;
-    }
-
     QueueFamilyIndices GetDeviceQueueFamilies(VkInstance instance, VkPhysicalDevice device) {
         QueueFamilyIndices indices;
 
@@ -111,10 +121,10 @@ namespace Vulkan::Helpers {
         for (uint32_t i = 0; i < queueFamilies.size(); ++i) {
             const auto& props = queueFamilies[i];
             if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                indices.m_GraphicsFamily = i;
+                indices.AddMapping(Queue::Family::Graphics, i);
             }
             if (glfwGetPhysicalDevicePresentationSupport(instance, device, i)) {
-                indices.m_PresentFamily = i;
+                indices.AddMapping(Queue::Family::Presentation, i);
             }
         }
 
@@ -164,7 +174,7 @@ namespace Vulkan::Helpers {
         }
     }
 
-    bool CheckDevice(VkInstance instance, VkPhysicalDevice device) {
+    bool CheckDevice(VkInstance instance, VkPhysicalDevice device, const QueuesSpecification& specification) {
         {
             auto deviceProperties = GetDeviceProperties(device);
             if (deviceProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
@@ -173,8 +183,10 @@ namespace Vulkan::Helpers {
         }
         {
             auto queueFamilies = GetDeviceQueueFamilies(instance, device);
-            if (!queueFamilies.m_GraphicsFamily || !queueFamilies.m_PresentFamily) {
-                return false;
+            for (const auto& [family, amount] : specification) {
+                if (amount != 0 && !queueFamilies.GetFamilyIndex(family)) {
+                    return false;
+                }
             }
         }
         {

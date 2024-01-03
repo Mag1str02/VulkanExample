@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 
 #include "Base.h"
+#include "Helpers.h"
 #include "Utils/Singleton.h"
 
 class Window;
@@ -19,12 +20,12 @@ namespace Vulkan {
         NO_MOVE_CONSTRUCTORS(Instance);
 
         VkInstance  Handle();
-        Ref<Device> CreateBestDevice();
+        Ref<Device> CreateBestDevice(const QueuesSpecification& specification);
 
     private:
         uint32_t                      GetDeviceCount();
         std::vector<VkPhysicalDevice> GetAllDevices();
-        std::vector<VkPhysicalDevice> GetCompatibleDevices();
+        std::vector<VkPhysicalDevice> GetCompatibleDevices(const QueuesSpecification& specification);
 
         Instance() = default;
 

@@ -113,15 +113,9 @@ void Application::InitVulkan() {
 
     auto requitredLayers = Vulkan::Helpers::GetRequiredLayers();
 
-    auto queueFamilies = Vulkan::Helpers::GetDeviceQueueFamilies(m_Renderer->GetInstanceHandle(), m_Renderer->GetPhysicalDevice());
-
-    // Create logic device
-    {
-        vkGetDeviceQueue(m_Renderer->GetLogicDevice(), *queueFamilies.m_GraphicsFamily, 0, &m_GraphicsQueue);
-        vkGetDeviceQueue(m_Renderer->GetLogicDevice(), *queueFamilies.m_PresentFamily, 0, &m_PresentQueue);
-
-        m_GraphicsQueueFamilyIndex = *queueFamilies.m_GraphicsFamily;
-    }
+    auto queueFamilies          = Vulkan::Helpers::GetDeviceQueueFamilies(m_Renderer->GetInstanceHandle(), m_Renderer->GetPhysicalDevice());
+    auto graphicsQueueIndex     = *queueFamilies.GetFamilyIndex(Vulkan::Queue::Family::Graphics);
+    auto presentationQueueIndex = *queueFamilies.GetFamilyIndex(Vulkan::Queue::Family::Graphics);
 
     // Setup swapchain
     {
@@ -152,8 +146,8 @@ void Application::InitVulkan() {
         m_SwapChainExtent      = extent;
         m_SwapChainImageFormat = surfaceFormat.format;
 
-        uint32_t queueFamilyIndices[] = {*queueFamilies.m_GraphicsFamily, *queueFamilies.m_PresentFamily};
-        if (queueFamilies.m_GraphicsFamily != queueFamilies.m_PresentFamily) {
+        uint32_t queueFamilyIndices[] = {graphicsQueueIndex, presentationQueueIndex};
+        if (graphicsQueueIndex != presentationQueueIndex) {
             createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
             createInfo.queueFamilyIndexCount = 2;
             createInfo.pQueueFamilyIndices   = queueFamilyIndices;

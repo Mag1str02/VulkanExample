@@ -6,12 +6,12 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
-#include "Utils/Singleton.h"
 #include "Utils/Assert.h"
+#include "Utils/Singleton.h"
 
 namespace fs = std::filesystem;
 

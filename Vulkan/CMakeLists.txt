@@ -6,6 +6,7 @@ add_library(VulkanHelpers
     Device.cpp
     Helpers.cpp
     Instance.cpp
+    Queue.cpp
     Renderer.cpp
     ShaderModule.cpp
     Window.cpp

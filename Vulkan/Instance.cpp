@@ -50,10 +50,10 @@ namespace Vulkan {
         return m_Handle;
     }
 
-    Ref<Device> Instance::CreateBestDevice() {
-        auto devices = GetCompatibleDevices();
+    Ref<Device> Instance::CreateBestDevice(const QueuesSpecification& specification) {
+        auto devices = GetCompatibleDevices(specification);
         DE_ASSERT(!devices.empty(), "Failed to find compatible vulkan device");
-        return Ref<Device>(new Device(devices.front(), shared_from_this()));
+        return Ref<Device>(new Device(devices.front(), shared_from_this(), specification));
     }
 
     uint32_t Instance::GetDeviceCount() {
@@ -69,11 +69,11 @@ namespace Vulkan {
         return devices;
     }
 
-    std::vector<VkPhysicalDevice> Instance::GetCompatibleDevices() {
+    std::vector<VkPhysicalDevice> Instance::GetCompatibleDevices(const QueuesSpecification& specification) {
         std::vector<VkPhysicalDevice> compatibleDevices;
         auto                          allDevices = GetAllDevices();
         for (const auto& device : allDevices) {
-            if (Helpers::CheckDevice(m_Handle, device)) {
+            if (Helpers::CheckDevice(m_Handle, device, specification)) {
                 compatibleDevices.push_back(device);
             }
         }

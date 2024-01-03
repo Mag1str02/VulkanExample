@@ -55,7 +55,7 @@ public:
         submitInfo.signalSemaphoreCount         = 1;
         submitInfo.pSignalSemaphores            = signalSemaphores;
 
-        vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFence);
+        vkQueueSubmit(m_Renderer->GetGraphicsQueue()->Handle(), 1, &submitInfo, m_InFlightFence);
 
         VkPresentInfoKHR presentInfo{};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -68,7 +68,7 @@ public:
         presentInfo.pSwapchains     = swapChains;
         presentInfo.pImageIndices   = &imageIndex;
         presentInfo.pResults        = nullptr;  // Optional
-        vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+        vkQueuePresentKHR(m_Renderer->GetPresentationQueue()->Handle(), &presentInfo);
     }
 
 private:

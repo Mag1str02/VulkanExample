@@ -31,9 +31,7 @@ private:
 protected:
     Scope<Vulkan::Renderer> m_Renderer;
     Ref<Window>             m_Window;
-    VkQueue                 m_PresentQueue   = VK_NULL_HANDLE;
-    VkQueue                 m_GraphicsQueue  = VK_NULL_HANDLE;
-    VkSwapchainKHR          m_SwapChain      = VK_NULL_HANDLE;
+    VkSwapchainKHR          m_SwapChain     = VK_NULL_HANDLE;
 
     uint32_t m_GraphicsQueueFamilyIndex;
 
