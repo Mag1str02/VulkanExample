@@ -1,7 +1,5 @@
 #include "Debugger.h"
 
-SINGLETON_BASE(Vulkan::Debugger);
-
 namespace Vulkan {
     namespace {
         VkResult CreateDebugUtilsMessengerEXT(VkInstance                                instance,
@@ -28,18 +26,25 @@ namespace Vulkan {
         }
     }  // namespace
 
+    static std::unordered_map<Instance*, Debugger*>& GetDebuggerMapping() {
+        static std::unordered_map<Instance*, Debugger*> mapping;
+        return mapping;
+    }
+
     static VKAPI_ATTR VkBool32 VKAPI_CALL VKDebugMessageHandler(VkDebugUtilsMessageSeverityFlagBitsEXT,
                                                                 VkDebugUtilsMessageTypeFlagsEXT,
                                                                 const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-                                                                void*) {
-        if (!Debugger::Initialized()) {
+                                                                void*                                       pUserData) {
+        const auto& mapping = GetDebuggerMapping();
+        auto        it      = mapping.find(reinterpret_cast<Instance*>(pUserData));
+        if (it == mapping.end()) {
             std::cerr << "VK: " << pCallbackData->pMessage << std::endl;
             return VK_FALSE;
         }
-        return Debugger::OnMessage(pCallbackData->pMessage);
+        return it->second->OnMessage(pCallbackData->pMessage);
     }
 
-    VkDebugUtilsMessengerCreateInfoEXT GenDebuggerCreateInfo() {
+    VkDebugUtilsMessengerCreateInfoEXT Debugger::GenCreateInfo() {
         VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
         createInfo.sType                              = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
@@ -50,25 +55,35 @@ namespace Vulkan {
         return createInfo;
     }
 
-    S_INITIALIZE() {
-        DE_ASSERT(Instance::Initialized(), "Cannot initialize vulkan debugger before instance");
+    Ref<Debugger> Debugger::Create(Ref<Instance> instance) {
+        DE_ASSERT(instance, "Cannot create debugger with nullptr instance");
+        Ref<Debugger> res(new Debugger());
+        res->m_Instance = instance;
+
+        auto& mapping = GetDebuggerMapping();
+        DE_ASSERT(!mapping.contains(res->m_Instance.get()), "Cannot create 2 debuggers for same instance");
+        mapping.emplace(res->m_Instance.get(), res.get());
 
 #if DE_VK_ENABLE_VALIDATION_LAYER == 1
-        auto debugCreateInfo = GenDebuggerCreateInfo();
-        auto result          = CreateDebugUtilsMessengerEXT(Instance::Handle(), &debugCreateInfo, nullptr, &m_DebugMessanger);
+        auto debugCreateInfo      = GenCreateInfo();
+        debugCreateInfo.pUserData = res->m_Instance.get();
+        auto result               = CreateDebugUtilsMessengerEXT(res->m_Instance->Handle(), &debugCreateInfo, nullptr, &res->m_Handle);
         DE_ASSERT(result == VK_SUCCESS, "Failed to create debug handler");
 #endif
-        return Void();
+        return res;
     }
 
-    S_TERMINATE() {
+    Debugger::~Debugger() {
 #if DE_VK_ENABLE_VALIDATION_LAYER == 1
-        DestroyDebugUtilsMessengerEXT(Instance::Handle(), m_DebugMessanger, nullptr);
+        DestroyDebugUtilsMessengerEXT(m_Instance->Handle(), m_Handle, nullptr);
 #endif
-        return Void();
+
+        auto& mapping = GetDebuggerMapping();
+        DE_ASSERT(mapping.contains(m_Instance.get()), "Internal mapping error");
+        mapping.erase(m_Instance.get());
     }
 
-    S_METHOD_IMPL(VkBool32, OnMessage, (const std::string& msg), (msg)) {
+    VkBool32 Debugger::OnMessage(const std::string& msg) {
         std::cerr << "Vulkan: " << msg << std::endl;
         return VK_FALSE;
     }

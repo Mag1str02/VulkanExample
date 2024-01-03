@@ -1,11 +1,14 @@
 add_library(VulkanHelpers 
     Utils/Assert.cpp
+
     Application.cpp
-    Config.cpp
     Debugger.cpp
+    Device.cpp
+    Helpers.cpp
     Instance.cpp
     Renderer.cpp
     ShaderModule.cpp
+    Window.cpp
 )
 
 target_link_libraries(VulkanHelpers 

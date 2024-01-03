@@ -18,26 +18,26 @@ public:
         CreateSyncObjects();
     }
     virtual void OnShutDown() override {
-        vkDeviceWaitIdle(m_LogicDevice);
-        vkDestroySemaphore(m_LogicDevice, m_ImageAvailableSemaphore, nullptr);
-        vkDestroySemaphore(m_LogicDevice, m_RenderFinishedSemaphore, nullptr);
-        vkDestroyFence(m_LogicDevice, m_InFlightFence, nullptr);
-        vkDestroyCommandPool(m_LogicDevice, m_CommandPool, nullptr);
+        vkDeviceWaitIdle(m_Renderer->GetLogicDevice());
+        vkDestroySemaphore(m_Renderer->GetLogicDevice(), m_ImageAvailableSemaphore, nullptr);
+        vkDestroySemaphore(m_Renderer->GetLogicDevice(), m_RenderFinishedSemaphore, nullptr);
+        vkDestroyFence(m_Renderer->GetLogicDevice(), m_InFlightFence, nullptr);
+        vkDestroyCommandPool(m_Renderer->GetLogicDevice(), m_CommandPool, nullptr);
 
         for (auto framebuffer : m_SwapChainFramebuffers) {
-            vkDestroyFramebuffer(m_LogicDevice, framebuffer, nullptr);
+            vkDestroyFramebuffer(m_Renderer->GetLogicDevice(), framebuffer, nullptr);
         }
 
-        vkDestroyPipeline(m_LogicDevice, m_GraphicsPipeline, nullptr);
-        vkDestroyPipelineLayout(m_LogicDevice, m_PipelineLayout, nullptr);
-        vkDestroyRenderPass(m_LogicDevice, m_RenderPass, nullptr);
+        vkDestroyPipeline(m_Renderer->GetLogicDevice(), m_GraphicsPipeline, nullptr);
+        vkDestroyPipelineLayout(m_Renderer->GetLogicDevice(), m_PipelineLayout, nullptr);
+        vkDestroyRenderPass(m_Renderer->GetLogicDevice(), m_RenderPass, nullptr);
     }
     virtual void OnLoop() override {
-        vkWaitForFences(m_LogicDevice, 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
-        vkResetFences(m_LogicDevice, 1, &m_InFlightFence);
+        vkWaitForFences(m_Renderer->GetLogicDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+        vkResetFences(m_Renderer->GetLogicDevice(), 1, &m_InFlightFence);
 
         uint32_t imageIndex;
-        vkAcquireNextImageKHR(m_LogicDevice, m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+        vkAcquireNextImageKHR(m_Renderer->GetLogicDevice(), m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
         vkResetCommandBuffer(m_CommandBuffer, 0);
         RecordCommandBuffer(m_CommandBuffer, imageIndex);
 
@@ -80,9 +80,9 @@ private:
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
-        vkCreateSemaphore(m_LogicDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore);
-        vkCreateSemaphore(m_LogicDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore);
-        vkCreateFence(m_LogicDevice, &fenceInfo, nullptr, &m_InFlightFence);
+        vkCreateSemaphore(m_Renderer->GetLogicDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore);
+        vkCreateSemaphore(m_Renderer->GetLogicDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore);
+        vkCreateFence(m_Renderer->GetLogicDevice(), &fenceInfo, nullptr, &m_InFlightFence);
     }
     void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
         VkCommandBufferBeginInfo beginInfo{};
@@ -142,7 +142,7 @@ private:
             framebufferInfo.layers          = 1;
 
             VkFramebuffer frameBuffer;
-            auto          res = vkCreateFramebuffer(m_LogicDevice, &framebufferInfo, nullptr, &frameBuffer);
+            auto          res = vkCreateFramebuffer(m_Renderer->GetLogicDevice(), &framebufferInfo, nullptr, &frameBuffer);
             DE_ASSERT(res == VK_SUCCESS, "Failed to create framebuffer!");
             m_SwapChainFramebuffers.push_back(frameBuffer);
         }
@@ -151,7 +151,7 @@ private:
             poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
             poolInfo.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
             poolInfo.queueFamilyIndex = m_GraphicsQueueFamilyIndex;
-            auto res                  = vkCreateCommandPool(m_LogicDevice, &poolInfo, nullptr, &m_CommandPool);
+            auto res                  = vkCreateCommandPool(m_Renderer->GetLogicDevice(), &poolInfo, nullptr, &m_CommandPool);
             DE_ASSERT(res == VK_SUCCESS, "failed to create command pool!");
         }
         {
@@ -161,7 +161,7 @@ private:
             allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
             allocInfo.commandBufferCount = 1;
 
-            auto res = vkAllocateCommandBuffers(m_LogicDevice, &allocInfo, &m_CommandBuffer);
+            auto res = vkAllocateCommandBuffers(m_Renderer->GetLogicDevice(), &allocInfo, &m_CommandBuffer);
             DE_ASSERT(res == VK_SUCCESS, "Failed to allocate command buffer!");
         }
     }
@@ -255,7 +255,7 @@ private:
         pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE;  // Optional
         pipelineInfo.basePipelineIndex   = -1;              // Optional
 
-        auto res = vkCreateGraphicsPipelines(m_LogicDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline);
+        auto res = vkCreateGraphicsPipelines(m_Renderer->GetLogicDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline);
         DE_ASSERT(res == VK_SUCCESS, "Failed to create graphics pipeline");
     }
     void CreateRenderPass() {
@@ -295,7 +295,7 @@ private:
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies   = &dependency;
 
-        auto res = vkCreateRenderPass(m_LogicDevice, &renderPassInfo, nullptr, &m_RenderPass);
+        auto res = vkCreateRenderPass(m_Renderer->GetLogicDevice(), &renderPassInfo, nullptr, &m_RenderPass);
         DE_ASSERT(res == VK_SUCCESS, "failed to create render pass!");
     }
     void CreatePipelineLayout() {
@@ -303,8 +303,8 @@ private:
         auto triangleFragmentCode = GetFragmentShaderCode("Triangle");
         DE_ASSERT(triangleVertCode.has_value(), "Failed");
         DE_ASSERT(triangleFragmentCode.has_value(), "Failed");
-        auto triangleVert = ShaderModule::Create(*triangleVertCode.value(), m_LogicDevice);
-        auto triangleFrag = ShaderModule::Create(*triangleFragmentCode.value(), m_LogicDevice);
+        auto triangleVert = ShaderModule::Create(*triangleVertCode.value(), m_Renderer->GetLogicDevice());
+        auto triangleFrag = ShaderModule::Create(*triangleFragmentCode.value(), m_Renderer->GetLogicDevice());
         DE_ASSERT(triangleVert.has_value(), "Failed");
         DE_ASSERT(triangleFrag.has_value(), "Failed");
         m_TriangleVert = triangleVert.value();
@@ -329,7 +329,7 @@ private:
         pipelineLayoutInfo.pushConstantRangeCount = 0;        // Optional
         pipelineLayoutInfo.pPushConstantRanges    = nullptr;  // Optional
 
-        auto res = vkCreatePipelineLayout(m_LogicDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
+        auto res = vkCreatePipelineLayout(m_Renderer->GetLogicDevice(), &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
         DE_ASSERT(res == VK_SUCCESS, "Failed to create pipeline layout");
     }
 

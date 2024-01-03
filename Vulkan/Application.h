@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include "Renderer.h"
+
 class Application {
 public:
     Application();
@@ -26,15 +28,12 @@ private:
     void InitVulkan();
     void TerminateVulkan();
 
-    GLFWwindow* m_Window = nullptr;
-
 protected:
-    VkPhysicalDevice         m_PhysicalDevice = VK_NULL_HANDLE;
-    VkDevice                 m_LogicDevice    = VK_NULL_HANDLE;
-    VkQueue                  m_PresentQueue   = VK_NULL_HANDLE;
-    VkQueue                  m_GraphicsQueue  = VK_NULL_HANDLE;
-    VkSurfaceKHR             m_Surface        = VK_NULL_HANDLE;
-    VkSwapchainKHR           m_SwapChain      = VK_NULL_HANDLE;
+    Scope<Vulkan::Renderer> m_Renderer;
+    Ref<Window>             m_Window;
+    VkQueue                 m_PresentQueue   = VK_NULL_HANDLE;
+    VkQueue                 m_GraphicsQueue  = VK_NULL_HANDLE;
+    VkSwapchainKHR          m_SwapChain      = VK_NULL_HANDLE;
 
     uint32_t m_GraphicsQueueFamilyIndex;
 

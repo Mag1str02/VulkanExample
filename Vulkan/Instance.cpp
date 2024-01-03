@@ -1,22 +1,23 @@
 #include "Instance.h"
 
-#include "Config.h"
 #include "Debugger.h"
-
-SINGLETON_BASE(Vulkan::Instance);
+#include "Device.h"
+#include "Helpers.h"
+#include "Window.h"
 
 namespace Vulkan {
 
-    S_INITIALIZE() {
-        Config::CheckLayersSupport();
-        Config::CheckInstanceExtensionSupport();
+    Ref<Instance> Instance::Create() {
+        Helpers::CheckLayersSupport();
+        Helpers::CheckInstanceExtensionSupport();
 
-        auto requiredExtensions = Config::GetRequiredInstanceExtensions();
-        auto requiredLayers     = Config::GetRequiredLayers();
+        Ref<Instance> res(new Instance());
+
+        auto requiredExtensions = Helpers::GetRequiredInstanceExtensions();
+        auto requiredLayers     = Helpers::GetRequiredLayers();
 
         VkApplicationInfo appInfo{};
         appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName   = "Hello Triangle";
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName        = "No Engine";
         appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
@@ -31,20 +32,52 @@ namespace Vulkan {
         createInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
 #if DE_VK_ENABLE_VALIDATION_LAYER == 1
-        auto debugCreateInfo = GenDebuggerCreateInfo();
-        createInfo.pNext     = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+        auto debugCreateInfo      = Debugger::GenCreateInfo();
+        debugCreateInfo.pUserData = res.get();
+        createInfo.pNext          = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 #endif
 
-        auto result = vkCreateInstance(&createInfo, nullptr, &m_Handle);
+        auto result = vkCreateInstance(&createInfo, nullptr, &res->m_Handle);
         DE_ASSERT(result == VK_SUCCESS, "Failed to create instance");
-        return Void();
+        return res;
     }
-    S_TERMINATE() {
+
+    Instance::~Instance() {
         vkDestroyInstance(m_Handle, nullptr);
-        return Void();
     }
-    S_METHOD_IMPL(VkInstance, Handle, (), ()) {
+
+    VkInstance Instance::Handle() {
         return m_Handle;
+    }
+
+    Ref<Device> Instance::CreateBestDevice() {
+        auto devices = GetCompatibleDevices();
+        DE_ASSERT(!devices.empty(), "Failed to find compatible vulkan device");
+        return Ref<Device>(new Device(devices.front(), shared_from_this()));
+    }
+
+    uint32_t Instance::GetDeviceCount() {
+        uint32_t deviceCount = 0;
+        vkEnumeratePhysicalDevices(m_Handle, &deviceCount, nullptr);
+        return deviceCount;
+    }
+
+    std::vector<VkPhysicalDevice> Instance::GetAllDevices() {
+        uint32_t                      deviceCount = GetDeviceCount();
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        vkEnumeratePhysicalDevices(m_Handle, &deviceCount, devices.data());
+        return devices;
+    }
+
+    std::vector<VkPhysicalDevice> Instance::GetCompatibleDevices() {
+        std::vector<VkPhysicalDevice> compatibleDevices;
+        auto                          allDevices = GetAllDevices();
+        for (const auto& device : allDevices) {
+            if (Helpers::CheckDevice(m_Handle, device)) {
+                compatibleDevices.push_back(device);
+            }
+        }
+        return compatibleDevices;
     }
 
 }  // namespace Vulkan

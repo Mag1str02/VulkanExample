@@ -3,14 +3,22 @@
 #include "Instance.h"
 
 namespace Vulkan {
-    class Debugger : public Singleton<Debugger> {
-        SINGLETON(Debugger);
-
+    class Debugger {
     public:
-        S_METHOD_DEF(VkBool32, OnMessage, (const std::string& msg));
+        NO_COPY_CONSTRUCTORS(Debugger);
+        NO_MOVE_CONSTRUCTORS(Debugger);
+
+        static Ref<Debugger>                      Create(Ref<Instance> instance);
+        static VkDebugUtilsMessengerCreateInfoEXT GenCreateInfo();
+
+        VkBool32 OnMessage(const std::string& msg);
+        ~Debugger();
 
     private:
-        VkDebugUtilsMessengerEXT m_DebugMessanger = VK_NULL_HANDLE;
+        Debugger() = default;
+
+        VkDebugUtilsMessengerEXT m_Handle   = VK_NULL_HANDLE;
+        Ref<Instance>            m_Instance = nullptr;
     };
-    VkDebugUtilsMessengerCreateInfoEXT GenDebuggerCreateInfo();
+
 }  // namespace Vulkan

@@ -7,78 +7,12 @@
 #include <vector>
 
 #include "Debugger.h"
+#include "Helpers.h"
 #include "Instance.h"
-#include "Config.h"
 #include "Utils/Assert.h"
+#include "Window.h"
 
 namespace {
-    static const std::vector<const char*> s_DeviceExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-    };
-
-    std::vector<const char*> GetRequiredDeviceExtensions() {
-        return s_DeviceExtensions;
-    }
-
-    std::unordered_set<std::string> FindUnsupportedDeviceExtension(VkPhysicalDevice device) {
-        uint32_t extensionCount;
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-        std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-
-        auto                            requiredExtensions = GetRequiredDeviceExtensions();
-        std::unordered_set<std::string> unsupportedExtensions(requiredExtensions.begin(), requiredExtensions.end());
-        for (const auto& extension : availableExtensions) {
-            unsupportedExtensions.erase(extension.extensionName);
-        }
-
-        return unsupportedExtensions;
-    }
-
-    VkPhysicalDeviceProperties GetDeviceProperties(VkPhysicalDevice device) {
-        VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties(device, &deviceProperties);
-        return deviceProperties;
-    }
-
-    struct QueueFamilyIndices {
-        std::optional<uint32_t> m_GraphicsFamily;
-        std::optional<uint32_t> m_PresentFamily;
-
-        std::unordered_set<uint32_t> GetUniqueQueueIndicies() const {
-            std::unordered_set<uint32_t> res;
-            if (m_GraphicsFamily) {
-                res.insert(*m_GraphicsFamily);
-            }
-            if (m_PresentFamily) {
-                res.insert(*m_PresentFamily);
-            }
-            return res;
-        }
-    };
-
-    QueueFamilyIndices GetDeviceQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
-        QueueFamilyIndices indices;
-
-        uint32_t queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-        std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-        for (uint32_t i = 0; i < queueFamilies.size(); ++i) {
-            const auto& props = queueFamilies[i];
-            if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                indices.m_GraphicsFamily = i;
-            }
-            VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-            if (presentSupport) {
-                indices.m_PresentFamily = i;
-            }
-        }
-
-        return indices;
-    }
 
     VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
         for (const auto& availableFormat : availableFormats) {
@@ -138,39 +72,6 @@ namespace {
 
         return details;
     }
-
-    bool CheckDevice(VkPhysicalDevice device, VkSurfaceKHR surface) {
-        {
-            auto deviceProperties = GetDeviceProperties(device);
-            if (deviceProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-                return false;
-            }
-        }
-        {
-            auto queueFamilies = GetDeviceQueueFamilies(device, surface);
-            if (!queueFamilies.m_GraphicsFamily || !queueFamilies.m_PresentFamily) {
-                return false;
-            }
-        }
-        {
-            auto unsupportedExtensions = FindUnsupportedDeviceExtension(device);
-            if (!unsupportedExtensions.empty()) {
-                return false;
-            }
-        }
-        {
-            auto swapChainSupportDetails = GetSwapChainSupportDetails(device, surface);
-            if (swapChainSupportDetails.m_SurfaceFormats.empty()) {
-                return false;
-            }
-            if (swapChainSupportDetails.m_PresentationModes.empty()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
 }  // namespace
 
 Application::Application() {
@@ -185,7 +86,7 @@ Application::~Application() {
 }
 void Application::Run() {
     OnStartUp();
-    while (!glfwWindowShouldClose(m_Window)) {
+    while (!m_Window->ShouldClose()) {
         Loop();
     }
     OnShutDown();
@@ -199,95 +100,35 @@ void Application::Loop() {
 void Application::InitGLFW() {
     glfwInit();
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-    m_Window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
-    DE_ASSERT(m_Window, "Failed to create Vulkan Window");
+    m_Window = Window::Create();
 }
 void Application::TerminateGLFW() {
-    glfwDestroyWindow(m_Window);
-
+    m_Window = nullptr;
     glfwTerminate();
 }
 
 void Application::InitVulkan() {
-    // Check prerequirements
+    m_Renderer = CreateScope<Vulkan::Renderer>();
+    m_Window->SetInstance(m_Renderer->GetInstance());
 
-    auto requitredLayers = Vulkan::Config::GetRequiredLayers();
+    auto requitredLayers = Vulkan::Helpers::GetRequiredLayers();
 
-    Vulkan::Instance::Initialize();
-    Vulkan::Debugger::Initialize();
-
-    // Create surface
-    {
-        auto res = glfwCreateWindowSurface(Vulkan::Instance::Handle(), m_Window, nullptr, &m_Surface);
-        DE_ASSERT(res == VK_SUCCESS, "Failed to create window surface");
-    }
-
-    // Create device
-    {
-        uint32_t deviceCount = 0;
-        vkEnumeratePhysicalDevices(Vulkan::Instance::Handle(), &deviceCount, nullptr);
-        DE_ASSERT(deviceCount != 0, "Failed to find any GPU with vulkan support");
-        std::vector<VkPhysicalDevice> devices(deviceCount), sutableDevices;
-        vkEnumeratePhysicalDevices(Vulkan::Instance::Handle(), &deviceCount, devices.data());
-
-        for (const auto& device : devices) {
-            if (CheckDevice(device, m_Surface)) {
-                auto props = GetDeviceProperties(device);
-                std::cout << "VK: "
-                          << "Found sutable GPU: " << props.deviceName << std::endl;
-                sutableDevices.push_back(device);
-            }
-        }
-        m_PhysicalDevice = sutableDevices.front();  // TODO: pick best gpu from sutable gpu
-        DE_ASSERT(m_PhysicalDevice != VK_NULL_HANDLE, "Failed to find sutable GPU");
-    }
-    auto queueFamilies = GetDeviceQueueFamilies(m_PhysicalDevice, m_Surface);
+    auto queueFamilies = Vulkan::Helpers::GetDeviceQueueFamilies(m_Renderer->GetInstanceHandle(), m_Renderer->GetPhysicalDevice());
 
     // Create logic device
     {
-        float priority           = 1.0f;
-        auto  uniqueQueues       = queueFamilies.GetUniqueQueueIndicies();
-        auto  requiredExtensions = GetRequiredDeviceExtensions();
-
-        std::vector<VkDeviceQueueCreateInfo> queuesCreateInfo;
-        for (const auto& queue : uniqueQueues) {
-            VkDeviceQueueCreateInfo createInfo{};
-            createInfo.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-            createInfo.queueFamilyIndex = queue;
-            createInfo.queueCount       = 1;
-            createInfo.pQueuePriorities = &priority;
-            queuesCreateInfo.push_back(createInfo);
-        }
-
-        VkPhysicalDeviceFeatures deviceFeatures{};
-
-        VkDeviceCreateInfo createInfo{};
-        createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pQueueCreateInfos       = queuesCreateInfo.data();
-        createInfo.queueCreateInfoCount    = uniqueQueues.size();
-        createInfo.pEnabledFeatures        = &deviceFeatures;
-        createInfo.enabledLayerCount       = requitredLayers.size();
-        createInfo.ppEnabledLayerNames     = requitredLayers.data();
-        createInfo.enabledExtensionCount   = requiredExtensions.size();
-        createInfo.ppEnabledExtensionNames = requiredExtensions.data();
-
-        auto res = vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicDevice);
-        DE_ASSERT(m_PhysicalDevice != VK_NULL_HANDLE, "Failed to create logic device");
-        vkGetDeviceQueue(m_LogicDevice, *queueFamilies.m_GraphicsFamily, 0, &m_GraphicsQueue);
-        vkGetDeviceQueue(m_LogicDevice, *queueFamilies.m_PresentFamily, 0, &m_PresentQueue);
+        vkGetDeviceQueue(m_Renderer->GetLogicDevice(), *queueFamilies.m_GraphicsFamily, 0, &m_GraphicsQueue);
+        vkGetDeviceQueue(m_Renderer->GetLogicDevice(), *queueFamilies.m_PresentFamily, 0, &m_PresentQueue);
 
         m_GraphicsQueueFamilyIndex = *queueFamilies.m_GraphicsFamily;
     }
 
     // Setup swapchain
     {
-        SwapChainSupportDetails swapChainSupport = GetSwapChainSupportDetails(m_PhysicalDevice, m_Surface);
+        SwapChainSupportDetails swapChainSupport = GetSwapChainSupportDetails(m_Renderer->GetPhysicalDevice(), m_Window->Surface());
         VkSurfaceFormatKHR      surfaceFormat    = ChooseSwapSurfaceFormat(swapChainSupport.m_SurfaceFormats);
         VkPresentModeKHR        presentMode      = ChooseSwapPresentMode(swapChainSupport.m_PresentationModes);
-        VkExtent2D              extent           = ChooseSwapExtent(swapChainSupport.m_Capabilities, m_Window);
+        VkExtent2D              extent           = ChooseSwapExtent(swapChainSupport.m_Capabilities, m_Window->Handle());
 
         uint32_t minImageCount = swapChainSupport.m_Capabilities.minImageCount;
         uint32_t maxImageCount = swapChainSupport.m_Capabilities.maxImageCount;
@@ -295,7 +136,7 @@ void Application::InitVulkan() {
 
         VkSwapchainCreateInfoKHR createInfo{};
         createInfo.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        createInfo.surface          = m_Surface;
+        createInfo.surface          = m_Window->Surface();
         createInfo.minImageCount    = imageCount;
         createInfo.imageFormat      = surfaceFormat.format;
         createInfo.imageColorSpace  = surfaceFormat.colorSpace;
@@ -322,16 +163,16 @@ void Application::InitVulkan() {
             createInfo.pQueueFamilyIndices   = nullptr;  // Optional
         }
 
-        auto res = vkCreateSwapchainKHR(m_LogicDevice, &createInfo, nullptr, &m_SwapChain);
+        auto res = vkCreateSwapchainKHR(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_SwapChain);
         DE_ASSERT(res == VK_SUCCESS, "Failed to create swap chain");
     }
 
     // Get swapchain images
     {
         uint32_t imageCount;
-        vkGetSwapchainImagesKHR(m_LogicDevice, m_SwapChain, &imageCount, nullptr);
+        vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &imageCount, nullptr);
         m_SwapChainImages.resize(imageCount);
-        vkGetSwapchainImagesKHR(m_LogicDevice, m_SwapChain, &imageCount, m_SwapChainImages.data());
+        vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &imageCount, m_SwapChainImages.data());
     }
 
     // Get image views
@@ -353,19 +194,15 @@ void Application::InitVulkan() {
             createInfo.subresourceRange.baseArrayLayer = 0;
             createInfo.subresourceRange.layerCount     = 1;
 
-            auto res = vkCreateImageView(m_LogicDevice, &createInfo, nullptr, &m_SwapChainImageViews[i]);
+            auto res = vkCreateImageView(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_SwapChainImageViews[i]);
             DE_ASSERT(res == VK_SUCCESS, "Failed to create image view");
         }
     }
 }
 void Application::TerminateVulkan() {
     for (auto imageView : m_SwapChainImageViews) {
-        vkDestroyImageView(m_LogicDevice, imageView, nullptr);
+        vkDestroyImageView(m_Renderer->GetLogicDevice(), imageView, nullptr);
     }
-    vkDestroySwapchainKHR(m_LogicDevice, m_SwapChain, nullptr);
-    vkDestroyDevice(m_LogicDevice, nullptr);
-    vkDestroySurfaceKHR(Vulkan::Instance::Handle(), m_Surface, nullptr);
-
-    Vulkan::Debugger::Terminate();
-    Vulkan::Instance::Terminate();
+    vkDestroySwapchainKHR(m_Renderer->GetLogicDevice(), m_SwapChain, nullptr);
+    m_Renderer = nullptr;
 }
