@@ -85,29 +85,6 @@ namespace Vulkan::Helpers {
             return deviceProperties;
         }
 
-        struct SwapChainSupportDetails {
-            VkSurfaceCapabilitiesKHR        m_Capabilities;
-            std::vector<VkSurfaceFormatKHR> m_SurfaceFormats;
-            std::vector<VkPresentModeKHR>   m_PresentationModes;
-        };
-
-        SwapChainSupportDetails GetSwapChainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface) {
-            SwapChainSupportDetails details;
-
-            vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.m_Capabilities);
-
-            uint32_t formatCount;
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-            details.m_SurfaceFormats.resize(formatCount);
-            vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.m_SurfaceFormats.data());
-
-            uint32_t presentModeCount;
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-            details.m_PresentationModes.resize(presentModeCount);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.m_PresentationModes.data());
-
-            return details;
-        }
     }  // namespace
 
     QueueFamilyIndices GetDeviceQueueFamilies(VkInstance instance, VkPhysicalDevice device) {
@@ -196,5 +173,23 @@ namespace Vulkan::Helpers {
             }
         }
         return true;
+    }
+
+    SwapChainSupportDetails GetSwapChainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface) {
+        SwapChainSupportDetails details;
+
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.m_Capabilities);
+
+        uint32_t formatCount;
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+        details.m_SurfaceFormats.resize(formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.m_SurfaceFormats.data());
+
+        uint32_t presentModeCount;
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+        details.m_PresentationModes.resize(presentModeCount);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.m_PresentationModes.data());
+
+        return details;
     }
 }  // namespace Vulkan::Helpers

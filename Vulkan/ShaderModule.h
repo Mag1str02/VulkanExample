@@ -8,7 +8,7 @@ namespace Vulkan {
 
     class ShaderModule {
     public:
-        static Result<Ref<ShaderModule>> Create(const std::vector<uint32_t>& shaderCode, VkDevice device);
+        static Ref<ShaderModule> Create(const std::vector<uint32_t>& shaderCode, VkDevice device);
         ~ShaderModule();
 
         NO_COPY_CONSTRUCTORS(ShaderModule);

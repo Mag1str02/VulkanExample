@@ -25,6 +25,10 @@ namespace Vulkan {
         return m_Instance;
     }
 
+    Ref<Device> Renderer::GetDevice() {
+        return m_Device;
+    }
+
     VkDevice Renderer::GetLogicDevice() {
         return m_Device->GetLogicDevice();
     }

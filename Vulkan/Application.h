@@ -6,7 +6,10 @@
 
 #include <vector>
 
+#include "Device.h"
 #include "Renderer.h"
+#include "SwapChain.h"
+
 
 class Application {
 public:
@@ -29,14 +32,9 @@ private:
     void TerminateVulkan();
 
 protected:
-    Scope<Vulkan::Renderer> m_Renderer;
-    Ref<Window>             m_Window;
-    VkSwapchainKHR          m_SwapChain     = VK_NULL_HANDLE;
+    Ref<Window>            m_Window;
+    Ref<Vulkan::Renderer>  m_Renderer;
+    Ref<Vulkan::SwapChain> m_SwapChain;
 
-    uint32_t m_GraphicsQueueFamilyIndex;
-
-    std::vector<VkImage>     m_SwapChainImages;
     std::vector<VkImageView> m_SwapChainImageViews;
-    VkFormat                 m_SwapChainImageFormat;
-    VkExtent2D               m_SwapChainExtent;
 };

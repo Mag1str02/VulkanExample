@@ -10,10 +10,8 @@ public:
     static Ref<Window> Create();
     ~Window();
 
-    bool         ShouldClose() const;
-    void         SetInstance(Ref<Vulkan::Instance> instnace);
-    GLFWwindow*  Handle();
-    VkSurfaceKHR Surface() const;
+    bool        ShouldClose() const;
+    GLFWwindow* Handle();
 
     NO_COPY_CONSTRUCTORS(Window);
     NO_MOVE_CONSTRUCTORS(Window);
@@ -21,7 +19,5 @@ public:
 private:
     Window();
 
-    Ref<Vulkan::Instance> m_Instance      = nullptr;
-    GLFWwindow*           m_WindowHandle  = nullptr;
-    VkSurfaceKHR          m_SurfaceHandle = VK_NULL_HANDLE;
+    GLFWwindow* m_WindowHandle = nullptr;
 };

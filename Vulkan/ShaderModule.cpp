@@ -4,7 +4,7 @@ namespace Vulkan {
 
     DEFAULT_MOVE_CONSTRUCTORS_IMPL(ShaderModule);
 
-    Result<Ref<ShaderModule>> ShaderModule::Create(const std::vector<uint32_t>& shaderCode, VkDevice device) {
+    Ref<ShaderModule> ShaderModule::Create(const std::vector<uint32_t>& shaderCode, VkDevice device) {
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         createInfo.codeSize = shaderCode.size() * 4;
@@ -13,7 +13,7 @@ namespace Vulkan {
         VkShaderModule shaderModule;
         auto           res = vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);
         if (res != VK_SUCCESS) {
-            return std::unexpected("Failed to create shader module. Error code: " + std::to_string(res));
+            return {};
         }
         return CreateRef<ShaderModule>(ShaderModule(shaderModule, device));
     }

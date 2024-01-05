@@ -19,6 +19,13 @@ namespace Vulkan {
     private:
         std::unordered_map<Queue::Family, uint32_t> m_Families;
     };
+
+    struct SwapChainSupportDetails {
+        VkSurfaceCapabilitiesKHR        m_Capabilities;
+        std::vector<VkSurfaceFormatKHR> m_SurfaceFormats;
+        std::vector<VkPresentModeKHR>   m_PresentationModes;
+    };
+
 }  // namespace Vulkan
 
 namespace Vulkan::Helpers {
@@ -32,5 +39,7 @@ namespace Vulkan::Helpers {
     bool CheckDevice(VkInstance instance, VkPhysicalDevice device, const QueuesSpecification& specification);
 
     QueueFamilyIndices GetDeviceQueueFamilies(VkInstance instance, VkPhysicalDevice device);
+
+    SwapChainSupportDetails GetSwapChainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface);
 
 }  // namespace Vulkan::Helpers

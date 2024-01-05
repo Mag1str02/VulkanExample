@@ -1,6 +1,6 @@
-#include <Vulkan/Utils/Assert.h>
-#include <Vulkan/ShaderModule.h>
 #include <Vulkan/Application.h>
+#include <Vulkan/ShaderModule.h>
+#include <Vulkan/Utils/Assert.h>
 
 #include "shaders_generated.h"
 
@@ -37,7 +37,8 @@ public:
         vkResetFences(m_Renderer->GetLogicDevice(), 1, &m_InFlightFence);
 
         uint32_t imageIndex;
-        vkAcquireNextImageKHR(m_Renderer->GetLogicDevice(), m_SwapChain, UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+        vkAcquireNextImageKHR(
+            m_Renderer->GetLogicDevice(), m_SwapChain->Handle(), UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
         vkResetCommandBuffer(m_CommandBuffer, 0);
         RecordCommandBuffer(m_CommandBuffer, imageIndex);
 
@@ -63,7 +64,7 @@ public:
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores    = signalSemaphores;
 
-        VkSwapchainKHR swapChains[] = {m_SwapChain};
+        VkSwapchainKHR swapChains[] = {m_SwapChain->Handle()};
         presentInfo.swapchainCount  = 1;
         presentInfo.pSwapchains     = swapChains;
         presentInfo.pImageIndices   = &imageIndex;
@@ -101,24 +102,24 @@ private:
         renderPassInfo.renderPass        = m_RenderPass;
         renderPassInfo.framebuffer       = m_SwapChainFramebuffers[imageIndex];
         renderPassInfo.renderArea.offset = {0, 0};
-        renderPassInfo.renderArea.extent = m_SwapChainExtent;
-        renderPassInfo.clearValueCount = 1;
-        renderPassInfo.pClearValues    = &clearColor;
+        renderPassInfo.renderArea.extent = m_SwapChain->GetExtent();
+        renderPassInfo.clearValueCount   = 1;
+        renderPassInfo.pClearValues      = &clearColor;
         vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline);
         VkViewport viewport{};
         viewport.x        = 0.0f;
         viewport.y        = 0.0f;
-        viewport.width    = static_cast<float>(m_SwapChainExtent.width);
-        viewport.height   = static_cast<float>(m_SwapChainExtent.height);
+        viewport.width    = static_cast<float>(m_SwapChain->GetExtent().width);
+        viewport.height   = static_cast<float>(m_SwapChain->GetExtent().height);
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
         VkRect2D scissor{};
         scissor.offset = {0, 0};
-        scissor.extent = m_SwapChainExtent;
+        scissor.extent = m_SwapChain->GetExtent();
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
@@ -137,8 +138,8 @@ private:
             framebufferInfo.renderPass      = m_RenderPass;
             framebufferInfo.attachmentCount = attachments.size();
             framebufferInfo.pAttachments    = attachments.data();
-            framebufferInfo.width           = m_SwapChainExtent.width;
-            framebufferInfo.height          = m_SwapChainExtent.height;
+            framebufferInfo.width           = m_SwapChain->GetExtent().width;
+            framebufferInfo.height          = m_SwapChain->GetExtent().height;
             framebufferInfo.layers          = 1;
 
             VkFramebuffer frameBuffer;
@@ -150,7 +151,7 @@ private:
             VkCommandPoolCreateInfo poolInfo{};
             poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
             poolInfo.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-            poolInfo.queueFamilyIndex = m_GraphicsQueueFamilyIndex;
+            poolInfo.queueFamilyIndex = *(m_Renderer->GetDevice()->GetFamilyIndex(Queue::Family::Graphics));
             auto res                  = vkCreateCommandPool(m_Renderer->GetLogicDevice(), &poolInfo, nullptr, &m_CommandPool);
             DE_ASSERT(res == VK_SUCCESS, "failed to create command pool!");
         }
@@ -268,7 +269,7 @@ private:
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
         VkAttachmentDescription colorAttachment{};
-        colorAttachment.format         = m_SwapChainImageFormat;
+        colorAttachment.format         = m_SwapChain->GetFormat();
         colorAttachment.samples        = VK_SAMPLE_COUNT_1_BIT;
         colorAttachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
@@ -303,24 +304,22 @@ private:
         auto triangleFragmentCode = GetFragmentShaderCode("Triangle");
         DE_ASSERT(triangleVertCode.has_value(), "Failed");
         DE_ASSERT(triangleFragmentCode.has_value(), "Failed");
-        auto triangleVert = ShaderModule::Create(*triangleVertCode.value(), m_Renderer->GetLogicDevice());
-        auto triangleFrag = ShaderModule::Create(*triangleFragmentCode.value(), m_Renderer->GetLogicDevice());
-        DE_ASSERT(triangleVert.has_value(), "Failed");
-        DE_ASSERT(triangleFrag.has_value(), "Failed");
-        m_TriangleVert = triangleVert.value();
-        m_TriangleFrag = triangleFrag.value();
+        m_TriangleVert = ShaderModule::Create(*triangleVertCode.value(), m_Renderer->GetLogicDevice());
+        m_TriangleFrag = ShaderModule::Create(*triangleFragmentCode.value(), m_Renderer->GetLogicDevice());
+        DE_ASSERT(m_TriangleVert, "Failed");
+        DE_ASSERT(m_TriangleFrag, "Failed");
 
         VkViewport viewport{};
         viewport.x        = 0.0f;
         viewport.y        = 0.0f;
-        viewport.width    = (float)m_SwapChainExtent.width;
-        viewport.height   = (float)m_SwapChainExtent.height;
+        viewport.width    = (float)m_SwapChain->GetExtent().width;
+        viewport.height   = (float)m_SwapChain->GetExtent().height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
 
         VkRect2D scissor{};
         scissor.offset = {0, 0};
-        scissor.extent = m_SwapChainExtent;
+        scissor.extent = m_SwapChain->GetExtent();
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

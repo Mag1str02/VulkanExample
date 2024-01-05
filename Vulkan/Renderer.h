@@ -20,6 +20,7 @@ namespace Vulkan {
         ~Renderer() = default;
 
         Ref<Instance> GetInstance();
+        Ref<Device>   GetDevice();
         Ref<Queue>    GetGraphicsQueue();
         Ref<Queue>    GetPresentationQueue();
 

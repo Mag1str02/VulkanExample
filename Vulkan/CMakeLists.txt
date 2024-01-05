@@ -9,6 +9,7 @@ add_library(VulkanHelpers
     Queue.cpp
     Renderer.cpp
     ShaderModule.cpp
+    SwapChain.cpp
     Window.cpp
 )
 
