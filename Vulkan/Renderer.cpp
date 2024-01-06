@@ -1,11 +1,12 @@
 #include "Renderer.h"
 
-#include "Debugger.h"
-#include "Device.h"
-#include "Helpers.h"
-#include "Instance.h"
-#include "Window.h"
-#include "Queue.h"
+#include "Vulkan/Debugger.h"
+#include "Vulkan/Device.h"
+#include "Vulkan/Helpers.h"
+#include "Vulkan/Instance.h"
+#include "Vulkan/Queue.h"
+#include "Vulkan/Window.h"
+
 
 namespace Vulkan {
 
@@ -16,10 +17,10 @@ namespace Vulkan {
         };
 
         m_Instance          = Instance::Create();
-        m_Debugger          = Debugger::Create(m_Instance);
+        m_Debugger          = m_Instance->CreateDebugger();
         m_Device            = m_Instance->CreateBestDevice(spec);
-        m_GraphicsQueue     = CreateRef<Queue>(m_Device->GetQueue(QueueFamily::Graphics, 0));
-        m_PresentationQueue = CreateRef<Queue>(m_Device->GetQueue(QueueFamily::Presentation, 0));
+        m_GraphicsQueue     = m_Device->GetQueue(QueueFamily::Graphics, 0);
+        m_PresentationQueue = m_Device->GetQueue(QueueFamily::Presentation, 0);
     }
 
     Ref<Instance> Renderer::GetInstance() {
@@ -30,15 +31,15 @@ namespace Vulkan {
         return m_Device;
     }
 
-    VkDevice Renderer::GetLogicDevice() {
+    const VkDevice& Renderer::GetLogicDevice() {
         return m_Device->GetLogicDevice();
     }
 
-    VkPhysicalDevice Renderer::GetPhysicalDevice() {
+    const VkPhysicalDevice& Renderer::GetPhysicalDevice() {
         return m_Device->GetPhysicalDevice();
     }
 
-    VkInstance Renderer::GetInstanceHandle() {
+    const VkInstance& Renderer::GetInstanceHandle() {
         return m_Instance->Handle();
     }
 

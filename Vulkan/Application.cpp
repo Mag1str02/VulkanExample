@@ -6,11 +6,11 @@
 #include <unordered_set>
 #include <vector>
 
-#include "Debugger.h"
-#include "Helpers.h"
-#include "Instance.h"
-#include "Utils/Assert.h"
-#include "Window.h"
+#include "Vulkan/Helpers.h"
+#include "Vulkan/Debugger.h"
+#include "Vulkan/Instance.h"
+#include "Vulkan/Utils/Assert.h"
+#include "Vulkan/Window.h"
 
 namespace {}  // namespace
 
@@ -49,8 +49,9 @@ void Application::TerminateGLFW() {
 
 void Application::InitVulkan() {
     m_Renderer  = CreateRef<Vulkan::Renderer>();
-    m_SwapChain = Vulkan::SwapChain::Create(m_Window, m_Renderer);
+    m_SwapChain = m_Renderer->GetDevice()->CreateSwapChain(m_Window);
 }
+
 void Application::TerminateVulkan() {
     m_SwapChain = nullptr;
     m_Renderer  = nullptr;

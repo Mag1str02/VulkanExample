@@ -31,7 +31,7 @@ namespace Vulkan {
 
     ShaderModule::ShaderModule(VkShaderModule handle, VkDevice device) : m_Handle(handle), m_Device(device) {}
 
-    VkShaderModule ShaderModule::Handle() {
+    const VkShaderModule& ShaderModule::Handle() {
         return m_Handle;
     }
 

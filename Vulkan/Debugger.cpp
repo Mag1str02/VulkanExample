@@ -55,22 +55,20 @@ namespace Vulkan {
         return createInfo;
     }
 
-    Ref<Debugger> Debugger::Create(Ref<Instance> instance) {
+    Debugger::Debugger(Ref<Instance> instance) {
         DE_ASSERT(instance, "Cannot create debugger with nullptr instance");
-        Ref<Debugger> res(new Debugger());
-        res->m_Instance = instance;
+        m_Instance = instance;
 
         auto& mapping = GetDebuggerMapping();
-        DE_ASSERT(!mapping.contains(res->m_Instance.get()), "Cannot create 2 debuggers for same instance");
-        mapping.emplace(res->m_Instance.get(), res.get());
+        DE_ASSERT(!mapping.contains(m_Instance.get()), "Cannot create 2 debuggers for same instance");
+        mapping.emplace(m_Instance.get(), this);
 
 #if DE_VK_ENABLE_VALIDATION_LAYER == 1
         auto debugCreateInfo      = GenCreateInfo();
-        debugCreateInfo.pUserData = res->m_Instance.get();
-        auto result               = CreateDebugUtilsMessengerEXT(res->m_Instance->Handle(), &debugCreateInfo, nullptr, &res->m_Handle);
+        debugCreateInfo.pUserData = m_Instance.get();
+        auto result               = CreateDebugUtilsMessengerEXT(m_Instance->Handle(), &debugCreateInfo, nullptr, &m_Handle);
         DE_ASSERT(result == VK_SUCCESS, "Failed to create debug handler");
 #endif
-        return res;
     }
 
     Debugger::~Debugger() {

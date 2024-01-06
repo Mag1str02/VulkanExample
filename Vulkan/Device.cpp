@@ -1,9 +1,11 @@
 #include "Device.h"
 
-#include "Helpers.h"
-#include "Pipeline.h"
-#include "Queue.h"
-#include "Window.h"
+#include "Vulkan/Helpers.h"
+#include "Vulkan/CommandPool.h"
+#include "Vulkan/Queue.h"
+#include "Vulkan/Pipeline.h"
+#include "Vulkan/SwapChain.h"
+#include "Vulkan/Window.h"
 
 namespace Vulkan {
 
@@ -56,27 +58,41 @@ namespace Vulkan {
 
         auto res = vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicDevice);
         DE_ASSERT(m_PhysicalDevice != VK_NULL_HANDLE, "Failed to create logic device");
+
+        for (const auto& [familyIndex, amount] : actualAmounts) {
+            for (uint32_t i = 0; i < amount; ++i) {
+                VkQueue handle;
+                vkGetDeviceQueue(m_LogicDevice, familyIndex, i, &handle);
+                m_Queues[familyIndex].emplace_back(Ref<Queue>(new Queue(handle, familyIndex)));
+            }
+        }
     }
 
     Device::~Device() {
+        for (const auto& [_, queues] : m_Queues) {
+            for (const auto& queue : queues) {
+                queue->Invalidate();
+            }
+        }
         vkDestroyDevice(m_LogicDevice, nullptr);
     }
 
-    VkDevice Device::GetLogicDevice() {
+    const VkDevice& Device::GetLogicDevice() {
         return m_LogicDevice;
     }
-    VkPhysicalDevice Device::GetPhysicalDevice() {
+    const VkPhysicalDevice& Device::GetPhysicalDevice() {
         return m_PhysicalDevice;
     }
-    Queue Device::GetQueue(QueueFamily queueFamily, uint32_t queueIndex) {
+    Ref<Queue> Device::GetQueue(QueueFamily queueFamily, uint32_t queueIndex) {
         auto familySize  = GetFamilySize(queueFamily);
         auto familyIndex = m_QueueFamilyIndicies.GetFamilyIndex(queueFamily);
         DE_ASSERT(familyIndex, "Bad family");
         DE_ASSERT(queueIndex < familySize, "Bad queue index");
 
-        VkQueue handle;
-        vkGetDeviceQueue(m_LogicDevice, *familyIndex, queueIndex, &handle);
-        return Queue(shared_from_this(), handle);
+        return m_Queues.at(*familyIndex).at(queueIndex);
+    }
+    Ref<Instance> Device::GetInstance() {
+        return m_Instance;
     }
 
     std::optional<uint32_t> Device::GetFamilyIndex(QueueFamily family) const {
@@ -90,7 +106,15 @@ namespace Vulkan {
         return 0;
     }
 
+    Ref<SwapChain> Device::CreateSwapChain(Ref<Window> window) {
+        return Ref<SwapChain>(new SwapChain(window, shared_from_this()));
+    }
     Ref<Pipeline> Device::CreatePipeline(const PipelineSpecification& spec) {
         return Ref<Pipeline>(new Pipeline(shared_from_this(), spec));
+    }
+    Ref<CommandPool> Device::CreateCommandPool(QueueFamily family) {
+        auto familyIndex = GetFamilyIndex(family);
+        DE_ASSERT(familyIndex, "Bad family");
+        return Ref<CommandPool>(new CommandPool(shared_from_this(), *familyIndex));
     }
 }  // namespace Vulkan

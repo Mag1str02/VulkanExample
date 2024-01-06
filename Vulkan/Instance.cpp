@@ -1,9 +1,9 @@
 #include "Instance.h"
 
-#include "Debugger.h"
-#include "Device.h"
-#include "Helpers.h"
-#include "Window.h"
+#include "Vulkan/Helpers.h"
+#include "Vulkan/Debugger.h"
+#include "Vulkan/Device.h"
+#include "Vulkan/Window.h"
 
 namespace Vulkan {
 
@@ -46,7 +46,7 @@ namespace Vulkan {
         vkDestroyInstance(m_Handle, nullptr);
     }
 
-    VkInstance Instance::Handle() {
+    const VkInstance& Instance::Handle() {
         return m_Handle;
     }
 
@@ -54,6 +54,9 @@ namespace Vulkan {
         auto devices = GetCompatibleDevices(specification);
         DE_ASSERT(!devices.empty(), "Failed to find compatible vulkan device");
         return Ref<Device>(new Device(devices.front(), shared_from_this(), specification));
+    }
+    Ref<Debugger> Instance::CreateDebugger() {
+        return Ref<Debugger>(new Debugger(shared_from_this()));
     }
 
     uint32_t Instance::GetDeviceCount() {

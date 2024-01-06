@@ -1,7 +1,9 @@
-add_library(VulkanHelpers 
+add_library(VulkanHelpers
     Utils/Assert.cpp
 
     Application.cpp
+    CommandBuffer.cpp
+    CommandPool.cpp
     Debugger.cpp
     Device.cpp
     Helpers.cpp

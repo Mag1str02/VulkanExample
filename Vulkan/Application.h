@@ -4,12 +4,13 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 
-#include "Device.h"
-#include "Helpers.h"
-#include "Pipeline.h"
-#include "Queue.h"
-#include "Renderer.h"
-#include "SwapChain.h"
+#include "Vulkan/Device.h"
+#include "Vulkan/Pipeline.h"
+#include "Vulkan/Queue.h"
+#include "Vulkan/Renderer.h"
+#include "Vulkan/SwapChain.h"
+#include "Vulkan/CommandBuffer.h"
+#include "Vulkan/CommandPool.h"
 
 class Application {
 public:

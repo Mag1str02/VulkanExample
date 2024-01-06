@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Common.h"
+#include "Vulkan/Common.h"
 
 namespace Vulkan {
 
@@ -10,7 +10,7 @@ namespace Vulkan {
     public:
         ~Pipeline();
 
-        VkPipeline Handle();
+        const VkPipeline& Handle();
 
         NO_COPY_CONSTRUCTORS(Pipeline);
         NO_MOVE_CONSTRUCTORS(Pipeline);

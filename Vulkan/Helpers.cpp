@@ -33,6 +33,7 @@ namespace Vulkan::Helpers {
         VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
         VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
         VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+        VK_EXT_SHADER_OBJECT_EXTENSION_NAME,
     };
     static const std::vector<const char*> s_InstanceExtensions = {};
 
@@ -124,9 +125,9 @@ namespace Vulkan::Helpers {
         std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
         extensions.insert(extensions.end(), s_InstanceExtensions.begin(), s_InstanceExtensions.end());
 
-        if (DE_VK_ENABLE_VALIDATION_LAYER) {
-            extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        }
+#if DE_VK_ENABLE_VALIDATION_LAYER == 1
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+#endif
 
         return extensions;
     }

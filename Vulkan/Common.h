@@ -2,13 +2,15 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Base.h"
+#include "Vulkan/Base.h"
 
 #define VK_CHECK(...)                               \
     {                                               \
         auto res = __VA_ARGS__;                     \
         DE_ASSERT(res == VK_SUCCESS, #__VA_ARGS__); \
     }
+
+class Window;
 
 namespace Vulkan {
     class ShaderModule;
@@ -19,6 +21,8 @@ namespace Vulkan {
     class Debugger;
     class Pipeline;
     class Renderer;
+    class CommandPool;
+    class CommandBuffer;
 
     enum class QueueFamily {
         Unknown = 0,

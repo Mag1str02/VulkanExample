@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Base.h"
-#include "Instance.h"
+#include "Vulkan/Base.h"
+#include "Vulkan/Instance.h"
 
 class GLFWwindow;
 
@@ -19,5 +19,6 @@ public:
 private:
     Window();
 
+private:
     GLFWwindow* m_WindowHandle = nullptr;
 };

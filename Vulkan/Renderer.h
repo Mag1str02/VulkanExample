@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Common.h"
+#include "Vulkan/Common.h"
 
 class Window;
 
@@ -18,9 +18,9 @@ namespace Vulkan {
         Ref<Queue>    GetGraphicsQueue();
         Ref<Queue>    GetPresentationQueue();
 
-        VkInstance       GetInstanceHandle();
-        VkDevice         GetLogicDevice();
-        VkPhysicalDevice GetPhysicalDevice();
+        const VkInstance&       GetInstanceHandle();
+        const VkDevice&         GetLogicDevice();
+        const VkPhysicalDevice& GetPhysicalDevice();
 
         NO_COPY_CONSTRUCTORS(Renderer);
         NO_MOVE_CONSTRUCTORS(Renderer);

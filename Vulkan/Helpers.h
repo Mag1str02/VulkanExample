@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Common.h"
+#include "Vulkan/Common.h"
 
 namespace Vulkan::Helpers {
 

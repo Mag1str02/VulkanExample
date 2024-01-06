@@ -1,7 +1,7 @@
 #include "Pipeline.h"
 
-#include "Device.h"
-#include "ShaderModule.h"
+#include "Vulkan/Device.h"
+#include "Vulkan/ShaderModule.h"
 
 namespace Vulkan {
 
@@ -145,7 +145,7 @@ namespace Vulkan {
         VK_CHECK(vkCreateGraphicsPipelines(m_Device->GetLogicDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline));
     }
 
-    VkPipeline Pipeline::Handle() {
+    const VkPipeline& Pipeline::Handle() {
         return m_Pipeline;
     }
 

@@ -2,21 +2,28 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Common.h"
+#include "Vulkan/Common.h"
 
 namespace Vulkan {
 
     class Queue {
     public:
-        VkQueue Handle();
+        ~Queue() = default;
+
+        const VkQueue& Handle();
+        uint32_t       FamilyIndex() const;
+
+    private:
+        Queue(VkQueue handle, uint32_t familyIndex);
+        void Invalidate();
 
     private:
         friend class Device;
 
-        Queue(Ref<Device> device, VkQueue handle);
-
-        VkQueue     m_Handle = VK_NULL_HANDLE;
-        Ref<Device> m_Device = nullptr;
+        std::mutex m_Mutex;
+        VkQueue    m_Handle      = VK_NULL_HANDLE;
+        uint32_t   m_FamilyIndex = 0;
+        bool       m_Valid       = true;
     };
 
 }  // namespace Vulkan

@@ -2,10 +2,13 @@
 
 #include <GLFW/glfw3.h>
 
-#include "Device.h"
-#include "Renderer.h"
+#include "Vulkan/Device.h"
+#include "Vulkan/Helpers.h"
+#include "Vulkan/Instance.h"
+#include "Vulkan/Renderer.h"
 #include "Vulkan/Utils/Assert.h"
-#include "Window.h"
+#include "Vulkan/Window.h"
+
 
 namespace Vulkan {
 
@@ -46,20 +49,16 @@ namespace Vulkan {
         }
     }  // namespace
 
-    Ref<SwapChain> SwapChain::Create(Ref<Window> window, Ref<Renderer> renderer) {
-        return Ref<SwapChain>(new SwapChain(window, renderer));
-    }
-
-    SwapChain::SwapChain(Ref<Window> window, Ref<Renderer> renderer) {
+    SwapChain::SwapChain(Ref<Window> window, Ref<Device> device) {
         DE_ASSERT(window, "Bad window");
-        DE_ASSERT(renderer, "Bad renderer");
+        DE_ASSERT(device, "Bad device");
 
-        m_Window   = window;
-        m_Renderer = renderer;
+        m_Window = window;
+        m_Device = device;
 
-        auto res = glfwCreateWindowSurface(m_Renderer->GetInstanceHandle(), m_Window->Handle(), nullptr, &m_Surface);
+        auto res = glfwCreateWindowSurface(m_Device->GetInstance()->Handle(), m_Window->Handle(), nullptr, &m_Surface);
         DE_ASSERT(res == VK_SUCCESS, "Failed to create window surface");
-        m_Details = Helpers::GetSwapChainSupportDetails(m_Renderer->GetPhysicalDevice(), m_Surface);
+        m_Details = Helpers::GetSwapChainSupportDetails(m_Device->GetPhysicalDevice(), m_Surface);
 
         int width, height;
         glfwGetFramebufferSize(m_Window->Handle(), &width, &height);
@@ -109,8 +108,7 @@ namespace Vulkan {
         createInfo.clipped          = VK_TRUE;
         createInfo.oldSwapchain     = VK_NULL_HANDLE;
 
-        const auto& device               = *m_Renderer->GetDevice();
-        uint32_t    queueFamilyIndices[] = {*device.GetFamilyIndex(QueueFamily::Graphics), *device.GetFamilyIndex(QueueFamily::Presentation)};
+        uint32_t queueFamilyIndices[] = {*m_Device->GetFamilyIndex(QueueFamily::Graphics), *m_Device->GetFamilyIndex(QueueFamily::Presentation)};
         if (queueFamilyIndices[0] != queueFamilyIndices[1]) {
             createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
             createInfo.queueFamilyIndexCount = 2;
@@ -121,14 +119,14 @@ namespace Vulkan {
             createInfo.pQueueFamilyIndices   = nullptr;  // Optional
         }
 
-        VK_CHECK(vkCreateSwapchainKHR(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_SwapChain));
+        VK_CHECK(vkCreateSwapchainKHR(m_Device->GetLogicDevice(), &createInfo, nullptr, &m_SwapChain));
 
         {
             uint32_t actualImageCount;
-            VK_CHECK(vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, nullptr));
+            VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actualImageCount, nullptr));
             DE_ASSERT(actualImageCount == imageCount, "Bad image count");
             m_Images.resize(actualImageCount);
-            VK_CHECK(vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, m_Images.data()));
+            VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actualImageCount, m_Images.data()));
         }
 
         m_ImageViews.resize(imageCount);
@@ -147,26 +145,26 @@ namespace Vulkan {
             createInfo.subresourceRange.levelCount     = 1;
             createInfo.subresourceRange.baseArrayLayer = 0;
             createInfo.subresourceRange.layerCount     = 1;
-            VK_CHECK(vkCreateImageView(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_ImageViews[i]));
+            VK_CHECK(vkCreateImageView(m_Device->GetLogicDevice(), &createInfo, nullptr, &m_ImageViews[i]));
         }
     }
 
     SwapChain::~SwapChain() {
         for (auto imageView : m_ImageViews) {
-            vkDestroyImageView(m_Renderer->GetLogicDevice(), imageView, nullptr);
+            vkDestroyImageView(m_Device->GetLogicDevice(), imageView, nullptr);
         }
-        vkDestroySwapchainKHR(m_Renderer->GetLogicDevice(), m_SwapChain, nullptr);
-        vkDestroySurfaceKHR(m_Renderer->GetInstanceHandle(), m_Surface, nullptr);
+        vkDestroySwapchainKHR(m_Device->GetLogicDevice(), m_SwapChain, nullptr);
+        vkDestroySurfaceKHR(m_Device->GetInstance()->Handle(), m_Surface, nullptr);
     }
 
-    VkSwapchainKHR SwapChain::Handle() {
+    const VkSwapchainKHR& SwapChain::Handle() {
         return m_SwapChain;
     }
-    VkImage SwapChain::GetImage(uint32_t index) {
+    const VkImage& SwapChain::GetImage(uint32_t index) {
         DE_ASSERT(index < m_Images.size(), "Bad index");
         return m_Images[index];
     }
-    VkImageView SwapChain::GetImageView(uint32_t index) {
+    const VkImageView& SwapChain::GetImageView(uint32_t index) {
         DE_ASSERT(index < m_Images.size(), "Bad index");
         return m_ImageViews[index];
     }
