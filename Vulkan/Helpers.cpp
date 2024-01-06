@@ -2,6 +2,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "vulkan/vulkan_core.h"
+
 namespace Vulkan {
     std::unordered_set<uint32_t> QueueFamilyIndices::GetUniqueIndicies() const {
         std::unordered_set<uint32_t> res;
@@ -29,6 +31,9 @@ namespace Vulkan::Helpers {
     };
     static const std::vector<const char*> s_DeviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+        VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
+        VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
     };
     static const std::vector<const char*> s_InstanceExtensions = {};
 

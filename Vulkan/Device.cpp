@@ -37,6 +37,11 @@ namespace Vulkan {
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
+        constexpr VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{
+            .sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
+            .dynamicRendering = VK_TRUE,
+        };
+
         VkDeviceCreateInfo createInfo{};
         createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         createInfo.pQueueCreateInfos       = queuesCreateInfo.data();
@@ -46,6 +51,7 @@ namespace Vulkan {
         createInfo.ppEnabledLayerNames     = requiredLayers.data();
         createInfo.enabledExtensionCount   = requiredExtensions.size();
         createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+        createInfo.pNext                   = &dynamicRenderingFeature;
 
         auto res = vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicDevice);
         DE_ASSERT(m_PhysicalDevice != VK_NULL_HANDLE, "Failed to create logic device");
