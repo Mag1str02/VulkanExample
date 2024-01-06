@@ -2,14 +2,12 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Base.h"
+#include "Common.h"
 #include "Helpers.h"
-#include "Queue.h"
 
 class Window;
 
 namespace Vulkan {
-    class Instance;
 
     class Device : public std::enable_shared_from_this<Device> {
     public:
@@ -18,17 +16,18 @@ namespace Vulkan {
 
         ~Device();
 
-        VkDevice         GetLogicDevice();
-        VkPhysicalDevice GetPhysicalDevice();
-        Queue            GetQueue(Queue::Family queueFamily, uint32_t queueIndex);
+        VkDevice                GetLogicDevice();
+        VkPhysicalDevice        GetPhysicalDevice();
+        Queue                   GetQueue(QueueFamily queueFamily, uint32_t queueIndex);
+        std::optional<uint32_t> GetFamilyIndex(QueueFamily family) const;
 
-        std::optional<uint32_t> GetFamilyIndex(Queue::Family family) const;
+        Ref<Pipeline> CreatePipeline(const PipelineSpecification& spec);
 
     private:
         friend class Instance;
 
         Device(VkPhysicalDevice device, Ref<Instance> instance, const QueuesSpecification& specification);
-        uint32_t GetFamilySize(Queue::Family family) const;
+        uint32_t GetFamilySize(QueueFamily family) const;
 
         QueuesSpecification m_QueueSpecification;
         QueueFamilyIndices  m_QueueFamilyIndicies;

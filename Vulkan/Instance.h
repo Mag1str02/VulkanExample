@@ -2,15 +2,12 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Base.h"
-#include "Helpers.h"
+#include "Common.h"
 #include "Utils/Singleton.h"
 
 class Window;
 
 namespace Vulkan {
-    class Device;
-
     class Instance : public std::enable_shared_from_this<Instance> {
     public:
         static Ref<Instance> Create();

@@ -14,7 +14,7 @@ namespace Vulkan {
         NO_COPY_CONSTRUCTORS(ShaderModule);
         MOVE_CONSTRUCTORS(ShaderModule);
 
-        VkPipelineShaderStageCreateInfo GetShaderStage(VkShaderStageFlagBits stage);
+        VkShaderModule Handle();
 
     private:
         ShaderModule(VkShaderModule handle, VkDevice device);

@@ -1,6 +1,8 @@
 #include "Device.h"
 
 #include "Helpers.h"
+#include "Pipeline.h"
+#include "Queue.h"
 #include "Window.h"
 
 namespace Vulkan {
@@ -37,10 +39,9 @@ namespace Vulkan {
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
-        constexpr VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{
-            .sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
-            .dynamicRendering = VK_TRUE,
-        };
+        VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{};
+        dynamicRenderingFeature.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
+        dynamicRenderingFeature.dynamicRendering = VK_TRUE;
 
         VkDeviceCreateInfo createInfo{};
         createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -67,7 +68,7 @@ namespace Vulkan {
     VkPhysicalDevice Device::GetPhysicalDevice() {
         return m_PhysicalDevice;
     }
-    Queue Device::GetQueue(Queue::Family queueFamily, uint32_t queueIndex) {
+    Queue Device::GetQueue(QueueFamily queueFamily, uint32_t queueIndex) {
         auto familySize  = GetFamilySize(queueFamily);
         auto familyIndex = m_QueueFamilyIndicies.GetFamilyIndex(queueFamily);
         DE_ASSERT(familyIndex, "Bad family");
@@ -78,14 +79,18 @@ namespace Vulkan {
         return Queue(shared_from_this(), handle);
     }
 
-    std::optional<uint32_t> Device::GetFamilyIndex(Queue::Family family) const {
+    std::optional<uint32_t> Device::GetFamilyIndex(QueueFamily family) const {
         return m_QueueFamilyIndicies.GetFamilyIndex(family);
     }
 
-    uint32_t Device::GetFamilySize(Queue::Family family) const {
+    uint32_t Device::GetFamilySize(QueueFamily family) const {
         if (auto it = m_QueueSpecification.find(family); it != m_QueueSpecification.end()) {
             return it->second;
         }
         return 0;
+    }
+
+    Ref<Pipeline> Device::CreatePipeline(const PipelineSpecification& spec) {
+        return Ref<Pipeline>(new Pipeline(shared_from_this(), spec));
     }
 }  // namespace Vulkan

@@ -2,17 +2,11 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Base.h"
-#include "Queue.h"
+#include "Common.h"
 
 class Window;
 
 namespace Vulkan {
-
-    class Debugger;
-    class Instance;
-    class Device;
-    class Queue;
 
     class Renderer {
     public:

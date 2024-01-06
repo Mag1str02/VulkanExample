@@ -5,20 +5,21 @@
 #include "Helpers.h"
 #include "Instance.h"
 #include "Window.h"
+#include "Queue.h"
 
 namespace Vulkan {
 
     Renderer::Renderer() {
         QueuesSpecification spec = {
-            {Queue::Family::Graphics,     1},
-            {Queue::Family::Presentation, 1},
+            {QueueFamily::Graphics,     1},
+            {QueueFamily::Presentation, 1},
         };
 
         m_Instance          = Instance::Create();
         m_Debugger          = Debugger::Create(m_Instance);
         m_Device            = m_Instance->CreateBestDevice(spec);
-        m_GraphicsQueue     = CreateRef<Queue>(m_Device->GetQueue(Queue::Family::Graphics, 0));
-        m_PresentationQueue = CreateRef<Queue>(m_Device->GetQueue(Queue::Family::Presentation, 0));
+        m_GraphicsQueue     = CreateRef<Queue>(m_Device->GetQueue(QueueFamily::Graphics, 0));
+        m_PresentationQueue = CreateRef<Queue>(m_Device->GetQueue(QueueFamily::Presentation, 0));
     }
 
     Ref<Instance> Renderer::GetInstance() {

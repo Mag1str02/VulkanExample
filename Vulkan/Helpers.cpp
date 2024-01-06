@@ -1,8 +1,7 @@
 #include "Helpers.h"
 
 #include <GLFW/glfw3.h>
-
-#include "vulkan/vulkan_core.h"
+#include <vulkan/vulkan.h>
 
 namespace Vulkan {
     std::unordered_set<uint32_t> QueueFamilyIndices::GetUniqueIndicies() const {
@@ -12,14 +11,14 @@ namespace Vulkan {
         }
         return res;
     }
-    std::optional<uint32_t> QueueFamilyIndices::GetFamilyIndex(Queue::Family family) const {
+    std::optional<uint32_t> QueueFamilyIndices::GetFamilyIndex(QueueFamily family) const {
         if (auto it = m_Families.find(family); it != m_Families.end()) {
             return it->second;
         }
         return {};
     }
 
-    void QueueFamilyIndices::AddMapping(Queue::Family family, uint32_t index) {
+    void QueueFamilyIndices::AddMapping(QueueFamily family, uint32_t index) {
         m_Families.emplace(family, index);
     }
 
@@ -103,10 +102,10 @@ namespace Vulkan::Helpers {
         for (uint32_t i = 0; i < queueFamilies.size(); ++i) {
             const auto& props = queueFamilies[i];
             if (props.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                indices.AddMapping(Queue::Family::Graphics, i);
+                indices.AddMapping(QueueFamily::Graphics, i);
             }
             if (glfwGetPhysicalDevicePresentationSupport(instance, device, i)) {
-                indices.AddMapping(Queue::Family::Presentation, i);
+                indices.AddMapping(QueueFamily::Presentation, i);
             }
         }
 
@@ -196,5 +195,38 @@ namespace Vulkan::Helpers {
         vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.m_PresentationModes.data());
 
         return details;
+    }
+
+    void InsertImageMemoryBarier(VkCommandBuffer         buffer,
+                                 VkImage                 image,
+                                 VkImageLayout           oldLayout,
+                                 VkImageLayout           newLayout,
+                                 VkPipelineStageFlagBits srcStage,
+                                 VkPipelineStageFlagBits dstStage) {
+        VkImageMemoryBarrier imageMemoryBarrier{};
+        imageMemoryBarrier.sType            = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        imageMemoryBarrier.srcAccessMask    = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        imageMemoryBarrier.oldLayout        = oldLayout;
+        imageMemoryBarrier.newLayout        = newLayout;
+        imageMemoryBarrier.image            = image;
+        imageMemoryBarrier.subresourceRange = {
+            .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel   = 0,
+            .levelCount     = 1,
+            .baseArrayLayer = 0,
+            .layerCount     = 1,
+        };
+
+        vkCmdPipelineBarrier(buffer,
+                             srcStage,  // srcStageMask
+                             dstStage,  // dstStageMask
+                             0,
+                             0,
+                             nullptr,
+                             0,
+                             nullptr,
+                             1,                   // imageMemoryBarrierCount
+                             &imageMemoryBarrier  // pImageMemoryBarriers
+        );
     }
 }  // namespace Vulkan::Helpers

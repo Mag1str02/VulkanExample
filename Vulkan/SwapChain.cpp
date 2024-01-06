@@ -6,7 +6,6 @@
 #include "Renderer.h"
 #include "Vulkan/Utils/Assert.h"
 #include "Window.h"
-#include "vulkan/vulkan_core.h"
 
 namespace Vulkan {
 
@@ -111,7 +110,7 @@ namespace Vulkan {
         createInfo.oldSwapchain     = VK_NULL_HANDLE;
 
         const auto& device               = *m_Renderer->GetDevice();
-        uint32_t    queueFamilyIndices[] = {*device.GetFamilyIndex(Queue::Family::Graphics), *device.GetFamilyIndex(Queue::Family::Presentation)};
+        uint32_t    queueFamilyIndices[] = {*device.GetFamilyIndex(QueueFamily::Graphics), *device.GetFamilyIndex(QueueFamily::Presentation)};
         if (queueFamilyIndices[0] != queueFamilyIndices[1]) {
             createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
             createInfo.queueFamilyIndexCount = 2;
@@ -122,17 +121,40 @@ namespace Vulkan {
             createInfo.pQueueFamilyIndices   = nullptr;  // Optional
         }
 
-        auto res = vkCreateSwapchainKHR(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_SwapChain);
-        DE_ASSERT(res == VK_SUCCESS, "Failed to create swap chain");
+        VK_CHECK(vkCreateSwapchainKHR(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_SwapChain));
 
-        uint32_t actualImageCount;
-        vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, nullptr);
-        DE_ASSERT(actualImageCount == imageCount, "Bad image count");
-        m_Images.resize(actualImageCount);
-        vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, m_Images.data());
+        {
+            uint32_t actualImageCount;
+            VK_CHECK(vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, nullptr));
+            DE_ASSERT(actualImageCount == imageCount, "Bad image count");
+            m_Images.resize(actualImageCount);
+            VK_CHECK(vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, m_Images.data()));
+        }
+
+        m_ImageViews.resize(imageCount);
+        for (size_t i = 0; i < imageCount; i++) {
+            VkImageViewCreateInfo createInfo{};
+            createInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image                           = m_Images[i];
+            createInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+            createInfo.format                          = m_Format.format;
+            createInfo.components.r                    = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g                    = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b                    = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a                    = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+            createInfo.subresourceRange.baseMipLevel   = 0;
+            createInfo.subresourceRange.levelCount     = 1;
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount     = 1;
+            VK_CHECK(vkCreateImageView(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_ImageViews[i]));
+        }
     }
 
     SwapChain::~SwapChain() {
+        for (auto imageView : m_ImageViews) {
+            vkDestroyImageView(m_Renderer->GetLogicDevice(), imageView, nullptr);
+        }
         vkDestroySwapchainKHR(m_Renderer->GetLogicDevice(), m_SwapChain, nullptr);
         vkDestroySurfaceKHR(m_Renderer->GetInstanceHandle(), m_Surface, nullptr);
     }
@@ -144,6 +166,10 @@ namespace Vulkan {
         DE_ASSERT(index < m_Images.size(), "Bad index");
         return m_Images[index];
     }
+    VkImageView SwapChain::GetImageView(uint32_t index) {
+        DE_ASSERT(index < m_Images.size(), "Bad index");
+        return m_ImageViews[index];
+    }
 
     VkFormat SwapChain::GetFormat() const {
         return m_Format.format;
@@ -151,7 +177,7 @@ namespace Vulkan {
     VkExtent2D SwapChain::GetExtent() const {
         return m_Extent;
     }
-    uint32_t SwapChain::GetImageCount() const {
+    uint32_t SwapChain::Size() const {
         return m_Images.size();
     }
 

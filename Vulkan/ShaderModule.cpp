@@ -23,15 +23,6 @@ namespace Vulkan {
         std::swap(m_Device, other.m_Device);
     }
 
-    VkPipelineShaderStageCreateInfo ShaderModule::GetShaderStage(VkShaderStageFlagBits stage) {
-        VkPipelineShaderStageCreateInfo shaderStageInfo{};
-        shaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        shaderStageInfo.stage  = stage;
-        shaderStageInfo.module = m_Handle;
-        shaderStageInfo.pName  = "main";
-        return shaderStageInfo;
-    }
-
     ShaderModule::~ShaderModule() {
         if (m_Handle != VK_NULL_HANDLE) {
             vkDestroyShaderModule(m_Device, m_Handle, nullptr);
@@ -39,5 +30,9 @@ namespace Vulkan {
     }
 
     ShaderModule::ShaderModule(VkShaderModule handle, VkDevice device) : m_Handle(handle), m_Device(device) {}
+
+    VkShaderModule ShaderModule::Handle() {
+        return m_Handle;
+    }
 
 }  // namespace Vulkan

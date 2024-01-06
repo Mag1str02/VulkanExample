@@ -2,19 +2,12 @@
 
 #include <vulkan/vulkan.h>
 
-#include "Base.h"
+#include "Common.h"
 
 namespace Vulkan {
-    class Device;
 
     class Queue {
     public:
-        enum class Family {
-            Unknown = 0,
-            Graphics,
-            Presentation,
-        };
-
         VkQueue Handle();
 
     private:
@@ -25,4 +18,5 @@ namespace Vulkan {
         VkQueue     m_Handle = VK_NULL_HANDLE;
         Ref<Device> m_Device = nullptr;
     };
+
 }  // namespace Vulkan
