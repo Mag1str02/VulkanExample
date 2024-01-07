@@ -10,7 +10,7 @@ add_library(Dependencies dummy.cpp)
 target_include_directories(Dependencies
     PUBLIC GLFW/include
     PUBLIC GLM
-    PUBLIC IMGUI
+    PUBLIC .
     PUBLIC ${Vulkan_INCLUDE_DIRS}
 )
 target_link_libraries(Dependencies

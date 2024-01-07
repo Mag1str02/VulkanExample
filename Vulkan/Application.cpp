@@ -6,8 +6,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "Vulkan/Helpers.h"
 #include "Vulkan/Debugger.h"
+#include "Vulkan/Helpers.h"
 #include "Vulkan/Instance.h"
 #include "Vulkan/Utils/Assert.h"
 #include "Vulkan/Window.h"
@@ -15,16 +15,23 @@
 namespace {}  // namespace
 
 Application::Application() {
-    InitGLFW();
-    InitVulkan();
+    glfwInit();
+
+    m_Renderer = CreateRef<Vulkan::Renderer>();
+    m_Window   = Window::Create(m_Renderer);
+
     OnStartUp();
 }
 Application::~Application() {
     OnShutDown();
-    TerminateVulkan();
-    TerminateGLFW();
+
+    m_Window   = nullptr;
+    m_Renderer = nullptr;
+
+    glfwTerminate();
 }
 void Application::Run() {
+    std::cerr << "Running" << std::endl;
     OnStartUp();
     while (!m_Window->ShouldClose()) {
         Loop();
@@ -35,24 +42,4 @@ void Application::Run() {
 void Application::Loop() {
     glfwPollEvents();
     OnLoop();
-}
-
-void Application::InitGLFW() {
-    glfwInit();
-
-    m_Window = Window::Create();
-}
-void Application::TerminateGLFW() {
-    m_Window = nullptr;
-    glfwTerminate();
-}
-
-void Application::InitVulkan() {
-    m_Renderer  = CreateRef<Vulkan::Renderer>();
-    m_SwapChain = m_Renderer->GetDevice()->CreateSwapChain(m_Window);
-}
-
-void Application::TerminateVulkan() {
-    m_SwapChain = nullptr;
-    m_Renderer  = nullptr;
 }
