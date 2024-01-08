@@ -66,12 +66,53 @@ public:
             // presentInfo.pResults        = nullptr;  // Optional
             // vkQueuePresentKHR(m_Renderer->GetPresentationQueue()->Handle(), &presentInfo);
         }
-
         auto* wd = m_Window->ImGuiWindow();
+
+        if (m_SwapChainRebuild) {
+            int width, height;
+            glfwGetFramebufferSize(m_Window->Handle(), &width, &height);
+            if (width > 0 && height > 0) {
+                ImGui_ImplVulkan_SetMinImageCount(2);
+                ImGui_ImplVulkanH_CreateOrResizeWindow(m_Renderer->GetInstanceHandle(),
+                                                       m_Renderer->GetPhysicalDevice(),
+                                                       m_Renderer->GetLogicDevice(),
+                                                       wd,
+                                                       *m_Renderer->GetDevice()->GetFamilyIndex(QueueFamily::Graphics),
+                                                       nullptr,
+                                                       width,
+                                                       height,
+                                                       2);
+                wd->FrameIndex     = 0;
+                m_SwapChainRebuild = false;
+            }
+        }
+
         // Start the Dear ImGui frame
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        {
+            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowViewport(viewport->ID);
+            ImGui::SetNextWindowPos(viewport->WorkPos);
+            ImGui::SetNextWindowSize(viewport->WorkSize);
+
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+            ImGui::Begin("DockSpace",
+                         NULL,
+                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
+                             ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar |
+                             ImGuiWindowFlags_NoDocking);
+            ImGui::PopStyleVar(3);
+
+            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+            ImGui::End();
+        }
 
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear
         // ImGui!).
@@ -120,6 +161,9 @@ public:
 
 private:
     void FramePresent(ImGui_ImplVulkanH_Window* wd) {
+        if (m_SwapChainRebuild) {
+            return;
+        }
         VkSemaphore      render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
         VkPresentInfoKHR info                      = {};
         info.sType                                 = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -130,7 +174,7 @@ private:
         info.pImageIndices                         = &wd->FrameIndex;
         VkResult err                               = vkQueuePresentKHR(m_Renderer->GetGraphicsQueue()->Handle(), &info);
         if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR) {
-            std::cerr << "Present out of date" << std::endl;
+            m_SwapChainRebuild = true;
             return;
         }
         wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->ImageCount;  // Now we can use the next set of semaphores
@@ -144,7 +188,7 @@ private:
         VkSemaphore render_complete_semaphore = wd->FrameSemaphores[wd->SemaphoreIndex].RenderCompleteSemaphore;
         err = vkAcquireNextImageKHR(device, wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
         if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR) {
-            std::cerr << "Out of data" << std::endl;
+            m_SwapChainRebuild = true;
             return;
         }
 
@@ -286,7 +330,8 @@ private:
     VkSemaphore m_ImageAvailableSemaphore;
     VkSemaphore m_RenderFinishedSemaphore;
     VkFence     m_InFlightFence;
-    ImVec4      clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4      clear_color        = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    bool        m_SwapChainRebuild = false;
 };
 
 int main() {

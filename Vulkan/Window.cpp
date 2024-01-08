@@ -25,7 +25,7 @@ Window::Window(Ref<Vulkan::Renderer> renderer) {
     m_Renderer = renderer;
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    // glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     m_WindowHandle = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
     DE_ASSERT(m_WindowHandle, "Failed to create Vulkan Window");
