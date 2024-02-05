@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(VulkanExample)
 
 set(SPIRV_COMPILER "glslc")
-set(SANITIZERS_ENABLED ON)
+set(SANITIZERS_ENABLED OFF)
 
 include(CMake/Compiler.cmake)
 include(CMake/Shaders.cmake)

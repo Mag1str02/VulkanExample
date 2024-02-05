@@ -1,8 +1,8 @@
 #include "Window.h"
 
 #include <GLFW/glfw3.h>
-#include <IMGUI/backends/imgui_impl_glfw.h>
-#include <IMGUI/backends/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_glfw.h>
 
 #include "Vulkan/Device.h"
 #include "Vulkan/Helpers.h"
@@ -31,6 +31,12 @@ Window::Window(Ref<Vulkan::Renderer> renderer) {
     DE_ASSERT(m_WindowHandle, "Failed to create Vulkan Window");
 
     VK_CHECK(glfwCreateWindowSurface(m_Renderer->GetInstanceHandle(), m_WindowHandle, nullptr, &m_Surface));
+
+    ImGui_ImplVulkan_LoadFunctions(
+        [](const char* function_name, void* vulkan_instance) {
+            return vkGetInstanceProcAddr(*(reinterpret_cast<VkInstance*>(vulkan_instance)), function_name);
+        },
+        const_cast<VkInstance*>(&m_Renderer->GetInstance()->Handle()));
 
     {
         int w, h;

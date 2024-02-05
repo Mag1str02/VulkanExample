@@ -3,10 +3,10 @@ target_link_libraries(Example
     PUBLIC VulkanHelpers
 )
 
-target_shaders(
-    TARGET
-    Example
-    SHADERS
-        Triangle.vert
-        Triangle.frag
-)
+# target_shaders(
+#     TARGET
+#     Example
+#     SHADERS
+#         Triangle.vert
+#         Triangle.frag
+# )

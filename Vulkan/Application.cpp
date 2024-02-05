@@ -16,6 +16,8 @@ namespace {}  // namespace
 
 Application::Application() {
     glfwInit();
+    
+    volkInitialize();
 
     m_Renderer = CreateRef<Vulkan::Renderer>();
     m_Window   = Window::Create(m_Renderer);
@@ -28,6 +30,8 @@ Application::~Application() {
     m_Window   = nullptr;
     m_Renderer = nullptr;
 
+
+    volkFinalize();
     glfwTerminate();
 }
 void Application::Run() {

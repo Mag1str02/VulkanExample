@@ -1,7 +1,7 @@
 #include "Helpers.h"
 
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+#include <volk.h>
 
 namespace Vulkan {
     std::unordered_set<uint32_t> QueueFamilyIndices::GetUniqueIndicies() const {

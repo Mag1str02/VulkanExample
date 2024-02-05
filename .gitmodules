@@ -10,3 +10,9 @@
 [submodule "Dependencies/IMGUI"]
 	path = Dependencies/IMGUI
 	url = https://github.com/ocornut/imgui/
+[submodule "Dependencies/VOLK"]
+	path = Dependencies/VOLK
+	url = https://github.com/zeux/volk
+[submodule "Dependencies/VULKAN_HEADERS"]
+	path = Dependencies/VULKAN_HEADERS
+	url = https://github.com/KhronosGroup/Vulkan-Headers

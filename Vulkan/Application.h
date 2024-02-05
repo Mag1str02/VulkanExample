@@ -1,8 +1,9 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
+// clang-format off
+#include <volk.h>
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+// clang-format on
 
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/CommandPool.h"
@@ -11,7 +12,6 @@
 #include "Vulkan/Queue.h"
 #include "Vulkan/Renderer.h"
 #include "Vulkan/SwapChain.h"
-
 
 class Application {
 public:

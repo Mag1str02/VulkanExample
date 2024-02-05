@@ -12,10 +12,12 @@ add_library(imgui
 target_include_directories(imgui
     PUBLIC IMGUI
     PUBLIC IMGUI/backends
-    PUBLIC ${Vulkan_INCLUDE_DIRS}
+    # PUBLIC VULKAN_HEADERS/include
 )
 
 target_link_libraries(imgui 
     PUBLIC glfw
-    PUBLIC ${Vulkan_LIBRARIES}
+    PUBLIC volk
 )
+
+# target_compile_definitions(imgui PRIVATE VK_NO_PROTOTYPES)

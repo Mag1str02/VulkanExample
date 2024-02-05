@@ -1,10 +1,12 @@
-#include <IMGUI/backends/imgui_impl_glfw.h>
-#include <IMGUI/backends/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
 #include <Vulkan/Application.h>
 #include <Vulkan/Helpers.h>
 #include <Vulkan/ShaderModule.h>
 #include <Vulkan/Utils/Assert.h>
 #include <Vulkan/Window.h>
+
+#include <thread>
 
 #include "shaders_generated.h"
 

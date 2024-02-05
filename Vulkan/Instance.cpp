@@ -39,6 +39,7 @@ namespace Vulkan {
 
         auto result = vkCreateInstance(&createInfo, nullptr, &res->m_Handle);
         DE_ASSERT(result == VK_SUCCESS, "Failed to create instance");
+        volkLoadInstance(res->m_Handle);
         return res;
     }
 
