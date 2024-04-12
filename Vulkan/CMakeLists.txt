@@ -13,6 +13,7 @@ add_library(VulkanHelpers
     Renderer.cpp
     ShaderModule.cpp
     SwapChain.cpp
+    VulkanWindow.cpp
     Window.cpp
 )
 

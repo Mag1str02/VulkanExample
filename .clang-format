@@ -9,6 +9,7 @@ AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
 KeepEmptyLinesAtTheStartOfBlocks: false
 SortIncludes: CaseSensitive
+IncludeBlocks: Preserve
 AllowShortCaseLabelsOnASingleLine : true
 SpaceBeforeCtorInitializerColon: true
 BreakConstructorInitializers: AfterColon
@@ -34,6 +35,6 @@ BinPackArguments: false
 BinPackParameters: false
 AlwaysBreakTemplateDeclarations: MultiLine
 AlignArrayOfStructures: Left
-AllowAllArgumentsOnNextLine: true
+AllowAllArgumentsOnNextLine: false
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
