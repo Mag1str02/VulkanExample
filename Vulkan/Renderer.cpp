@@ -7,27 +7,22 @@
 #include "Vulkan/Queue.h"
 #include "Vulkan/Window.h"
 
-#include <backends/imgui_impl_vulkan.h>
-
 namespace Vulkan {
 
     Renderer::Renderer() {
         QueuesSpecification spec = {
-            {QueueFamily::Graphics,     1},
-            {QueueFamily::Presentation, 1},
+            {QueueFamily::Graphics, 1},
+ // {QueueFamily::Presentation, 1},
         };
 
-        m_Instance          = Instance::Create();
-        m_Debugger          = m_Instance->CreateDebugger();
-        m_Device            = m_Instance->CreateBestDevice(spec);
-        m_GraphicsQueue     = m_Device->GetQueue(QueueFamily::Graphics, 0);
-        m_PresentationQueue = m_Device->GetQueue(QueueFamily::Presentation, 0);
+        m_Instance      = Instance::Create();
+        m_Debugger      = m_Instance->CreateDebugger();
+        m_Device        = m_Instance->CreateBestDevice(spec);
+        m_GraphicsQueue = m_Device->GetQueue(QueueFamily::Graphics, 0);
 
-        ImGui_ImplVulkan_LoadFunctions(
-            [](const char* function_name, void* vulkan_instance) {
-                return vkGetInstanceProcAddr(*(reinterpret_cast<VkInstance*>(vulkan_instance)), function_name);
-            },
-            const_cast<VkInstance*>(&m_Instance->Handle()));
+        // TODO: Ensuer that m_GraphicsQueue is universal queue (support graphics, compute and presentation)
+        m_PresentationQueue = m_GraphicsQueue;
+        // m_PresentationQueue = m_Device->GetQueue(QueueFamily::Presentation, 0);
     }
 
     Ref<Instance> Renderer::GetInstance() {

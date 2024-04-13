@@ -1,9 +1,9 @@
 #include "Device.h"
 
-#include "Vulkan/Helpers.h"
 #include "Vulkan/CommandPool.h"
-#include "Vulkan/Queue.h"
+#include "Vulkan/Helpers.h"
 #include "Vulkan/Pipeline.h"
+#include "Vulkan/Queue.h"
 #include "Vulkan/SwapChain.h"
 #include "Vulkan/Window.h"
 
@@ -41,8 +41,13 @@ namespace Vulkan {
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
+        VkPhysicalDeviceSynchronization2Features synchronization2Feature{};
+        synchronization2Feature.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;
+        synchronization2Feature.synchronization2 = true;
+
         VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{};
         dynamicRenderingFeature.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
+        dynamicRenderingFeature.pNext            = &synchronization2Feature;
         dynamicRenderingFeature.dynamicRendering = VK_TRUE;
 
         VkDeviceCreateInfo createInfo{};

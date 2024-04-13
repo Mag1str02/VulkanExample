@@ -1,9 +1,11 @@
 #include "Instance.h"
 
-#include "Vulkan/Helpers.h"
 #include "Vulkan/Debugger.h"
 #include "Vulkan/Device.h"
+#include "Vulkan/Helpers.h"
 #include "Vulkan/Window.h"
+
+#include <backends/imgui_impl_vulkan.h>
 
 namespace Vulkan {
 
@@ -40,6 +42,13 @@ namespace Vulkan {
         auto result = vkCreateInstance(&createInfo, nullptr, &res->m_Handle);
         DE_ASSERT(result == VK_SUCCESS, "Failed to create instance");
         volkLoadInstance(res->m_Handle);
+
+        ImGui_ImplVulkan_LoadFunctions(
+            [](const char* function_name, void* vulkan_instance) {
+                return vkGetInstanceProcAddr(*(reinterpret_cast<VkInstance*>(vulkan_instance)), function_name);
+            },
+            const_cast<VkInstance*>(&res->m_Handle));
+
         return res;
     }
 
