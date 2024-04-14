@@ -17,12 +17,16 @@ namespace Vulkan {
     class Device;
     class Instance;
     class Queue;
-    class SwapChain;
     class Debugger;
     class Pipeline;
     class Renderer;
     class CommandPool;
     class CommandBuffer;
+    class Image;
+    class Buffer;
+    class ImageSampler;
+    class ImageView;
+    class Window;
 
     enum class QueueFamily {
         Unknown = 0,
@@ -55,7 +59,9 @@ namespace Vulkan {
 
         void AddMapping(QueueFamily family, uint32_t index);
 
-        const std::unordered_map<QueueFamily, uint32_t>& GetFamilies() const { return m_Families; }
+        const std::unordered_map<QueueFamily, uint32_t>& GetFamilies() const {
+            return m_Families;
+        }
 
     private:
         std::unordered_map<QueueFamily, uint32_t> m_Families;

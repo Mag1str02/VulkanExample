@@ -18,10 +18,12 @@ namespace Vulkan::Helpers {
 
     SwapChainSupportDetails GetSwapChainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface);
 
-    void InsertImageMemoryBarier(VkCommandBuffer         buffer,
-                                 VkImage                 image,
-                                 VkImageLayout           oldLayout,
-                                 VkImageLayout           newLayout,
-                                 VkPipelineStageFlagBits srcStage,
-                                 VkPipelineStageFlagBits dstStage);
+    void     InsertImageMemoryBarier(VkCommandBuffer         buffer,
+                                     VkImage                 image,
+                                     VkImageLayout           oldLayout,
+                                     VkImageLayout           newLayout,
+                                     VkPipelineStageFlagBits srcStage,
+                                     VkPipelineStageFlagBits dstStage);
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkPhysicalDevice device);
+
 }  // namespace Vulkan::Helpers

@@ -11,7 +11,6 @@
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Queue.h"
 #include "Vulkan/Renderer.h"
-#include "Vulkan/SwapChain.h"
 
 class Application {
 public:
@@ -28,6 +27,6 @@ private:
     void Loop();
 
 protected:
-    Ref<Window>           m_Window;
+    Ref<Vulkan::Window>   m_Window;
     Ref<Vulkan::Renderer> m_Renderer;
 };

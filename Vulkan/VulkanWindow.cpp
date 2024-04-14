@@ -52,7 +52,6 @@ namespace Vulkan {
             IMGUI_CHECKVERSION();
             ImGui::CreateContext();
             ImGuiIO& io = ImGui::GetIO();
-            (void)io;
             io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
             io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
             io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;      // Enable Docking
@@ -103,6 +102,10 @@ namespace Vulkan {
         return m_ImGuiWindow.get();
     }
 
+    void Window::AddFrameObject(Ref<Object> object) {
+        m_ObjectHolders[m_ImGuiWindow->FrameIndex].AddObject(object);
+    }
+
     void Window::RefreshSwapChain() {
         if (!m_SwapChainValid) {
             auto [width, height] = GetSize();
@@ -118,6 +121,8 @@ namespace Vulkan {
                                                        k_MinImageCount);
                 m_ImGuiWindow->FrameIndex = 0;
                 m_SwapChainValid          = true;
+                m_ObjectHolders.clear();
+                m_ObjectHolders.resize(m_ImGuiWindow->ImageCount);
             }
         }
     }
@@ -154,6 +159,8 @@ namespace Vulkan {
             {
                 VK_CHECK(vkWaitForFences(device, 1, &fd->Fence, VK_TRUE, UINT64_MAX));
                 VK_CHECK(vkResetFences(device, 1, &fd->Fence));
+
+                m_ObjectHolders[m_ImGuiWindow->FrameIndex].Release();
             }
             {
                 VK_CHECK(vkResetCommandPool(device, fd->CommandPool, 0));

@@ -19,7 +19,6 @@ namespace Vulkan {
         Ref<Queue>              GetQueue(QueueFamily queueFamily, uint32_t queueIndex);
         Ref<Instance>           GetInstance();
 
-        Ref<SwapChain>   CreateSwapChain(Ref<Window> window);
         Ref<Pipeline>    CreatePipeline(const PipelineSpecification& spec);
         Ref<CommandPool> CreateCommandPool(QueueFamily family);
 

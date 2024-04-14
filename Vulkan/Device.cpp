@@ -4,7 +4,6 @@
 #include "Vulkan/Helpers.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Queue.h"
-#include "Vulkan/SwapChain.h"
 #include "Vulkan/Window.h"
 
 namespace Vulkan {
@@ -111,9 +110,6 @@ namespace Vulkan {
         return 0;
     }
 
-    Ref<SwapChain> Device::CreateSwapChain(Ref<Window> window) {
-        return Ref<SwapChain>(new SwapChain(window, shared_from_this()));
-    }
     Ref<Pipeline> Device::CreatePipeline(const PipelineSpecification& spec) {
         return Ref<Pipeline>(new Pipeline(shared_from_this(), spec));
     }
