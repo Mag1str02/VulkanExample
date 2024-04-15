@@ -8,7 +8,6 @@
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/CommandPool.h"
 #include "Vulkan/Device.h"
-#include "Vulkan/Pipeline.h"
 #include "Vulkan/Queue.h"
 #include "Vulkan/Renderer.h"
 

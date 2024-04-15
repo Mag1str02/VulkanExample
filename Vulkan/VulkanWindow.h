@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Vulkan/Common.h"
-#include "Vulkan/ObjectHolder.h"
 #include "Vulkan/Window.h"
 
 
@@ -16,8 +14,6 @@ namespace Vulkan {
         virtual void BeginFrame() override;
         virtual void EndFrame() override;
 
-        void AddFrameObject(Ref<Object> object);
-
         ImGui_ImplVulkanH_Window* GetImGuiWindow();
 
     private:
@@ -30,6 +26,5 @@ namespace Vulkan {
         Ref<Renderer>                 m_Renderer       = nullptr;
         VkDescriptorPool              m_DescriptorPool = VK_NULL_HANDLE;
         VkSurfaceKHR                  m_Surface        = VK_NULL_HANDLE;
-        std::vector<ObjectHolder>     m_ObjectHolders;
     };
 }  // namespace Vulkan

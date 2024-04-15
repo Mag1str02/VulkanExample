@@ -2,7 +2,6 @@
 
 #include "Vulkan/CommandPool.h"
 #include "Vulkan/Helpers.h"
-#include "Vulkan/Pipeline.h"
 #include "Vulkan/Queue.h"
 #include "Vulkan/Window.h"
 
@@ -110,9 +109,6 @@ namespace Vulkan {
         return 0;
     }
 
-    Ref<Pipeline> Device::CreatePipeline(const PipelineSpecification& spec) {
-        return Ref<Pipeline>(new Pipeline(shared_from_this(), spec));
-    }
     Ref<CommandPool> Device::CreateCommandPool(QueueFamily family) {
         auto familyIndex = GetFamilyIndex(family);
         DE_ASSERT(familyIndex, "Bad family");

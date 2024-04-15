@@ -25,11 +25,26 @@ namespace Vulkan {
         DE_ASSERT(renderer, "Bad renderer");
         m_Renderer = renderer;
 
+        //* ImGui
+        {
+            IMGUI_CHECKVERSION();
+            ImGui::CreateContext();
+            ImGuiIO& io = ImGui::GetIO();
+            io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+            io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+            io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;      // Enable Docking
+            // io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;    // Enable Multi-Viewport / Platform Windows
+        }
+
+        //* GLFW
+        { ImGui_ImplGlfw_InitForVulkan(Handle(), true); }
+
         { VK_CHECK(glfwCreateWindowSurface(m_Renderer->GetInstanceHandle(), Handle(), nullptr, &m_Surface)); }
 
         {
-            m_ImGuiWindow          = CreateRef<ImGui_ImplVulkanH_Window>();
-            m_ImGuiWindow->Surface = m_Surface;
+            m_ImGuiWindow                      = CreateRef<ImGui_ImplVulkanH_Window>();
+            m_ImGuiWindow->UseDynamicRendering = true;
+            m_ImGuiWindow->Surface             = m_Surface;
 
             const VkFormat        requestSurfaceImageFormat[] = {VK_FORMAT_B8G8R8A8_UNORM,
                                                                  VK_FORMAT_R8G8B8A8_UNORM,
@@ -49,15 +64,6 @@ namespace Vulkan {
             RefreshSwapChain();
         }
         {
-            IMGUI_CHECKVERSION();
-            ImGui::CreateContext();
-            ImGuiIO& io = ImGui::GetIO();
-            io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-            io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-            io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;      // Enable Docking
-            io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;    // Enable Multi-Viewport / Platform Windows
-        }
-        {
             VkDescriptorPoolSize pool_sizes[] = {
                 {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1},
             };
@@ -70,7 +76,6 @@ namespace Vulkan {
             VK_CHECK(vkCreateDescriptorPool(m_Renderer->GetLogicDevice(), &pool_info, nullptr, &m_DescriptorPool));
         }
         {
-            ImGui_ImplGlfw_InitForVulkan(Handle(), true);
             ImGui_ImplVulkan_InitInfo init_info = {};
             init_info.Instance                  = m_Renderer->GetInstanceHandle();
             init_info.PhysicalDevice            = m_Renderer->GetPhysicalDevice();
@@ -79,13 +84,14 @@ namespace Vulkan {
             init_info.Queue                     = m_Renderer->GetDevice()->GetQueue(Vulkan::QueueFamily::Graphics, 0)->Handle();
             init_info.PipelineCache             = VK_NULL_HANDLE;
             init_info.DescriptorPool            = m_DescriptorPool;
-            init_info.Subpass                   = 0;
             init_info.MinImageCount             = k_MinImageCount;
             init_info.ImageCount                = m_ImGuiWindow->ImageCount;
             init_info.MSAASamples               = VK_SAMPLE_COUNT_1_BIT;
             init_info.Allocator                 = nullptr;
             init_info.CheckVkResultFn           = check_vk_result;
-            ImGui_ImplVulkan_Init(&init_info, m_ImGuiWindow->RenderPass);
+            init_info.UseDynamicRendering       = true;
+            init_info.ColorAttachmentFormat     = m_ImGuiWindow->SurfaceFormat.format;
+            ImGui_ImplVulkan_Init(&init_info, VK_NULL_HANDLE);
         }
     }
 
@@ -102,14 +108,13 @@ namespace Vulkan {
         return m_ImGuiWindow.get();
     }
 
-    void Window::AddFrameObject(Ref<Object> object) {
-        m_ObjectHolders[m_ImGuiWindow->FrameIndex].AddObject(object);
-    }
-
     void Window::RefreshSwapChain() {
         if (!m_SwapChainValid) {
             auto [width, height] = GetSize();
             if (width > 0 && height > 0) {
+                for (size_t i = 0; i < m_ImGuiWindow->ImageCount; ++i) {
+                    vkWaitForFences(m_Renderer->GetLogicDevice(), 1, &m_ImGuiWindow->Frames[i].Fence, VK_TRUE, UINT64_MAX);
+                }
                 ImGui_ImplVulkanH_CreateOrResizeWindow(m_Renderer->GetInstanceHandle(),
                                                        m_Renderer->GetPhysicalDevice(),
                                                        m_Renderer->GetLogicDevice(),
@@ -121,8 +126,6 @@ namespace Vulkan {
                                                        k_MinImageCount);
                 m_ImGuiWindow->FrameIndex = 0;
                 m_SwapChainValid          = true;
-                m_ObjectHolders.clear();
-                m_ObjectHolders.resize(m_ImGuiWindow->ImageCount);
             }
         }
     }
@@ -140,8 +143,7 @@ namespace Vulkan {
             auto     device = m_Renderer->GetLogicDevice();
             VkResult err;
 
-            VkSemaphore image_acquired_semaphore  = m_ImGuiWindow->FrameSemaphores[m_ImGuiWindow->SemaphoreIndex].ImageAcquiredSemaphore;
-            VkSemaphore render_complete_semaphore = m_ImGuiWindow->FrameSemaphores[m_ImGuiWindow->SemaphoreIndex].RenderCompleteSemaphore;
+            VkSemaphore image_acquired_semaphore = m_ImGuiWindow->FrameSemaphores[m_ImGuiWindow->SemaphoreIndex].ImageAcquiredSemaphore;
 
             err = vkAcquireNextImageKHR(device,
                                         m_ImGuiWindow->Swapchain,
@@ -159,8 +161,6 @@ namespace Vulkan {
             {
                 VK_CHECK(vkWaitForFences(device, 1, &fd->Fence, VK_TRUE, UINT64_MAX));
                 VK_CHECK(vkResetFences(device, 1, &fd->Fence));
-
-                m_ObjectHolders[m_ImGuiWindow->FrameIndex].Release();
             }
             {
                 VK_CHECK(vkResetCommandPool(device, fd->CommandPool, 0));
@@ -169,21 +169,79 @@ namespace Vulkan {
                 info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
                 VK_CHECK(vkBeginCommandBuffer(fd->CommandBuffer, &info));
             }
+
             {
-                VkRenderPassBeginInfo info    = {};
-                info.sType                    = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-                info.renderPass               = m_ImGuiWindow->RenderPass;
-                info.framebuffer              = fd->Framebuffer;
-                info.renderArea.extent.width  = m_ImGuiWindow->Width;
+                VkImageMemoryBarrier2 barrier{};
+                barrier.image                           = fd->Backbuffer;
+                barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+                barrier.srcStageMask                    = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
+                barrier.dstStageMask                    = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+                barrier.srcAccessMask                   = 0;
+                barrier.dstAccessMask                   = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+                barrier.oldLayout                       = VK_IMAGE_LAYOUT_UNDEFINED;
+                barrier.newLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+                barrier.subresourceRange.baseArrayLayer = 0;
+                barrier.subresourceRange.baseMipLevel   = 0;
+                barrier.subresourceRange.layerCount     = 1;
+                barrier.subresourceRange.levelCount     = 1;
+
+                VkDependencyInfo dependencyInfo{};
+                dependencyInfo.sType                   = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+                dependencyInfo.imageMemoryBarrierCount = 1;
+                dependencyInfo.pImageMemoryBarriers    = &barrier;
+
+                vkCmdPipelineBarrier2(fd->CommandBuffer, &dependencyInfo);
+            }
+
+            {
+                VkRenderingAttachmentInfo attachment{};
+                attachment.sType       = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+                attachment.imageView   = fd->BackbufferView;
+                attachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                attachment.loadOp      = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                attachment.storeOp     = VK_ATTACHMENT_STORE_OP_STORE;
+
+                auto [width, height] = GetSize();  // Not resizeble
+                VkRenderingInfo info{};
+                info.sType                    = VK_STRUCTURE_TYPE_RENDERING_INFO;
                 info.renderArea.extent.height = m_ImGuiWindow->Height;
-                info.clearValueCount          = 1;
-                info.pClearValues             = &m_ImGuiWindow->ClearValue;
-                vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+                info.renderArea.extent.width  = m_ImGuiWindow->Width;
+                info.layerCount               = 1;
+                info.colorAttachmentCount     = 1;
+                info.pColorAttachments        = &attachment;
+
+                vkCmdBeginRendering(fd->CommandBuffer, &info);
             }
 
             ImGui_ImplVulkan_RenderDrawData(draw_data, fd->CommandBuffer);
 
-            vkCmdEndRenderPass(fd->CommandBuffer);
+            vkCmdEndRendering(fd->CommandBuffer);
+
+            {
+                VkImageMemoryBarrier2 barrier{};
+                barrier.image                           = fd->Backbuffer;
+                barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+                barrier.srcStageMask                    = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+                barrier.dstStageMask                    = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
+                barrier.srcAccessMask                   = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
+                barrier.dstAccessMask                   = 0;
+                barrier.oldLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                barrier.newLayout                       = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+                barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+                barrier.subresourceRange.baseArrayLayer = 0;
+                barrier.subresourceRange.baseMipLevel   = 0;
+                barrier.subresourceRange.layerCount     = 1;
+                barrier.subresourceRange.levelCount     = 1;
+
+                VkDependencyInfo dependencyInfo{};
+                dependencyInfo.sType                   = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+                dependencyInfo.imageMemoryBarrierCount = 1;
+                dependencyInfo.pImageMemoryBarriers    = &barrier;
+
+                vkCmdPipelineBarrier2(fd->CommandBuffer, &dependencyInfo);
+            }
+            // vkCmdEndRenderPass(fd->CommandBuffer);
             {
                 VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
                 VkSubmitInfo         info       = {};
@@ -193,8 +251,8 @@ namespace Vulkan {
                 info.pWaitDstStageMask          = &wait_stage;
                 info.commandBufferCount         = 1;
                 info.pCommandBuffers            = &fd->CommandBuffer;
-                info.signalSemaphoreCount       = 1;
-                info.pSignalSemaphores          = &render_complete_semaphore;
+                info.signalSemaphoreCount       = 0;
+                info.pSignalSemaphores          = nullptr;
 
                 VK_CHECK(vkEndCommandBuffer(fd->CommandBuffer));
                 VK_CHECK(vkQueueSubmit(m_Renderer->GetGraphicsQueue()->Handle(), 1, &info, fd->Fence));
@@ -206,8 +264,8 @@ namespace Vulkan {
             VkSemaphore      render_complete_semaphore = m_ImGuiWindow->FrameSemaphores[m_ImGuiWindow->SemaphoreIndex].RenderCompleteSemaphore;
             VkPresentInfoKHR info                      = {};
             info.sType                                 = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            info.waitSemaphoreCount                    = 1;
-            info.pWaitSemaphores                       = &render_complete_semaphore;
+            info.waitSemaphoreCount                    = 0;
+            info.pWaitSemaphores                       = nullptr;
             info.swapchainCount                        = 1;
             info.pSwapchains                           = &m_ImGuiWindow->Swapchain;
             info.pImageIndices                         = &m_ImGuiWindow->FrameIndex;
@@ -221,13 +279,12 @@ namespace Vulkan {
     }
 
     void Window::BeginFrame() {
-        RefreshSwapChain();
-
         ImGui_ImplGlfw_NewFrame();
         ImGui_ImplVulkan_NewFrame();
         ImGui::NewFrame();
     }
     void Window::EndFrame() {
+        RefreshSwapChain();
         RenderFrame();
     }
 

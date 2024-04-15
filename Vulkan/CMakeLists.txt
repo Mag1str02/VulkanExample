@@ -1,6 +1,9 @@
 add_library(VulkanHelpers
     Utils/Assert.cpp
 
+    ImGui/Context.cpp
+    ImGui/Window.cpp
+
     Application.cpp
     Buffer.cpp
     CommandBuffer.cpp
@@ -13,11 +16,8 @@ add_library(VulkanHelpers
     ImageSampler.cpp
     ImageView.cpp
     Instance.cpp
-    ObjectHolder.cpp
-    Pipeline.cpp
     Queue.cpp
     Renderer.cpp
-    ShaderModule.cpp
     VulkanWindow.cpp
     Window.cpp
 )

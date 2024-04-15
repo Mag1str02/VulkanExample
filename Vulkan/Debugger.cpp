@@ -82,7 +82,7 @@ namespace Vulkan {
     }
 
     VkBool32 Debugger::OnMessage(const std::string& msg) {
-        std::cerr << "Vulkan: " << msg << std::endl;
+        std::cerr << "Vulkan: " << msg << std::endl << std::endl;
         return VK_FALSE;
     }
 }  // namespace Vulkan

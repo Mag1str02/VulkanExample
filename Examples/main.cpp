@@ -4,7 +4,6 @@
 #include <Vulkan/Image.h>
 #include <Vulkan/ImageSampler.h>
 #include <Vulkan/ImageView.h>
-#include <Vulkan/ShaderModule.h>
 #include <Vulkan/Utils/Assert.h>
 #include <Vulkan/VulkanWindow.h>
 #include <Vulkan/Window.h>
