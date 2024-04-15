@@ -12,7 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../Sandbox)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../Sandbox)
 
 add_subdirectory(CMake)
+add_subdirectory(Engine)
 add_subdirectory(Examples)
-add_subdirectory(Vulkan)
 add_subdirectory(Dependencies)
 

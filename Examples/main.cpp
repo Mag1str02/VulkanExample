@@ -1,25 +1,25 @@
-#include <Vulkan/Application.h>
-#include <Vulkan/Buffer.h>
-#include <Vulkan/Helpers.h>
-#include <Vulkan/Image.h>
-#include <Vulkan/ImageSampler.h>
-#include <Vulkan/ImageView.h>
-#include <Vulkan/Utils/Assert.h>
-#include <Vulkan/VulkanWindow.h>
-#include <Vulkan/Window.h>
-#include <backends/imgui_impl_glfw.h>
+#include <Engine/Application/Application.h>
+#include <Engine/Utils/Assert.h>
+#include <Engine/Vulkan/Buffer.h>
+#include <Engine/Vulkan/Helpers.h>
+#include <Engine/Vulkan/Image.h>
+#include <Engine/Vulkan/ImageSampler.h>
+#include <Engine/Vulkan/ImageView.h>
+#include <Engine/Vulkan/Window.h>
+
 #include <backends/imgui_impl_vulkan.h>
+#include <imgui.h>
 
 #include "shaders_generated.h"
 
-using namespace Vulkan;
+using namespace Engine;
 
-class TestApplication : public Application {
+class TestApplication : public Engine::Application {
 public:
     TestApplication() = default;
 
     virtual void OnStartUp() override {
-        m_CommandPool = m_Renderer->GetDevice()->CreateCommandPool(QueueFamily::Graphics);
+        m_CommandPool = m_Renderer->GetDevice()->CreateCommandPool(Engine::Vulkan::QueueFamily::Graphics);
         CreateTexture();
     }
     virtual void OnShutDown() override {
@@ -35,20 +35,20 @@ private:
         {
             uint8_t image[] = {255, 0, 0, 255, 0, 255, 0, 255};
 
-            m_StagingBuffer = CreateRef<Buffer>(m_Renderer->GetDevice(),
-                                                sizeof(image),
-                                                VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            m_StagingBuffer = CreateRef<Vulkan::Buffer>(m_Renderer->GetDevice(),
+                                                        sizeof(image),
+                                                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
             m_StagingBuffer->SetData(image, sizeof(image));
 
-            m_Image        = CreateRef<Image>(m_Renderer->GetDevice(),
-                                       2,
-                                       1,
-                                       VK_FORMAT_R8G8B8A8_SRGB,
-                                       VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-            m_ImageSampler = CreateRef<ImageSampler>(m_Renderer->GetDevice());
-            m_ImageView    = CreateRef<ImageView>(m_Image);
+            m_Image        = CreateRef<Vulkan::Image>(m_Renderer->GetDevice(),
+                                               2,
+                                               1,
+                                               VK_FORMAT_R8G8B8A8_SRGB,
+                                               VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                                               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            m_ImageSampler = CreateRef<Vulkan::ImageSampler>(m_Renderer->GetDevice());
+            m_ImageView    = CreateRef<Vulkan::ImageView>(m_Image);
         }
 
         // Transfer texture data
@@ -169,12 +169,12 @@ private:
         }
     }
 
-    Ref<Buffer>       m_StagingBuffer;
-    Ref<Image>        m_Image;
-    Ref<CommandPool>  m_CommandPool;
-    Ref<ImageView>    m_ImageView;
-    Ref<ImageSampler> m_ImageSampler;
-    VkDescriptorSet   m_ImGuiTextureID;
+    Ref<Vulkan::Buffer>       m_StagingBuffer;
+    Ref<Vulkan::Image>        m_Image;
+    Ref<Vulkan::CommandPool>  m_CommandPool;
+    Ref<Vulkan::ImageView>    m_ImageView;
+    Ref<Vulkan::ImageSampler> m_ImageSampler;
+    VkDescriptorSet           m_ImGuiTextureID;
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 };
