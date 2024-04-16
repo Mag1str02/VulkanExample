@@ -4,7 +4,7 @@
 
 namespace Engine::Vulkan {
 
-    class Object : RefCounted<Object> {
+    class Object : public RefCounted<Object> {
     public:
         Object()          = default;
         virtual ~Object() = default;
@@ -13,4 +13,4 @@ namespace Engine::Vulkan {
         NO_COPY_CONSTRUCTORS(Object);
     };
 
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan

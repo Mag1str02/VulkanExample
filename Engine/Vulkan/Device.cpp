@@ -2,6 +2,7 @@
 
 #include "CommandPool.h"
 #include "Helpers.h"
+#include "Instance.h"
 #include "Queue.h"
 #include "Window.h"
 
@@ -114,4 +115,4 @@ namespace Engine::Vulkan {
         DE_ASSERT(familyIndex, "Bad family");
         return Ref<CommandPool>(new CommandPool(shared_from_this(), *familyIndex));
     }
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Engine/Application/Window.h"
+#include "Common.h"
+#include "Object.h"
 
-class ImGui_ImplVulkanH_Window;
+#include "Engine/Application/Window.h"
 
 namespace Engine::Vulkan {
 
@@ -14,17 +15,8 @@ namespace Engine::Vulkan {
         virtual void BeginFrame() override;
         virtual void EndFrame() override;
 
-        ImGui_ImplVulkanH_Window* GetImGuiWindow();
-
     private:
-        void RefreshSwapChain();
-        void RenderFrame();
-
-    private:
-        bool                          m_SwapChainValid = false;
-        Ref<ImGui_ImplVulkanH_Window> m_ImGuiWindow    = nullptr;
-        Ref<Renderer>                 m_Renderer       = nullptr;
-        VkDescriptorPool              m_DescriptorPool = VK_NULL_HANDLE;
-        VkSurfaceKHR                  m_Surface        = VK_NULL_HANDLE;
+        Ref<Renderer>  m_Renderer  = nullptr;
+        Ref<SwapChain> m_SwapChain = nullptr;
     };
 }  // namespace Engine::Vulkan

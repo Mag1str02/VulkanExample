@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Engine/Vulkan/Common.h"
-#include "Engine/Vulkan/Instance.h"
+#include "Engine/Utils/Base.h"
 
 class GLFWwindow;
 
@@ -11,9 +10,9 @@ namespace Engine {
         Window();
         virtual ~Window();
 
-        bool                          ShouldClose() const;
-        std::pair<uint32_t, uint32_t> GetSize() const;
-        GLFWwindow*                   Handle();
+        bool        ShouldClose() const;
+        UVec2       GetSize() const;
+        GLFWwindow* Handle();
 
         virtual void BeginFrame();
         virtual void EndFrame();

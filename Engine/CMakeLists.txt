@@ -3,7 +3,8 @@ add_library(VulkanHelpers
     Application/Window.cpp
 
     Utils/Assert.cpp
-
+    Utils/Base.cpp
+    Utils/Singleton.cpp
 
     Vulkan/Buffer.cpp
     Vulkan/CommandBuffer.cpp
@@ -14,9 +15,11 @@ add_library(VulkanHelpers
     Vulkan/Image.cpp
     Vulkan/ImageSampler.cpp
     Vulkan/ImageView.cpp
+    Vulkan/ImGuiWindow.cpp
     Vulkan/Instance.cpp
     Vulkan/Queue.cpp
     Vulkan/Renderer.cpp
+    Vulkan/SwapChain.cpp
     Vulkan/Window.cpp
 )
 

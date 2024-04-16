@@ -20,13 +20,13 @@ public:
 
     virtual void OnStartUp() override {
         m_CommandPool = m_Renderer->GetDevice()->CreateCommandPool(Engine::Vulkan::QueueFamily::Graphics);
-        CreateTexture();
+        // CreateTexture();
     }
     virtual void OnShutDown() override {
         vkDeviceWaitIdle(m_Renderer->GetLogicDevice());
     }
     virtual void OnLoop() override {
-        OnImGui();
+        // OnImGui();
     }
 
 private:

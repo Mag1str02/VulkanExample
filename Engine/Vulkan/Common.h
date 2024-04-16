@@ -27,6 +27,7 @@ namespace Engine::Vulkan {
     class ImageSampler;
     class ImageView;
     class Window;
+    class SwapChain;
 
     enum class QueueFamily {
         Unknown = 0,

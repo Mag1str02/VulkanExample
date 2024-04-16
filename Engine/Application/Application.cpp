@@ -38,7 +38,6 @@ namespace Engine {
     }
 
     void Application::Loop() {
-        glfwPollEvents();
         m_Window->BeginFrame();
         OnLoop();
         m_Window->EndFrame();

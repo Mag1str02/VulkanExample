@@ -15,7 +15,10 @@
 #include "Assert.h"
 #include "Singleton.h"
 
+#include <glm/glm.hpp>
+
 using namespace std::chrono_literals;
+using UVec2 = glm::u32vec2;
 
 template <typename T> using Scope      = std::unique_ptr<T>;
 template <typename T> using Ref        = std::shared_ptr<T>;
