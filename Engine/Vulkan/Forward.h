@@ -14,6 +14,7 @@ namespace Engine {
         class CommandPool;
         class CommandBuffer;
         class Image;
+        class IImage;
         class Buffer;
         class ImageSampler;
         class ImageView;

@@ -1,11 +1,13 @@
 #pragma once
 
 #include "Common.h"
+#include "Object.h"
 
 namespace Engine::Vulkan {
 
     class CommandPool : public RefCounted<CommandPool> {
     public:
+        static Ref<CommandPool> Create(Ref<Device> device, uint32_t family_index);
         ~CommandPool();
 
         Ref<CommandBuffer> CreateCommandBuffer();
@@ -29,4 +31,4 @@ namespace Engine::Vulkan {
         Ref<Device>   m_Device      = nullptr;
     };
 
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan

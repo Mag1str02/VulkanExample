@@ -1,33 +1,53 @@
 #pragma once
 
 #include "Common.h"
+#include "Fence.h"
+#include "Image.h"
 #include "Object.h"
+#include "Task.h"
 
 namespace Engine::Vulkan {
 
     class SwapChain : public Object {
     public:
-        SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size);
+        static Ref<SwapChain> Create(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size);
+
         ~SwapChain();
-
         VkSwapchainKHR Handle();
-        VkImage        GetImage(uint32_t index);
-        VkImageView    GetImageView(uint32_t index);
 
-        void Resize(uint32_t width, uint32_t height);
+        Ref<IImage> AquireNextImage();
 
         VkFormat   GetFormat() const;
         VkExtent2D GetExtent() const;
-        uint32_t   ImageCount() const;
 
     private:
+        SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size);
         void GetSwapChainSupportDetails();
-        bool ChangeExtent(VkExtent2D extent);
-        void Rebuild();
+
+    private:
+        class PresentAquireTask : public Task {
+        public:
+            PresentAquireTask(Ref<SwapChain> swapchain);
+            virtual void Run(Ref<Queue> queue) override;
+            virtual void Wait() override;
+            Ref<IImage>  GetAquiredImage();
+
+        private:
+        private:
+            Fence          m_AquiredFence;
+            Ref<IImage>    m_AquiredImage;
+            Ref<SwapChain> m_SwapChain;
+        };
+
         struct SwapChainSupportDetails {
             VkSurfaceCapabilitiesKHR        m_Capabilities;
             std::vector<VkSurfaceFormatKHR> m_SurfaceFormats;
             std::vector<VkPresentModeKHR>   m_PresentationModes;
+        };
+
+        class Image : public IImage {
+        public:
+            Image(SwapChain* swapchain, VkImage image);
         };
 
     private:
@@ -36,11 +56,11 @@ namespace Engine::Vulkan {
 
         SwapChainSupportDetails m_Details = {};
 
-        Ref<Device>              m_Device;
-        VkSurfaceKHR             m_Surface   = VK_NULL_HANDLE;
-        VkSwapchainKHR           m_SwapChain = VK_NULL_HANDLE;
-        std::vector<VkImage>     m_Images;
-        std::vector<VkImageView> m_ImageViews;
+        Ref<Device>        m_Device;
+        VkSurfaceKHR       m_Surface   = VK_NULL_HANDLE;
+        VkSwapchainKHR     m_SwapChain = VK_NULL_HANDLE;
+        std::vector<Image> m_Images;
+        uint32_t           m_LatestImage = -1;
     };
 
 }  // namespace Engine::Vulkan

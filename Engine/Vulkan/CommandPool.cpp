@@ -5,6 +5,9 @@
 
 namespace Engine::Vulkan {
 
+    Ref<CommandPool> CommandPool::Create(Ref<Device> device, uint32_t family_index) {
+        return Ref<CommandPool>(new CommandPool(device, family_index));
+    }
     CommandPool::CommandPool(Ref<Device> device, uint32_t familyIndex) {
         DE_ASSERT(device, "Bad device");
         m_Device      = device;
@@ -36,4 +39,4 @@ namespace Engine::Vulkan {
         return m_Device;
     }
 
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan

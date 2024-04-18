@@ -10,6 +10,7 @@ add_library(VulkanHelpers
     Vulkan/Config.cpp
     Vulkan/Debugger.cpp
     Vulkan/Device.cpp
+    Vulkan/Fence.cpp
     Vulkan/Helpers.cpp
     Vulkan/Image.cpp
     Vulkan/ImageSampler.cpp
@@ -19,6 +20,7 @@ add_library(VulkanHelpers
     Vulkan/Queue.cpp
     Vulkan/Renderer.cpp
     Vulkan/SwapChain.cpp
+    Vulkan/Task.cpp
     Vulkan/Window.cpp
 )
 

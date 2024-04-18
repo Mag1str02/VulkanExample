@@ -5,20 +5,45 @@
 
 namespace Engine::Vulkan {
 
-    Image::Image(Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) :
-        m_Device(device), m_Width(width), m_Height(height) {
+    VkImage IImage::Handle() {
+        return m_Image;
+    }
+
+    VkExtent2D IImage::GetExtent() const {
+        return m_Extent;
+    }
+    uint32_t IImage::GetHeight() const {
+        return m_Extent.height;
+    }
+    uint32_t IImage::GetWidth() const {
+        return m_Extent.width;
+    }
+    VkFormat IImage::GetFormat() const {
+        return m_Format;
+    }
+    Ref<Device> IImage::GetDevice() const {
+        return m_Device;
+    }
+
+    Image::Image(Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
+        m_Extent.width  = width;
+        m_Extent.height = height;
+        m_Format        = format;
+        m_Device        = device;
+        m_UsageFlags    = usage;
+
         VkImageCreateInfo imageInfo{};
         imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType     = VK_IMAGE_TYPE_2D;
-        imageInfo.extent.width  = width;
-        imageInfo.extent.height = height;
+        imageInfo.extent.width  = m_Extent.width;
+        imageInfo.extent.height = m_Extent.height;
         imageInfo.extent.depth  = 1;
         imageInfo.mipLevels     = 1;
         imageInfo.arrayLayers   = 1;
-        imageInfo.format        = format;
+        imageInfo.format        = m_Format;
         imageInfo.tiling        = VK_IMAGE_TILING_OPTIMAL;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage         = usage;
+        imageInfo.usage         = m_UsageFlags;
         imageInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
         imageInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
 
@@ -38,13 +63,6 @@ namespace Engine::Vulkan {
     Image::~Image() {
         vkFreeMemory(m_Device->GetLogicDevice(), m_Memory, nullptr);
         vkDestroyImage(m_Device->GetLogicDevice(), m_Image, nullptr);
-    }
-
-    VkImage Image::Handle() {
-        return m_Image;
-    }
-    Ref<Device> Image::GetDevice() {
-        return m_Device;
     }
 
 }  // namespace Engine::Vulkan

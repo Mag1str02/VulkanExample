@@ -3,15 +3,14 @@
 #include "Device.h"
 #include "Image.h"
 
-
 namespace Engine::Vulkan {
 
-    ImageView::ImageView(Ref<Image> image) : m_Image(image) {
+    ImageView::ImageView(Ref<IImage> image) : m_Image(image) {
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         viewInfo.image                           = m_Image->Handle();
         viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format                          = VK_FORMAT_R8G8B8A8_SRGB;
+        viewInfo.format                          = m_Image->GetFormat();
         viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
         viewInfo.subresourceRange.baseMipLevel   = 0;
         viewInfo.subresourceRange.levelCount     = 1;
@@ -28,4 +27,4 @@ namespace Engine::Vulkan {
         return m_View;
     }
 
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan
