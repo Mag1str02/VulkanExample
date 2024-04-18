@@ -8,7 +8,7 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
 
-#include "shaders_generated.h"
+// #include "shaders_generated.h"
 
 using namespace Engine;
 

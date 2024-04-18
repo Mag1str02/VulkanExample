@@ -13,3 +13,6 @@
 [submodule "Dependencies/VULKAN_HEADERS"]
 	path = Dependencies/VULKAN_HEADERS
 	url = https://github.com/KhronosGroup/Vulkan-Headers
+[submodule "Dependencies/GLFW"]
+	path = Dependencies/GLFW
+	url = https://github.com/Mag1str02/GLFW
