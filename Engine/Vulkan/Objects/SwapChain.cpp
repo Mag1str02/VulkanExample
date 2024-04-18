@@ -39,6 +39,9 @@ namespace Engine::Vulkan {
         uint32_t ChoseCount(const VkSurfaceCapabilitiesKHR& capabilities) {
             uint32_t minImageCount = capabilities.minImageCount;
             uint32_t maxImageCount = capabilities.maxImageCount;
+            if (maxImageCount == 0) {
+                maxImageCount = UINT32_MAX;
+            }
             return std::clamp(minImageCount + 1, minImageCount, maxImageCount);
         }
 
@@ -80,7 +83,6 @@ namespace Engine::Vulkan {
             uint32_t             actual_image_count;
             std::vector<VkImage> m_ImageHandles;
             VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actual_image_count, nullptr));
-            DE_ASSERT(actual_image_count == image_count, "Bad image count");
             m_ImageHandles.resize(actual_image_count);
             m_LatestImage = actual_image_count;
             VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actual_image_count, m_ImageHandles.data()));
@@ -97,17 +99,20 @@ namespace Engine::Vulkan {
     }
 
     void SwapChain::GetSwapChainSupportDetails() {
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_Device->GetPhysicalDevice(), m_Surface, &m_Details.m_Capabilities);
+        VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_Device->GetPhysicalDevice(), m_Surface, &m_Details.m_Capabilities));
 
         uint32_t formatCount;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(m_Device->GetPhysicalDevice(), m_Surface, &formatCount, nullptr);
+        VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(m_Device->GetPhysicalDevice(), m_Surface, &formatCount, nullptr));
         m_Details.m_SurfaceFormats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(m_Device->GetPhysicalDevice(), m_Surface, &formatCount, m_Details.m_SurfaceFormats.data());
+        VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(m_Device->GetPhysicalDevice(), m_Surface, &formatCount, m_Details.m_SurfaceFormats.data()));
 
         uint32_t presentModeCount;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(m_Device->GetPhysicalDevice(), m_Surface, &presentModeCount, nullptr);
+        VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(m_Device->GetPhysicalDevice(), m_Surface, &presentModeCount, nullptr));
         m_Details.m_PresentationModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(m_Device->GetPhysicalDevice(), m_Surface, &presentModeCount, m_Details.m_PresentationModes.data());
+        VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(m_Device->GetPhysicalDevice(),
+                                                           m_Surface,
+                                                           &presentModeCount,
+                                                           m_Details.m_PresentationModes.data()));
     }
     VkSwapchainKHR SwapChain::Handle() {
         return m_SwapChain;

@@ -155,12 +155,12 @@ namespace Engine::Vulkan {
         return compatibleDevices;
     }
     bool Config::CheckDevice(VkInstance instance, VkPhysicalDevice device) const {
-        {
-            auto deviceProperties = GetDeviceProperties(device);
-            if (deviceProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-                return false;
-            }
-        }
+        // {
+        //     auto deviceProperties = GetDeviceProperties(device);
+        //     if (deviceProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+        //         return false;
+        //     }
+        // }
         {
             if (GetUniversalQueueFamilyIndex(instance, device) == -1) {
                 return false;
