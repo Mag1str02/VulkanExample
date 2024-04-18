@@ -6,6 +6,7 @@
 
 namespace Engine {
     Application::Application() {
+        glfwInitHint(GLFW_WIN32_MESSAGES_IN_FIBER, GLFW_TRUE);
         glfwInit();
         volkInitialize();
 
