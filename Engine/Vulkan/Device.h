@@ -4,37 +4,23 @@
 
 namespace Engine::Vulkan {
 
-    class Device : public RefCounted<Device> {
+    class Device : public HandledStorage {
     public:
+        Device(VkPhysicalDevice device, Instance* instance, const Config& config);
         ~Device();
 
-        const VkDevice&         GetLogicDevice();
-        const VkPhysicalDevice& GetPhysicalDevice();
-
-        std::optional<uint32_t> GetFamilyIndex(QueueFamily family) const;
-        Ref<Queue>              GetQueue(QueueFamily queueFamily, uint32_t queueIndex);
-        Ref<Instance>           GetInstance();
-
-        Ref<CommandPool> CreateCommandPool(QueueFamily family);
-
-        NO_COPY_CONSTRUCTORS(Device);
-        NO_MOVE_CONSTRUCTORS(Device);
+        VkDevice         GetLogicDevice();
+        VkPhysicalDevice GetPhysicalDevice();
+        VkQueue          GetQueue();
+        uint32_t         GetQueueFamilyIndex();
 
     private:
-        Device(VkPhysicalDevice device, Ref<Instance> instance, const QueuesSpecification& specification);
-        uint32_t GetFamilySize(QueueFamily family) const;
+        VkQueue          m_Queue          = VK_NULL_HANDLE;
+        VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
+        VkDevice         m_LogicDevice    = VK_NULL_HANDLE;
+        uint32_t         m_QueueFamilyIndex;
 
-    private:
-        friend class Instance;
-        using Queues = std::unordered_map<uint32_t, std::vector<Ref<Queue>>>;
-
-        QueuesSpecification m_QueueSpecification;
-        QueueFamilyIndices  m_QueueFamilyIndicies;
-        Queues              m_Queues;
-        VkPhysicalDevice    m_PhysicalDevice = VK_NULL_HANDLE;
-        VkDevice            m_LogicDevice    = VK_NULL_HANDLE;
-
-        Ref<Instance> m_Instance = nullptr;
+        Instance* m_Instance = nullptr;
     };
 
-};  // namespace Vulkan
+};  // namespace Engine::Vulkan

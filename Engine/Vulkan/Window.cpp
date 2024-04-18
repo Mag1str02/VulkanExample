@@ -2,7 +2,6 @@
 
 #include "Device.h"
 #include "Helpers.h"
-#include "Queue.h"
 #include "Renderer.h"
 #include "SwapChain.h"
 
@@ -23,17 +22,26 @@ namespace {
 
 namespace Engine::Vulkan {
 
-    Window::Window(Ref<Renderer> renderer) : m_Renderer(renderer) {
-        m_SwapChain = CreateRef<SwapChain>(this, m_Renderer->GetDevice());
+    Window::Window(Renderer* renderer) : m_Renderer(renderer) {
+        VK_CHECK(glfwCreateWindowSurface(m_Renderer->GetInstanceHandle(), m_WindowHandle, nullptr, &m_Surface));
+        auto size   = GetSize();
+        // m_SwapChain = CreateRef<SwapChain>(m_Surface, m_Renderer, VkExtent2D{.width = size.x, .height = size.y});
     }
 
-    Window::~Window() {}
+    Window::~Window() {
+        // m_SwapChain = nullptr;
+        vkDestroySurfaceKHR(m_Renderer->GetInstanceHandle(), m_Surface, nullptr);
+    }
 
     void Window::BeginFrame() {
         Engine::Window::BeginFrame();
     }
     void Window::EndFrame() {
         Engine::Window::EndFrame();
+    }
+
+    VkSurfaceKHR Window::GetSurface() {
+        return m_Surface;
     }
 
 }  // namespace Engine::Vulkan

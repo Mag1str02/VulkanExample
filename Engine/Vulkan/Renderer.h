@@ -1,34 +1,31 @@
 #pragma once
 
 #include "Common.h"
-
-class Window;
+#include "Debugger.h"
+#include "Device.h"
+#include "Instance.h"
 
 namespace Engine::Vulkan {
 
     class Renderer {
     public:
         Renderer();
-        ~Renderer() = default;
+        ~Renderer();
 
-        Ref<Instance> GetInstance();
-        Ref<Device>   GetDevice();
-        Ref<Queue>    GetGraphicsQueue();
-        Ref<Queue>    GetPresentationQueue();
-
-        const VkInstance&       GetInstanceHandle();
-        const VkDevice&         GetLogicDevice();
-        const VkPhysicalDevice& GetPhysicalDevice();
+        VkInstance       GetInstanceHandle();
+        VkDevice         GetLogicDevice();
+        VkPhysicalDevice GetPhysicalDevice();
+        VkQueue          GetQueue();
+        uint32_t         GetQueueFamilyIndex();
 
         NO_COPY_CONSTRUCTORS(Renderer);
         NO_MOVE_CONSTRUCTORS(Renderer);
 
     private:
-        Ref<Instance> m_Instance;
-        Ref<Debugger> m_Debugger;
-        Ref<Device>   m_Device;
-        Ref<Queue>    m_GraphicsQueue;
-        Ref<Queue>    m_PresentationQueue;
+        Config           m_Config;
+        Handle<Instance> m_Instance;
+        Handle<Debugger> m_Debugger;
+        Handle<Device>   m_Device;
     };
 
 }  // namespace Engine::Vulkan

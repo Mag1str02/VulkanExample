@@ -1,30 +1,18 @@
 #pragma once
 
 #include "Common.h"
-
-#include "Engine/Utils/Singleton.h"
+#include "Config.h"
 
 namespace Engine::Vulkan {
 
-    class Instance : public RefCounted<Instance> {
+    class Instance : public HandledStorage {
     public:
-        static Ref<Instance> Create();
+        Instance(const Config& config);
         ~Instance();
 
-        const VkInstance& Handle();
-
-        Ref<Device>   CreateBestDevice(const QueuesSpecification& specification);
-        Ref<Debugger> CreateDebugger();
-
-        NO_COPY_CONSTRUCTORS(Instance);
-        NO_MOVE_CONSTRUCTORS(Instance);
-
-    private:
-        Instance() = default;
-
-        uint32_t                      GetDeviceCount();
+        VkInstance                    Handle();
         std::vector<VkPhysicalDevice> GetAllDevices();
-        std::vector<VkPhysicalDevice> GetCompatibleDevices(const QueuesSpecification& specification);
+        uint32_t                      GetDeviceCount();
 
     private:
         VkInstance m_Handle = VK_NULL_HANDLE;

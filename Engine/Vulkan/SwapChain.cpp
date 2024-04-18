@@ -13,6 +13,7 @@
 namespace Engine::Vulkan {
 
     namespace {
+
         VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
             for (const auto& availableFormat : availableFormats) {
                 if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
@@ -47,25 +48,13 @@ namespace Engine::Vulkan {
             uint32_t maxImageCount = capabilities.maxImageCount;
             return std::clamp(minImageCount + 1, minImageCount, maxImageCount);
         }
+
     }  // namespace
 
-    SwapChain::SwapChain(Window* window, Ref<Device> device) {
-        DE_ASSERT(window, "Bad window");
-        DE_ASSERT(device, "Bad device");
+    SwapChain::SwapChain(VkSurfaceKHR surface, Renderer* renderer, VkExtent2D size) : m_Surface(surface), m_Renderer(renderer) {
+        GetSwapChainSupportDetails();
 
-        m_Window = window;
-        m_Device = device;
-
-        auto res = glfwCreateWindowSurface(m_Device->GetInstance()->Handle(), m_Window->Handle(), nullptr, &m_Surface);
-        DE_ASSERT(res == VK_SUCCESS, "Failed to create window surface");
-        m_Details = Helpers::GetSwapChainSupportDetails(m_Device->GetPhysicalDevice(), m_Surface);
-
-        int width, height;
-        glfwGetFramebufferSize(m_Window->Handle(), &width, &height);
-        VkExtent2D initialSize;
-        initialSize.width  = width;
-        initialSize.height = height;
-        ChangeExtent(initialSize);
+        ChangeExtent(size);
 
         m_Format = ChooseSwapSurfaceFormat(m_Details.m_SurfaceFormats);
 
@@ -94,39 +83,31 @@ namespace Engine::Vulkan {
         uint32_t imageCount = ChoseCount(m_Details.m_Capabilities);
 
         VkSwapchainCreateInfoKHR createInfo{};
-        createInfo.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-        createInfo.surface          = m_Surface;
-        createInfo.minImageCount    = imageCount;
-        createInfo.imageFormat      = m_Format.format;
-        createInfo.imageColorSpace  = m_Format.colorSpace;
-        createInfo.imageExtent      = m_Extent;
-        createInfo.imageArrayLayers = 1;
-        createInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        createInfo.preTransform     = m_Details.m_Capabilities.currentTransform;
-        createInfo.compositeAlpha   = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-        createInfo.presentMode      = presentMode;
-        createInfo.clipped          = VK_TRUE;
-        createInfo.oldSwapchain     = VK_NULL_HANDLE;
+        createInfo.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+        createInfo.surface               = m_Surface;
+        createInfo.minImageCount         = imageCount;
+        createInfo.imageFormat           = m_Format.format;
+        createInfo.imageColorSpace       = m_Format.colorSpace;
+        createInfo.imageExtent           = m_Extent;
+        createInfo.imageArrayLayers      = 1;
+        createInfo.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        createInfo.preTransform          = m_Details.m_Capabilities.currentTransform;
+        createInfo.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+        createInfo.presentMode           = presentMode;
+        createInfo.clipped               = VK_TRUE;
+        createInfo.oldSwapchain          = VK_NULL_HANDLE;
+        createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+        createInfo.queueFamilyIndexCount = 0;        // Optional
+        createInfo.pQueueFamilyIndices   = nullptr;  // Optional
 
-        uint32_t queueFamilyIndices[] = {*m_Device->GetFamilyIndex(QueueFamily::Graphics), *m_Device->GetFamilyIndex(QueueFamily::Presentation)};
-        if (queueFamilyIndices[0] != queueFamilyIndices[1]) {
-            createInfo.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
-            createInfo.queueFamilyIndexCount = 2;
-            createInfo.pQueueFamilyIndices   = queueFamilyIndices;
-        } else {
-            createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
-            createInfo.queueFamilyIndexCount = 0;        // Optional
-            createInfo.pQueueFamilyIndices   = nullptr;  // Optional
-        }
-
-        VK_CHECK(vkCreateSwapchainKHR(m_Device->GetLogicDevice(), &createInfo, nullptr, &m_SwapChain));
+        VK_CHECK(vkCreateSwapchainKHR(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_SwapChain));
 
         {
             uint32_t actualImageCount;
-            VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actualImageCount, nullptr));
+            VK_CHECK(vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, nullptr));
             DE_ASSERT(actualImageCount == imageCount, "Bad image count");
             m_Images.resize(actualImageCount);
-            VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actualImageCount, m_Images.data()));
+            VK_CHECK(vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, m_Images.data()));
         }
 
         m_ImageViews.resize(imageCount);
@@ -145,26 +126,41 @@ namespace Engine::Vulkan {
             createInfo.subresourceRange.levelCount     = 1;
             createInfo.subresourceRange.baseArrayLayer = 0;
             createInfo.subresourceRange.layerCount     = 1;
-            VK_CHECK(vkCreateImageView(m_Device->GetLogicDevice(), &createInfo, nullptr, &m_ImageViews[i]));
+            VK_CHECK(vkCreateImageView(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_ImageViews[i]));
         }
     }
 
     SwapChain::~SwapChain() {
         for (auto imageView : m_ImageViews) {
-            vkDestroyImageView(m_Device->GetLogicDevice(), imageView, nullptr);
+            vkDestroyImageView(m_Renderer->GetLogicDevice(), imageView, nullptr);
         }
-        vkDestroySwapchainKHR(m_Device->GetLogicDevice(), m_SwapChain, nullptr);
-        vkDestroySurfaceKHR(m_Device->GetInstance()->Handle(), m_Surface, nullptr);
+        vkDestroySwapchainKHR(m_Renderer->GetLogicDevice(), m_SwapChain, nullptr);
     }
 
-    const VkSwapchainKHR& SwapChain::Handle() {
+    void SwapChain::GetSwapChainSupportDetails() {
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_Renderer->GetPhysicalDevice(), m_Surface, &m_Details.m_Capabilities);
+
+        uint32_t formatCount;
+        vkGetPhysicalDeviceSurfaceFormatsKHR(m_Renderer->GetPhysicalDevice(), m_Surface, &formatCount, nullptr);
+        m_Details.m_SurfaceFormats.resize(formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(m_Renderer->GetPhysicalDevice(), m_Surface, &formatCount, m_Details.m_SurfaceFormats.data());
+
+        uint32_t presentModeCount;
+        vkGetPhysicalDeviceSurfacePresentModesKHR(m_Renderer->GetPhysicalDevice(), m_Surface, &presentModeCount, nullptr);
+        m_Details.m_PresentationModes.resize(presentModeCount);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(m_Renderer->GetPhysicalDevice(),
+                                                  m_Surface,
+                                                  &presentModeCount,
+                                                  m_Details.m_PresentationModes.data());
+    }
+    VkSwapchainKHR SwapChain::Handle() {
         return m_SwapChain;
     }
-    const VkImage& SwapChain::GetImage(uint32_t index) {
+    VkImage SwapChain::GetImage(uint32_t index) {
         DE_ASSERT(index < m_Images.size(), "Bad index");
         return m_Images[index];
     }
-    const VkImageView& SwapChain::GetImageView(uint32_t index) {
+    VkImageView SwapChain::GetImageView(uint32_t index) {
         DE_ASSERT(index < m_Images.size(), "Bad index");
         return m_ImageViews[index];
     }

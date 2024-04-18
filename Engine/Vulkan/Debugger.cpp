@@ -55,19 +55,17 @@ namespace Engine::Vulkan {
         return createInfo;
     }
 
-    Debugger::Debugger(Ref<Instance> instance) {
-        DE_ASSERT(instance, "Cannot create debugger with nullptr instance");
-        m_Instance = instance;
+    Debugger::Debugger(Instance* instance) : m_Instance(instance) {
+        DE_ASSERT(m_Instance, "Cannot create debugger with nullptr instance");
 
         auto& mapping = GetDebuggerMapping();
-        DE_ASSERT(!mapping.contains(m_Instance.get()), "Cannot create 2 debuggers for same instance");
-        mapping.emplace(m_Instance.get(), this);
+        DE_ASSERT(!mapping.contains(m_Instance), "Cannot create 2 debuggers for same instance");
+        mapping.emplace(m_Instance, this);
 
 #if DE_VK_ENABLE_VALIDATION_LAYER == 1
         auto debugCreateInfo      = GenCreateInfo();
-        debugCreateInfo.pUserData = m_Instance.get();
-        auto result               = CreateDebugUtilsMessengerEXT(m_Instance->Handle(), &debugCreateInfo, nullptr, &m_Handle);
-        DE_ASSERT(result == VK_SUCCESS, "Failed to create debug handler");
+        debugCreateInfo.pUserData = m_Instance;
+        VK_CHECK(CreateDebugUtilsMessengerEXT(m_Instance->Handle(), &debugCreateInfo, nullptr, &m_Handle));
 #endif
     }
 
@@ -77,12 +75,12 @@ namespace Engine::Vulkan {
 #endif
 
         auto& mapping = GetDebuggerMapping();
-        DE_ASSERT(mapping.contains(m_Instance.get()), "Internal mapping error");
-        mapping.erase(m_Instance.get());
+        DE_ASSERT(mapping.contains(m_Instance), "Internal mapping error");
+        mapping.erase(m_Instance);
     }
 
     VkBool32 Debugger::OnMessage(const std::string& msg) {
         std::cerr << "Vulkan: " << msg << std::endl << std::endl;
         return VK_FALSE;
     }
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan

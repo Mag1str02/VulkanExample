@@ -3,8 +3,8 @@
 #include "Engine/Vulkan/CommandBuffer.h"
 #include "Engine/Vulkan/CommandPool.h"
 #include "Engine/Vulkan/Device.h"
-#include "Engine/Vulkan/Queue.h"
 #include "Engine/Vulkan/Renderer.h"
+#include "Engine/Vulkan/Window.h"
 
 namespace Engine {
 
@@ -23,8 +23,8 @@ namespace Engine {
         void Loop();
 
     protected:
-        Ref<Vulkan::Window>   m_Window;
-        Ref<Vulkan::Renderer> m_Renderer;
+        ManualLifetime<Vulkan::Renderer> m_Renderer;
+        ManualLifetime<Vulkan::Window>   m_Window;
     };
 
 }  // namespace Engine

@@ -47,4 +47,4 @@ namespace Engine::Vulkan {
         return m_Device;
     }
 
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan

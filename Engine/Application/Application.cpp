@@ -6,7 +6,6 @@
 #include "Engine/Vulkan/Instance.h"
 #include "Engine/Vulkan/Window.h"
 
-
 #include <GLFW/glfw3.h>
 
 namespace Engine {
@@ -14,16 +13,16 @@ namespace Engine {
         glfwInit();
         volkInitialize();
 
-        m_Renderer = CreateRef<Vulkan::Renderer>();
-        m_Window   = CreateRef<Vulkan::Window>(m_Renderer);
+        m_Renderer.Construct();
+        m_Window.Construct(m_Renderer.Get());
 
         OnStartUp();
     }
     Application::~Application() {
         OnShutDown();
 
-        m_Window   = nullptr;
-        m_Renderer = nullptr;
+        m_Window.Destruct();
+        m_Renderer.Destruct();
 
         volkFinalize();
         glfwTerminate();

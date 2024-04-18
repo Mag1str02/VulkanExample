@@ -20,7 +20,7 @@ namespace Engine {
         NO_COPY_CONSTRUCTORS(Window);
         NO_MOVE_CONSTRUCTORS(Window);
 
-    private:
+    protected:
         GLFWwindow* m_WindowHandle = nullptr;
     };
 }  // namespace Engine

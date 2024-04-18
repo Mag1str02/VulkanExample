@@ -19,7 +19,7 @@ public:
     TestApplication() = default;
 
     virtual void OnStartUp() override {
-        m_CommandPool = m_Renderer->GetDevice()->CreateCommandPool(Engine::Vulkan::QueueFamily::Graphics);
+        // m_CommandPool = m_Renderer->GetDevice()->CreateCommandPool(Engine::Vulkan::QueueFamily::Graphics);
         // CreateTexture();
     }
     virtual void OnShutDown() override {
@@ -30,110 +30,111 @@ public:
     }
 
 private:
-    void CreateTexture() {
-        // Create iamges
-        {
-            uint8_t image[] = {255, 0, 0, 255, 0, 255, 0, 255};
+    // void CreateTexture() {
+    //     // Create iamges
+    //     {
+    //         uint8_t image[] = {255, 0, 0, 255, 0, 255, 0, 255};
 
-            m_StagingBuffer = CreateRef<Vulkan::Buffer>(m_Renderer->GetDevice(),
-                                                        sizeof(image),
-                                                        VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-            m_StagingBuffer->SetData(image, sizeof(image));
+    //         m_StagingBuffer = CreateRef<Vulkan::Buffer>(m_Renderer->GetDevice(),
+    //                                                     sizeof(image),
+    //                                                     VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    //                                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    //         m_StagingBuffer->SetData(image, sizeof(image));
 
-            m_Image        = CreateRef<Vulkan::Image>(m_Renderer->GetDevice(),
-                                               2,
-                                               1,
-                                               VK_FORMAT_R8G8B8A8_SRGB,
-                                               VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-                                               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-            m_ImageSampler = CreateRef<Vulkan::ImageSampler>(m_Renderer->GetDevice());
-            m_ImageView    = CreateRef<Vulkan::ImageView>(m_Image);
-        }
+    //         m_Image        = CreateRef<Vulkan::Image>(m_Renderer->GetDevice(),
+    //                                            2,
+    //                                            1,
+    //                                            VK_FORMAT_R8G8B8A8_SRGB,
+    //                                            VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+    //                                            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    //         m_ImageSampler = CreateRef<Vulkan::ImageSampler>(m_Renderer->GetDevice());
+    //         m_ImageView    = CreateRef<Vulkan::ImageView>(m_Image);
+    //     }
 
-        // Transfer texture data
-        {
-            auto queue = m_Renderer->GetGraphicsQueue();
-            auto cmd   = m_CommandPool->CreateCommandBuffer();
+    //     // Transfer texture data
+    //     {
+    //         auto queue = m_Renderer->GetGraphicsQueue();
+    //         auto cmd   = m_CommandPool->CreateCommandBuffer();
 
-            cmd->Begin();
-            // First image layout transition
-            {
-                VkImageMemoryBarrier2 barrier{};
-                barrier.image                           = m_Image->Handle();
-                barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-                barrier.srcStageMask                    = 0;
-                barrier.dstStageMask                    = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
-                barrier.srcAccessMask                   = 0;
-                barrier.dstAccessMask                   = VK_ACCESS_2_TRANSFER_WRITE_BIT;
-                barrier.oldLayout                       = VK_IMAGE_LAYOUT_UNDEFINED;
-                barrier.newLayout                       = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-                barrier.subresourceRange.baseArrayLayer = 0;
-                barrier.subresourceRange.baseMipLevel   = 0;
-                barrier.subresourceRange.layerCount     = 1;
-                barrier.subresourceRange.levelCount     = 1;
+    //         cmd->Begin();
+    //         // First image layout transition
+    //         {
+    //             VkImageMemoryBarrier2 barrier{};
+    //             barrier.image                           = m_Image->Handle();
+    //             barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+    //             barrier.srcStageMask                    = 0;
+    //             barrier.dstStageMask                    = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+    //             barrier.srcAccessMask                   = 0;
+    //             barrier.dstAccessMask                   = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+    //             barrier.oldLayout                       = VK_IMAGE_LAYOUT_UNDEFINED;
+    //             barrier.newLayout                       = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    //             barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    //             barrier.subresourceRange.baseArrayLayer = 0;
+    //             barrier.subresourceRange.baseMipLevel   = 0;
+    //             barrier.subresourceRange.layerCount     = 1;
+    //             barrier.subresourceRange.levelCount     = 1;
 
-                VkDependencyInfo dependencyInfo{};
-                dependencyInfo.sType                   = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-                dependencyInfo.imageMemoryBarrierCount = 1;
-                dependencyInfo.pImageMemoryBarriers    = &barrier;
+    //             VkDependencyInfo dependencyInfo{};
+    //             dependencyInfo.sType                   = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    //             dependencyInfo.imageMemoryBarrierCount = 1;
+    //             dependencyInfo.pImageMemoryBarriers    = &barrier;
 
-                vkCmdPipelineBarrier2(cmd->Handle(), &dependencyInfo);
-            }
-            // Transfer image data from staging buffer to image
-            {
-                VkBufferImageCopy region{};
-                region.bufferOffset      = 0;
-                region.bufferRowLength   = 0;
-                region.bufferImageHeight = 0;
+    //             vkCmdPipelineBarrier2(cmd->Handle(), &dependencyInfo);
+    //         }
+    //         // Transfer image data from staging buffer to image
+    //         {
+    //             VkBufferImageCopy region{};
+    //             region.bufferOffset      = 0;
+    //             region.bufferRowLength   = 0;
+    //             region.bufferImageHeight = 0;
 
-                region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-                region.imageSubresource.mipLevel       = 0;
-                region.imageSubresource.baseArrayLayer = 0;
-                region.imageSubresource.layerCount     = 1;
+    //             region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    //             region.imageSubresource.mipLevel       = 0;
+    //             region.imageSubresource.baseArrayLayer = 0;
+    //             region.imageSubresource.layerCount     = 1;
 
-                region.imageOffset = {0, 0, 0};
-                region.imageExtent = {2, 1, 1};
-                vkCmdCopyBufferToImage(cmd->Handle(), m_StagingBuffer->Handle(), m_Image->Handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-            }
-            // Second image layout transition
-            {
-                VkImageMemoryBarrier2 barrier{};
-                barrier.image                           = m_Image->Handle();
-                barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-                barrier.srcStageMask                    = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
-                barrier.dstStageMask                    = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
-                barrier.srcAccessMask                   = VK_ACCESS_2_TRANSFER_WRITE_BIT;
-                barrier.dstAccessMask                   = VK_ACCESS_2_SHADER_READ_BIT;
-                barrier.oldLayout                       = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                barrier.newLayout                       = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-                barrier.subresourceRange.baseArrayLayer = 0;
-                barrier.subresourceRange.baseMipLevel   = 0;
-                barrier.subresourceRange.layerCount     = 1;
-                barrier.subresourceRange.levelCount     = 1;
+    //             region.imageOffset = {0, 0, 0};
+    //             region.imageExtent = {2, 1, 1};
+    //             vkCmdCopyBufferToImage(cmd->Handle(), m_StagingBuffer->Handle(), m_Image->Handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+    //             &region);
+    //         }
+    //         // Second image layout transition
+    //         {
+    //             VkImageMemoryBarrier2 barrier{};
+    //             barrier.image                           = m_Image->Handle();
+    //             barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+    //             barrier.srcStageMask                    = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+    //             barrier.dstStageMask                    = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
+    //             barrier.srcAccessMask                   = VK_ACCESS_2_TRANSFER_WRITE_BIT;
+    //             barrier.dstAccessMask                   = VK_ACCESS_2_SHADER_READ_BIT;
+    //             barrier.oldLayout                       = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    //             barrier.newLayout                       = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    //             barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    //             barrier.subresourceRange.baseArrayLayer = 0;
+    //             barrier.subresourceRange.baseMipLevel   = 0;
+    //             barrier.subresourceRange.layerCount     = 1;
+    //             barrier.subresourceRange.levelCount     = 1;
 
-                VkDependencyInfo dependencyInfo{};
-                dependencyInfo.sType                   = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
-                dependencyInfo.imageMemoryBarrierCount = 1;
-                dependencyInfo.pImageMemoryBarriers    = &barrier;
+    //             VkDependencyInfo dependencyInfo{};
+    //             dependencyInfo.sType                   = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    //             dependencyInfo.imageMemoryBarrierCount = 1;
+    //             dependencyInfo.pImageMemoryBarriers    = &barrier;
 
-                vkCmdPipelineBarrier2(cmd->Handle(), &dependencyInfo);
-            }
-            cmd->End();
+    //             vkCmdPipelineBarrier2(cmd->Handle(), &dependencyInfo);
+    //         }
+    //         cmd->End();
 
-            VkSubmitInfo submitInfo{};
-            submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers    = &cmd->Handle();
+    //         VkSubmitInfo submitInfo{};
+    //         submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    //         submitInfo.commandBufferCount = 1;
+    //         submitInfo.pCommandBuffers    = &cmd->Handle();
 
-            vkQueueSubmit(queue->Handle(), 1, &submitInfo, VK_NULL_HANDLE);
-            vkQueueWaitIdle(queue->Handle());
-        }
+    //         vkQueueSubmit(queue->Handle(), 1, &submitInfo, VK_NULL_HANDLE);
+    //         vkQueueWaitIdle(queue->Handle());
+    //     }
 
-        m_ImGuiTextureID = ImGui_ImplVulkan_AddTexture(m_ImageSampler->Handle(), m_ImageView->Handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    }
+    //     m_ImGuiTextureID = ImGui_ImplVulkan_AddTexture(m_ImageSampler->Handle(), m_ImageView->Handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    // }
 
     void OnImGui() {
         {

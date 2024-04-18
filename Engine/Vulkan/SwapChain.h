@@ -7,12 +7,12 @@ namespace Engine::Vulkan {
 
     class SwapChain : public Object {
     public:
-        SwapChain(Window* window, Ref<Device> device);
+        SwapChain(VkSurfaceKHR surface, Renderer* renderer, VkExtent2D size);
         ~SwapChain();
 
-        const VkSwapchainKHR& Handle();
-        const VkImage&        GetImage(uint32_t index);
-        const VkImageView&    GetImageView(uint32_t index);
+        VkSwapchainKHR Handle();
+        VkImage        GetImage(uint32_t index);
+        VkImageView    GetImageView(uint32_t index);
 
         void Resize(uint32_t width, uint32_t height);
 
@@ -21,16 +21,22 @@ namespace Engine::Vulkan {
         uint32_t   ImageCount() const;
 
     private:
+        void GetSwapChainSupportDetails();
         bool ChangeExtent(VkExtent2D extent);
         void Rebuild();
+        struct SwapChainSupportDetails {
+            VkSurfaceCapabilitiesKHR        m_Capabilities;
+            std::vector<VkSurfaceFormatKHR> m_SurfaceFormats;
+            std::vector<VkPresentModeKHR>   m_PresentationModes;
+        };
 
     private:
         VkExtent2D         m_Extent = {};
         VkSurfaceFormatKHR m_Format = {};
 
-        SwapChainSupportDetails  m_Details   = {};
-        Window*                  m_Window    = nullptr;
-        Ref<Device>              m_Device    = nullptr;
+        SwapChainSupportDetails m_Details = {};
+
+        Renderer*                m_Renderer;
         VkSurfaceKHR             m_Surface   = VK_NULL_HANDLE;
         VkSwapchainKHR           m_SwapChain = VK_NULL_HANDLE;
         std::vector<VkImage>     m_Images;

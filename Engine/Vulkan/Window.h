@@ -9,14 +9,18 @@ namespace Engine::Vulkan {
 
     class Window : public Engine::Window {
     public:
-        Window(Ref<Renderer> renderer);
+        Window(Renderer* renderer);
         ~Window();
 
         virtual void BeginFrame() override;
         virtual void EndFrame() override;
 
+        VkSurfaceKHR GetSurface();
+
     private:
-        Ref<Renderer>  m_Renderer  = nullptr;
+        VkSurfaceKHR m_Surface;
+
+        Renderer*      m_Renderer  = nullptr;
         Ref<SwapChain> m_SwapChain = nullptr;
     };
 }  // namespace Engine::Vulkan

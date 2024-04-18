@@ -3,40 +3,25 @@
 #include "CommandPool.h"
 #include "Helpers.h"
 #include "Instance.h"
-#include "Queue.h"
 #include "Window.h"
 
 namespace Engine::Vulkan {
 
-    Device::Device(VkPhysicalDevice device, Ref<Instance> instance, const QueuesSpecification& specification) : m_QueueSpecification(specification) {
+    Device::Device(VkPhysicalDevice device, Instance* instance, const Config& config) : m_PhysicalDevice(device), m_Instance(instance) {
         DE_ASSERT(instance, "Bad instance");
 
-        m_Instance            = instance;
-        m_PhysicalDevice      = device;
-        m_QueueFamilyIndicies = Helpers::GetDeviceQueueFamilies(m_Instance->Handle(), m_PhysicalDevice);
+        auto requiredExtensions = config.GetUsedDeviceExtensions();
+        auto requiredLayers     = config.GetUsedLayers();
 
-        float priority           = 1.0f;
-        auto  requiredExtensions = Helpers::GetRequiredDeviceExtensions();
-        auto  requiredLayers     = Helpers::GetRequiredLayers();
-        auto  uniqueQueues       = m_QueueFamilyIndicies.GetUniqueIndicies();
+        int32_t universal_queue_family_index = config.GetUniversalQueueFamilyIndex(instance->Handle(), m_PhysicalDevice);
+        DE_ASSERT(universal_queue_family_index != -1, "No universal queue family");
 
-        std::unordered_map<uint32_t, uint32_t> actualAmounts;
-        for (const auto& [family, index] : m_QueueFamilyIndicies.GetFamilies()) {
-            auto requestedFamilySize = GetFamilySize(family);
-            if (requestedFamilySize) {
-                actualAmounts[index] = std::max(actualAmounts[index], requestedFamilySize);
-            }
-        }
-
-        std::vector<VkDeviceQueueCreateInfo> queuesCreateInfo;
-        for (const auto& [familyIndex, amount] : actualAmounts) {
-            VkDeviceQueueCreateInfo createInfo{};
-            createInfo.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-            createInfo.queueFamilyIndex = familyIndex;
-            createInfo.queueCount       = amount;
-            createInfo.pQueuePriorities = &priority;
-            queuesCreateInfo.push_back(createInfo);
-        }
+        float                   priority = 1.0f;
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = universal_queue_family_index;
+        queueCreateInfo.queueCount       = 1;
+        queueCreateInfo.pQueuePriorities = &priority;
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
@@ -51,8 +36,8 @@ namespace Engine::Vulkan {
 
         VkDeviceCreateInfo createInfo{};
         createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pQueueCreateInfos       = queuesCreateInfo.data();
-        createInfo.queueCreateInfoCount    = uniqueQueues.size();
+        createInfo.queueCreateInfoCount    = 1;
+        createInfo.pQueueCreateInfos       = &queueCreateInfo;
         createInfo.pEnabledFeatures        = &deviceFeatures;
         createInfo.enabledLayerCount       = requiredLayers.size();
         createInfo.ppEnabledLayerNames     = requiredLayers.data();
@@ -60,59 +45,27 @@ namespace Engine::Vulkan {
         createInfo.ppEnabledExtensionNames = requiredExtensions.data();
         createInfo.pNext                   = &dynamicRenderingFeature;
 
-        auto res = vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicDevice);
-        DE_ASSERT(m_PhysicalDevice != VK_NULL_HANDLE, "Failed to create logic device");
+        VK_CHECK(vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicDevice));
 
-        for (const auto& [familyIndex, amount] : actualAmounts) {
-            for (uint32_t i = 0; i < amount; ++i) {
-                VkQueue handle;
-                vkGetDeviceQueue(m_LogicDevice, familyIndex, i, &handle);
-                m_Queues[familyIndex].emplace_back(Ref<Queue>(new Queue(handle, familyIndex)));
-            }
-        }
+        m_QueueFamilyIndex = universal_queue_family_index;
+        vkGetDeviceQueue(m_LogicDevice, m_QueueFamilyIndex, 0, &m_Queue);
     }
 
     Device::~Device() {
-        for (const auto& [_, queues] : m_Queues) {
-            for (const auto& queue : queues) {
-                queue->Invalidate();
-            }
-        }
         vkDestroyDevice(m_LogicDevice, nullptr);
     }
 
-    const VkDevice& Device::GetLogicDevice() {
+    VkDevice Device::GetLogicDevice() {
         return m_LogicDevice;
     }
-    const VkPhysicalDevice& Device::GetPhysicalDevice() {
+    VkPhysicalDevice Device::GetPhysicalDevice() {
         return m_PhysicalDevice;
     }
-    Ref<Queue> Device::GetQueue(QueueFamily queueFamily, uint32_t queueIndex) {
-        auto familySize  = GetFamilySize(queueFamily);
-        auto familyIndex = m_QueueFamilyIndicies.GetFamilyIndex(queueFamily);
-        DE_ASSERT(familyIndex, "Bad family");
-        DE_ASSERT(queueIndex < familySize, "Bad queue index");
-
-        return m_Queues.at(*familyIndex).at(queueIndex);
+    VkQueue Device::GetQueue() {
+        return m_Queue;
     }
-    Ref<Instance> Device::GetInstance() {
-        return m_Instance;
+    uint32_t Device::GetQueueFamilyIndex() {
+        return m_QueueFamilyIndex;
     }
 
-    std::optional<uint32_t> Device::GetFamilyIndex(QueueFamily family) const {
-        return m_QueueFamilyIndicies.GetFamilyIndex(family);
-    }
-
-    uint32_t Device::GetFamilySize(QueueFamily family) const {
-        if (auto it = m_QueueSpecification.find(family); it != m_QueueSpecification.end()) {
-            return it->second;
-        }
-        return 0;
-    }
-
-    Ref<CommandPool> Device::CreateCommandPool(QueueFamily family) {
-        auto familyIndex = GetFamilyIndex(family);
-        DE_ASSERT(familyIndex, "Bad family");
-        return Ref<CommandPool>(new CommandPool(shared_from_this(), *familyIndex));
-    }
 }  // namespace Engine::Vulkan
