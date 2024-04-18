@@ -1,17 +1,16 @@
 #include "Window.h"
 
-#include "CommandBuffer.h"
-#include "CommandPool.h"
-#include "Device.h"
-#include "Helpers.h"
-#include "ImageView.h"
-#include "Queue.h"
 #include "Renderer.h"
-#include "SwapChain.h"
+
+#include "Engine/Vulkan/Objects/CommandBuffer.h"
+#include "Engine/Vulkan/Objects/CommandPool.h"
+#include "Engine/Vulkan/Objects/Device.h"
+#include "Engine/Vulkan/Objects/Instance.h"
+#include "Engine/Vulkan/Objects/ImageView.h"
+#include "Engine/Vulkan/Objects/Queue.h"
+#include "Engine/Vulkan/Objects/SwapChain.h"
 
 #include <GLFW/glfw3.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_vulkan.h>
 
 namespace {
     static void check_vk_result(VkResult err) {

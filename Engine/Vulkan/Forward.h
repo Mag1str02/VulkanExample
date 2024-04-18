@@ -6,11 +6,10 @@ namespace Engine {
 
     namespace Vulkan {
 
-        class Device;
         class Instance;
-        class Queue;
         class Debugger;
-        class Renderer;
+        class Device;
+        class Queue;
         class CommandPool;
         class CommandBuffer;
         class Image;
@@ -18,9 +17,11 @@ namespace Engine {
         class Buffer;
         class ImageSampler;
         class ImageView;
-        class Window;
         class SwapChain;
+
         class Config;
+        class Renderer;
+        class Window;
 
     }  // namespace Vulkan
 

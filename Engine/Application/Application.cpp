@@ -1,10 +1,6 @@
 #include "Application.h"
 
 #include "Engine/Utils/Assert.h"
-#include "Engine/Vulkan/Debugger.h"
-#include "Engine/Vulkan/Helpers.h"
-#include "Engine/Vulkan/Instance.h"
-#include "Engine/Vulkan/Window.h"
 
 #include <GLFW/glfw3.h>
 

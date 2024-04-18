@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Common.h"
 #include "Fence.h"
 #include "Image.h"
 #include "Object.h"
-#include "Task.h"
+
+#include "Engine/Vulkan/Common.h"
+#include "Engine/Vulkan/Executor/Task.h"
 
 namespace Engine::Vulkan {
 

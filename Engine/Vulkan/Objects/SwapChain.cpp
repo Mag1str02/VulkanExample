@@ -1,14 +1,7 @@
 #include "SwapChain.h"
 
-#include <GLFW/glfw3.h>
-
 #include "Device.h"
-#include "Helpers.h"
 #include "Instance.h"
-#include "Renderer.h"
-#include "Window.h"
-
-#include "Engine/Utils/Assert.h"
 
 namespace Engine::Vulkan {
 

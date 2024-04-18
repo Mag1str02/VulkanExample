@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Common.h"
-#include "Config.h"
 #include "Object.h"
+
+#include "Engine/Vulkan/Renderer/Config.h"
 
 namespace Engine::Vulkan {
 

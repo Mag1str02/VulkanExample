@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Common.h"
 #include "Object.h"
 
 namespace Engine::Vulkan {
@@ -21,4 +20,4 @@ namespace Engine::Vulkan {
         VkMemoryPropertyFlags m_MemoryProperties;
     };
 
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan

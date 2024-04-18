@@ -1,11 +1,9 @@
 #include <Engine/Application/Application.h>
-#include <Engine/Utils/Assert.h>
-#include <Engine/Vulkan/Buffer.h>
-#include <Engine/Vulkan/Helpers.h>
-#include <Engine/Vulkan/Image.h>
-#include <Engine/Vulkan/ImageSampler.h>
-#include <Engine/Vulkan/ImageView.h>
-#include <Engine/Vulkan/Window.h>
+#include <Engine/Vulkan/Objects/Buffer.h>
+#include <Engine/Vulkan/Objects/Image.h>
+#include <Engine/Vulkan/Objects/ImageSampler.h>
+#include <Engine/Vulkan/Objects/ImageView.h>
+#include <Engine/Vulkan/Objects/Device.h>
 
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>

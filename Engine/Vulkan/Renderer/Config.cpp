@@ -1,7 +1,6 @@
 #include "Config.h"
 
 #include <GLFW/glfw3.h>
-#include <volk.h>
 
 namespace Engine::Vulkan {
 

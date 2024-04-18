@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common.h"
-#include "Object.h"
+#include "Engine/Vulkan/Common.h"
+#include "Engine/Vulkan/Objects/Object.h"
 
 namespace Engine::Vulkan {
 

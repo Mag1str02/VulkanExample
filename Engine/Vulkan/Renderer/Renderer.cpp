@@ -1,16 +1,10 @@
 #include "Renderer.h"
 
-#include "Debugger.h"
-#include "Device.h"
-#include "Helpers.h"
-#include "Instance.h"
-#include "Window.h"
-
-#include <GLFW/glfw3.h>
+#include "Engine/Vulkan/Objects/Debugger.h"
+#include "Engine/Vulkan/Objects/Device.h"
+#include "Engine/Vulkan/Objects/Instance.h"
 
 namespace Engine::Vulkan {
-
-    namespace {}  // namespace
 
     Renderer::Renderer() {
         m_Config.AddLayer("VK_LAYER_KHRONOS_validation");

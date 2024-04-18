@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Common.h"
-#include "Debugger.h"
-#include "Device.h"
-#include "Instance.h"
+#include "Config.h"
+
+#include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan {
 

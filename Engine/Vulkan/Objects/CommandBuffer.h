@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Common.h"
+#include "Object.h"
 
 namespace Engine::Vulkan {
 
@@ -30,4 +30,4 @@ namespace Engine::Vulkan {
         Ref<CommandPool> m_Pool;
     };
 
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan

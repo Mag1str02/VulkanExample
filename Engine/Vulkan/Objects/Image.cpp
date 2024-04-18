@@ -1,7 +1,8 @@
 #include "Image.h"
 
 #include "Device.h"
-#include "Helpers.h"
+
+#include "Engine/Vulkan/Helpers.h"
 
 namespace Engine::Vulkan {
 
