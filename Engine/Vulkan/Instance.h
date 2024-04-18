@@ -2,17 +2,22 @@
 
 #include "Common.h"
 #include "Config.h"
+#include "Object.h"
 
 namespace Engine::Vulkan {
 
-    class Instance : public HandledStorage {
+    class Instance : public Object {
     public:
-        Instance(const Config& config);
+        static Ref<Instance> Create(const Config& config);
+
         ~Instance();
 
         VkInstance                    Handle();
         std::vector<VkPhysicalDevice> GetAllDevices();
         uint32_t                      GetDeviceCount();
+
+    private:
+        Instance(const Config& config);
 
     private:
         VkInstance m_Handle = VK_NULL_HANDLE;

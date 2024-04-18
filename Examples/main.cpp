@@ -23,7 +23,7 @@ public:
         // CreateTexture();
     }
     virtual void OnShutDown() override {
-        vkDeviceWaitIdle(m_Renderer->GetLogicDevice());
+        vkDeviceWaitIdle(m_Renderer->GetDevice()->GetLogicDevice());
     }
     virtual void OnLoop() override {
         // OnImGui();

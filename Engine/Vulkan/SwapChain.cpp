@@ -51,7 +51,7 @@ namespace Engine::Vulkan {
 
     }  // namespace
 
-    SwapChain::SwapChain(VkSurfaceKHR surface, Renderer* renderer, VkExtent2D size) : m_Surface(surface), m_Renderer(renderer) {
+    SwapChain::SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size) : m_Surface(surface), m_Device(device) {
         GetSwapChainSupportDetails();
 
         ChangeExtent(size);
@@ -100,14 +100,14 @@ namespace Engine::Vulkan {
         createInfo.queueFamilyIndexCount = 0;        // Optional
         createInfo.pQueueFamilyIndices   = nullptr;  // Optional
 
-        VK_CHECK(vkCreateSwapchainKHR(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_SwapChain));
+        VK_CHECK(vkCreateSwapchainKHR(m_Device->GetLogicDevice(), &createInfo, nullptr, &m_SwapChain));
 
         {
             uint32_t actualImageCount;
-            VK_CHECK(vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, nullptr));
+            VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actualImageCount, nullptr));
             DE_ASSERT(actualImageCount == imageCount, "Bad image count");
             m_Images.resize(actualImageCount);
-            VK_CHECK(vkGetSwapchainImagesKHR(m_Renderer->GetLogicDevice(), m_SwapChain, &actualImageCount, m_Images.data()));
+            VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actualImageCount, m_Images.data()));
         }
 
         m_ImageViews.resize(imageCount);
@@ -126,32 +126,29 @@ namespace Engine::Vulkan {
             createInfo.subresourceRange.levelCount     = 1;
             createInfo.subresourceRange.baseArrayLayer = 0;
             createInfo.subresourceRange.layerCount     = 1;
-            VK_CHECK(vkCreateImageView(m_Renderer->GetLogicDevice(), &createInfo, nullptr, &m_ImageViews[i]));
+            VK_CHECK(vkCreateImageView(m_Device->GetLogicDevice(), &createInfo, nullptr, &m_ImageViews[i]));
         }
     }
 
     SwapChain::~SwapChain() {
         for (auto imageView : m_ImageViews) {
-            vkDestroyImageView(m_Renderer->GetLogicDevice(), imageView, nullptr);
+            vkDestroyImageView(m_Device->GetLogicDevice(), imageView, nullptr);
         }
-        vkDestroySwapchainKHR(m_Renderer->GetLogicDevice(), m_SwapChain, nullptr);
+        vkDestroySwapchainKHR(m_Device->GetLogicDevice(), m_SwapChain, nullptr);
     }
 
     void SwapChain::GetSwapChainSupportDetails() {
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_Renderer->GetPhysicalDevice(), m_Surface, &m_Details.m_Capabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_Device->GetPhysicalDevice(), m_Surface, &m_Details.m_Capabilities);
 
         uint32_t formatCount;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(m_Renderer->GetPhysicalDevice(), m_Surface, &formatCount, nullptr);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(m_Device->GetPhysicalDevice(), m_Surface, &formatCount, nullptr);
         m_Details.m_SurfaceFormats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(m_Renderer->GetPhysicalDevice(), m_Surface, &formatCount, m_Details.m_SurfaceFormats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(m_Device->GetPhysicalDevice(), m_Surface, &formatCount, m_Details.m_SurfaceFormats.data());
 
         uint32_t presentModeCount;
-        vkGetPhysicalDeviceSurfacePresentModesKHR(m_Renderer->GetPhysicalDevice(), m_Surface, &presentModeCount, nullptr);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(m_Device->GetPhysicalDevice(), m_Surface, &presentModeCount, nullptr);
         m_Details.m_PresentationModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(m_Renderer->GetPhysicalDevice(),
-                                                  m_Surface,
-                                                  &presentModeCount,
-                                                  m_Details.m_PresentationModes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(m_Device->GetPhysicalDevice(), m_Surface, &presentModeCount, m_Details.m_PresentationModes.data());
     }
     VkSwapchainKHR SwapChain::Handle() {
         return m_SwapChain;

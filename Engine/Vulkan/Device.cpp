@@ -7,13 +7,17 @@
 
 namespace Engine::Vulkan {
 
-    Device::Device(VkPhysicalDevice device, Instance* instance, const Config& config) : m_PhysicalDevice(device), m_Instance(instance) {
-        DE_ASSERT(instance, "Bad instance");
+    Ref<Device> Device::Create(VkPhysicalDevice device, Ref<Instance> instance, const Config& config) {
+        return Ref<Device>(new Device(device, instance, config));
+    }
+
+    Device::Device(VkPhysicalDevice device, Ref<Instance> instance, const Config& config) : m_PhysicalDevice(device), m_Instance(instance) {
+        DE_ASSERT(m_Instance, "Bad instance");
 
         auto requiredExtensions = config.GetUsedDeviceExtensions();
         auto requiredLayers     = config.GetUsedLayers();
 
-        int32_t universal_queue_family_index = config.GetUniversalQueueFamilyIndex(instance->Handle(), m_PhysicalDevice);
+        int32_t universal_queue_family_index = config.GetUniversalQueueFamilyIndex(m_Instance->Handle(), m_PhysicalDevice);
         DE_ASSERT(universal_queue_family_index != -1, "No universal queue family");
 
         float                   priority = 1.0f;
@@ -47,11 +51,14 @@ namespace Engine::Vulkan {
 
         VK_CHECK(vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicDevice));
 
-        m_QueueFamilyIndex = universal_queue_family_index;
-        vkGetDeviceQueue(m_LogicDevice, m_QueueFamilyIndex, 0, &m_Queue);
+        VkQueue m_QueueHandle;
+        vkGetDeviceQueue(m_LogicDevice, universal_queue_family_index, 0, &m_QueueHandle);
+
+        m_Queue.Construct(m_QueueHandle, universal_queue_family_index);
     }
 
     Device::~Device() {
+        m_Queue.Destruct();
         vkDestroyDevice(m_LogicDevice, nullptr);
     }
 
@@ -61,11 +68,9 @@ namespace Engine::Vulkan {
     VkPhysicalDevice Device::GetPhysicalDevice() {
         return m_PhysicalDevice;
     }
-    VkQueue Device::GetQueue() {
-        return m_Queue;
-    }
-    uint32_t Device::GetQueueFamilyIndex() {
-        return m_QueueFamilyIndex;
+
+    Ref<Queue> Device::GetQueue() {
+        return Ref<Queue>(shared_from_this(), m_Queue.Get());
     }
 
 }  // namespace Engine::Vulkan

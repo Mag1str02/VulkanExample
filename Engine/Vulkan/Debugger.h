@@ -4,18 +4,21 @@
 
 namespace Engine::Vulkan {
 
-    class Debugger : public HandledStorage {
+    class Debugger : public Object {
     public:
-        Debugger(Instance* instance);
-        ~Debugger();
-
         static VkDebugUtilsMessengerCreateInfoEXT GenCreateInfo();
+        static Ref<Debugger>                      Create(Ref<Instance> instance);
+
+        ~Debugger();
 
         VkBool32 OnMessage(const std::string& msg);
 
     private:
+        Debugger(Ref<Instance> instance);
+
+    private:
         VkDebugUtilsMessengerEXT m_Handle   = VK_NULL_HANDLE;
-        Instance*                m_Instance = nullptr;
+        Ref<Instance>            m_Instance = nullptr;
     };
 
 }  // namespace Engine::Vulkan

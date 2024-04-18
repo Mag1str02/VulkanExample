@@ -7,7 +7,7 @@ namespace Engine::Vulkan {
 
     class SwapChain : public Object {
     public:
-        SwapChain(VkSurfaceKHR surface, Renderer* renderer, VkExtent2D size);
+        SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size);
         ~SwapChain();
 
         VkSwapchainKHR Handle();
@@ -36,7 +36,7 @@ namespace Engine::Vulkan {
 
         SwapChainSupportDetails m_Details = {};
 
-        Renderer*                m_Renderer;
+        Ref<Device>              m_Device;
         VkSurfaceKHR             m_Surface   = VK_NULL_HANDLE;
         VkSwapchainKHR           m_SwapChain = VK_NULL_HANDLE;
         std::vector<VkImage>     m_Images;

@@ -12,20 +12,18 @@ namespace Engine::Vulkan {
         Renderer();
         ~Renderer();
 
-        VkInstance       GetInstanceHandle();
-        VkDevice         GetLogicDevice();
-        VkPhysicalDevice GetPhysicalDevice();
-        VkQueue          GetQueue();
-        uint32_t         GetQueueFamilyIndex();
+        Ref<Instance> GetInstance();
+        Ref<Device>   GetDevice();
+        Ref<Queue>    GetQueue();
 
         NO_COPY_CONSTRUCTORS(Renderer);
         NO_MOVE_CONSTRUCTORS(Renderer);
 
     private:
-        Config           m_Config;
-        Handle<Instance> m_Instance;
-        Handle<Debugger> m_Debugger;
-        Handle<Device>   m_Device;
+        Config        m_Config;
+        Ref<Instance> m_Instance;
+        Ref<Debugger> m_Debugger;
+        Ref<Device>   m_Device;
     };
 
 }  // namespace Engine::Vulkan

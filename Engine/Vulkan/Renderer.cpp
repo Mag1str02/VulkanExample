@@ -20,40 +20,31 @@ namespace Engine::Vulkan {
         m_Config.AddDeviceExtension(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
         m_Config.AddDeviceExtension(VK_EXT_SHADER_OBJECT_EXTENSION_NAME);
 
-        m_Instance = CreateHandledStorage<Instance>(m_Config);
-        m_Debugger = CreateHandledStorage<Debugger>(m_Instance.Get());
+        m_Instance = Instance::Create(m_Config);
+        m_Debugger = Debugger::Create(m_Instance);
 
         VkPhysicalDevice best_device = m_Config.ChooseDevice(m_Instance->Handle(), m_Instance->GetAllDevices());
-        m_Device                     = CreateHandledStorage<Device>(best_device, m_Instance.Get(), m_Config);
 
-        m_Debugger.AddLifetimeDependency(m_Instance);
-        m_Device.AddLifetimeDependency(m_Instance);
+        m_Device = Device::Create(best_device, m_Instance, m_Config);
     }
     Renderer::~Renderer() {
-        m_Debugger.Reset();
-        m_Device.Reset();
+        m_Debugger.reset();
+        m_Device.reset();
 
-        DE_ASSERT(m_Instance.RefCount() == 1, "This reference should be the last one");
-        m_Instance.Reset();
+        DE_ASSERT(m_Instance.use_count() == 1, "This reference should be the last one");
+        m_Instance.reset();
     }
 
-    VkDevice Renderer::GetLogicDevice() {
-        return m_Device->GetLogicDevice();
+    Ref<Device> Renderer::GetDevice() {
+        return m_Device;
     }
 
-    VkPhysicalDevice Renderer::GetPhysicalDevice() {
-        return m_Device->GetPhysicalDevice();
+    Ref<Instance> Renderer::GetInstance() {
+        return m_Instance;
     }
 
-    VkInstance Renderer::GetInstanceHandle() {
-        return m_Instance->Handle();
-    }
-
-    VkQueue Renderer::GetQueue() {
+    Ref<Queue> Renderer::GetQueue() {
         return m_Device->GetQueue();
-    }
-    uint32_t Renderer::GetQueueFamilyIndex() {
-        return m_Device->GetQueueFamilyIndex();
     }
 
 }  // namespace Engine::Vulkan

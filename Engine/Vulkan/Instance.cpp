@@ -7,6 +7,10 @@
 
 namespace Engine::Vulkan {
 
+    Ref<Instance> Instance::Create(const Config& config) {
+        return Ref<Instance>(new Instance(config));
+    }
+
     Instance::Instance(const Config& config) {
         config.Validate();
 
