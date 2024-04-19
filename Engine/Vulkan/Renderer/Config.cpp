@@ -63,7 +63,7 @@ namespace Engine::Vulkan {
     VkPhysicalDevice Config::ChooseDevice(VkInstance instance, const std::vector<VkPhysicalDevice>& devices) const {
         auto compatible = GetCompatibleDevices(instance, devices);
         DE_ASSERT(!compatible.empty(), "Failed to find compatible vulkan device");
-        return compatible.front();  // TODO: Choose optimal
+        return ChooseBestDevice(compatible);
     }
     int32_t Config::GetUniversalQueueFamilyIndex(VkInstance instance, VkPhysicalDevice device) const {
         uint32_t queueFamilyCount = 0;
@@ -155,12 +155,6 @@ namespace Engine::Vulkan {
         return compatibleDevices;
     }
     bool Config::CheckDevice(VkInstance instance, VkPhysicalDevice device) const {
-        // {
-        //     auto deviceProperties = GetDeviceProperties(device);
-        //     if (deviceProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
-        //         return false;
-        //     }
-        // }
         {
             if (GetUniversalQueueFamilyIndex(instance, device) == -1) {
                 return false;
@@ -174,5 +168,13 @@ namespace Engine::Vulkan {
         }
         return true;
     }
-
+    VkPhysicalDevice Config::ChooseBestDevice(const std::vector<VkPhysicalDevice>& devices) const {
+        for (const auto& device : devices) {
+            auto deviceProperties = GetDeviceProperties(device);
+            if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+                return device;
+            }
+        }
+        return devices.front();
+    }
 }  // namespace Engine::Vulkan

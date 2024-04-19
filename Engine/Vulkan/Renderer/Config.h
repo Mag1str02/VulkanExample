@@ -28,8 +28,9 @@ namespace Engine::Vulkan {
         std::unordered_set<std::string> FindUnsupportedLayers() const;
         std::unordered_set<std::string> FindUnsupportedDeviceExtensions(VkPhysicalDevice device) const;
 
-        std::vector<VkPhysicalDevice> GetCompatibleDevices(VkInstance instance, const std::vector<VkPhysicalDevice>& devices) const;
         bool                          CheckDevice(VkInstance instance, VkPhysicalDevice device) const;
+        std::vector<VkPhysicalDevice> GetCompatibleDevices(VkInstance instance, const std::vector<VkPhysicalDevice>& devices) const;
+        VkPhysicalDevice              ChooseBestDevice(const std::vector<VkPhysicalDevice>& devices) const;
 
     private:
         std::unordered_set<std::string> m_Layers;
