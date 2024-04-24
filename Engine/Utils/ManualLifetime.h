@@ -53,6 +53,10 @@ namespace Engine {
             return reinterpret_cast<const T*>(&m_Storage);
         }
 
+        bool IsConstructed() const {
+            return m_Consturcted;
+        }
+
     private:
         alignas(T) std::byte m_Storage[sizeof(T)];
         bool m_Consturcted = false;

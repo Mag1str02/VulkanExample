@@ -2,7 +2,7 @@
 
 #include "Object.h"
 
-#include "Engine/Vulkan/Renderer/Config.h"
+#include "Config.h"
 
 namespace Engine::Vulkan {
 

@@ -1,8 +1,8 @@
 #include "Renderer.h"
 
-#include "Engine/Vulkan/Objects/Debugger.h"
-#include "Engine/Vulkan/Objects/Device.h"
-#include "Engine/Vulkan/Objects/Instance.h"
+#include "Debugger.h"
+#include "Device.h"
+#include "Instance.h"
 
 namespace Engine::Vulkan {
 
@@ -16,17 +16,22 @@ namespace Engine::Vulkan {
 
         m_Instance = Instance::Create(m_Config);
         m_Debugger = Debugger::Create(m_Instance);
-
         VkPhysicalDevice best_device = m_Config.ChooseDevice(m_Instance->Handle(), m_Instance->GetAllDevices());
 
         m_Device = Device::Create(best_device, m_Instance, m_Config);
+        m_Queue = m_Device->GetQueue();
     }
     Renderer::~Renderer() {
         m_Debugger.reset();
+        m_Queue.reset();
         m_Device.reset();
 
         DE_ASSERT(m_Instance.use_count() == 1, "This reference should be the last one");
         m_Instance.reset();
+    }
+
+    void Renderer::Submit(Ref<Task> task) {
+        m_Queue->Submit(task);
     }
 
     Ref<Device> Renderer::GetDevice() {

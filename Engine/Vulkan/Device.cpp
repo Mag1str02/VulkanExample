@@ -52,7 +52,7 @@ namespace Engine::Vulkan {
         VkQueue m_QueueHandle;
         vkGetDeviceQueue(m_LogicDevice, universal_queue_family_index, 0, &m_QueueHandle);
 
-        m_Queue.Construct(m_QueueHandle, universal_queue_family_index);
+        m_Queue.Construct(this, m_QueueHandle, universal_queue_family_index);
     }
 
     Device::~Device() {

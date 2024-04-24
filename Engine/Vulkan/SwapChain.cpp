@@ -6,6 +6,11 @@
 namespace Engine::Vulkan {
 
     namespace {
+        struct SwapChainSupportDetails {
+            VkSurfaceCapabilitiesKHR        m_Capabilities;
+            std::vector<VkSurfaceFormatKHR> m_SurfaceFormats;
+            std::vector<VkPresentModeKHR>   m_PresentationModes;
+        };
 
         VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
             for (const auto& availableFormat : availableFormats) {
@@ -45,19 +50,34 @@ namespace Engine::Vulkan {
             return std::clamp(minImageCount + 1, minImageCount, maxImageCount);
         }
 
+        SwapChainSupportDetails GetSwapChainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface) {
+            SwapChainSupportDetails details;
+            VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.m_Capabilities));
+
+            uint32_t formatCount;
+            VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr));
+            details.m_SurfaceFormats.resize(formatCount);
+            VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.m_SurfaceFormats.data()));
+
+            uint32_t presentModeCount;
+            VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr));
+            details.m_PresentationModes.resize(presentModeCount);
+            VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.m_PresentationModes.data()));
+            return details;
+        }
+
     }  // namespace
 
-    Ref<SwapChain> SwapChain::Create(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size) {
-        return Ref<SwapChain>(new SwapChain(surface, device, size));
+    Ref<SwapChain> SwapChain::Create(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain) {
+        return Ref<SwapChain>(new SwapChain(surface, device, size, old_swapchain));
     }
+    SwapChain::SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain) : m_Surface(surface), m_Device(device) {
+        auto details = GetSwapChainSupportDetails(m_Device->GetPhysicalDevice(), m_Surface);
 
-    SwapChain::SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size) : m_Surface(surface), m_Device(device) {
-        GetSwapChainSupportDetails();
-
-        m_Extent                     = ChooseSwapExtent(m_Details.m_Capabilities, size);
-        m_Format                     = ChooseSwapSurfaceFormat(m_Details.m_SurfaceFormats);
-        VkPresentModeKHR presentMode = ChooseSwapPresentMode(m_Details.m_PresentationModes);
-        uint32_t         image_count = ChoseCount(m_Details.m_Capabilities);
+        m_Extent                     = ChooseSwapExtent(details.m_Capabilities, size);
+        m_Format                     = ChooseSwapSurfaceFormat(details.m_SurfaceFormats);
+        VkPresentModeKHR presentMode = ChooseSwapPresentMode(details.m_PresentationModes);
+        uint32_t         image_count = ChoseCount(details.m_Capabilities);
 
         VkSwapchainCreateInfoKHR createInfo{};
         createInfo.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -68,11 +88,11 @@ namespace Engine::Vulkan {
         createInfo.imageExtent           = m_Extent;
         createInfo.imageArrayLayers      = 1;
         createInfo.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-        createInfo.preTransform          = m_Details.m_Capabilities.currentTransform;
+        createInfo.preTransform          = details.m_Capabilities.currentTransform;
         createInfo.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         createInfo.presentMode           = presentMode;
         createInfo.clipped               = VK_TRUE;
-        createInfo.oldSwapchain          = VK_NULL_HANDLE;
+        createInfo.oldSwapchain          = old_swapchain;
         createInfo.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
         createInfo.queueFamilyIndexCount = 0;
         createInfo.pQueueFamilyIndices   = nullptr;
@@ -93,34 +113,24 @@ namespace Engine::Vulkan {
             }
         }
     }
-
     SwapChain::~SwapChain() {
         vkDestroySwapchainKHR(m_Device->GetLogicDevice(), m_SwapChain, nullptr);
     }
 
-    void SwapChain::GetSwapChainSupportDetails() {
-        VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_Device->GetPhysicalDevice(), m_Surface, &m_Details.m_Capabilities));
+    // Ref<IImage> SwapChain::AquireNextImage() {
+    //     PresentAquireTask task(std::dynamic_pointer_cast<SwapChain>(shared_from_this()));
+    //     task.Run(m_Device->GetQueue());
+    //     return task.GetAquiredImage();
+    // }
 
-        uint32_t formatCount;
-        VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(m_Device->GetPhysicalDevice(), m_Surface, &formatCount, nullptr));
-        m_Details.m_SurfaceFormats.resize(formatCount);
-        VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(m_Device->GetPhysicalDevice(), m_Surface, &formatCount, m_Details.m_SurfaceFormats.data()));
-
-        uint32_t presentModeCount;
-        VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(m_Device->GetPhysicalDevice(), m_Surface, &presentModeCount, nullptr));
-        m_Details.m_PresentationModes.resize(presentModeCount);
-        VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(m_Device->GetPhysicalDevice(),
-                                                           m_Surface,
-                                                           &presentModeCount,
-                                                           m_Details.m_PresentationModes.data()));
+    Ref<Task> SwapChain::CreateAquireImageTask() {
+        return Ref<PresentAquireTask>(new PresentAquireTask(std::dynamic_pointer_cast<SwapChain>(shared_from_this())));
     }
-    VkSwapchainKHR SwapChain::Handle() {
-        return m_SwapChain;
-    }
-    Ref<IImage> SwapChain::AquireNextImage() {
-        PresentAquireTask task(std::dynamic_pointer_cast<SwapChain>(shared_from_this()));
-        task.Run(m_Device->GetQueue());
-        return task.GetAquiredImage();
+    Ref<IImage> SwapChain::GetCurrentImage() {
+        if (m_LatestImage == m_Images.size()) {
+            return nullptr;
+        }
+        return Ref<Image>(shared_from_this(), &m_Images[m_LatestImage]);
     }
 
     VkFormat SwapChain::GetFormat() const {
@@ -128,6 +138,10 @@ namespace Engine::Vulkan {
     }
     VkExtent2D SwapChain::GetExtent() const {
         return m_Extent;
+    }
+
+    VkSwapchainKHR SwapChain::Handle() {
+        return m_SwapChain;
     }
 
     SwapChain::Image::Image(SwapChain* swapchain, VkImage image) {
@@ -138,34 +152,39 @@ namespace Engine::Vulkan {
         m_UsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     }
 
-    SwapChain::PresentAquireTask::PresentAquireTask(Ref<SwapChain> swapchain) : m_AquiredFence(swapchain->m_Device), m_SwapChain(swapchain) {}
-
-    void SwapChain::PresentAquireTask::Run(Ref<Queue> queue) {
-        if (m_SwapChain->m_LatestImage != m_SwapChain->m_Images.size()) {
+    void SwapChain::PresentLatest(VkQueue queue) {
+        if (m_LatestImage != m_Images.size()) {
             VkPresentInfoKHR info   = {};
             info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
             info.waitSemaphoreCount = 0;
             info.pWaitSemaphores    = nullptr;
             info.swapchainCount     = 1;
-            info.pSwapchains        = &m_SwapChain->m_SwapChain;
-            info.pImageIndices      = &m_SwapChain->m_LatestImage;
-            VkResult err            = vkQueuePresentKHR(queue->Handle(), &info);
+            info.pSwapchains        = &m_SwapChain;
+            info.pImageIndices      = &m_LatestImage;
+            VkResult err            = vkQueuePresentKHR(queue, &info);
         }
-        VK_CHECK(vkAcquireNextImageKHR(m_SwapChain->m_Device->GetLogicDevice(),
-                                       m_SwapChain->m_SwapChain,
-                                       UINT64_MAX,
-                                       VK_NULL_HANDLE,
-                                       m_AquiredFence.Handle(),
-                                       &m_SwapChain->m_LatestImage));
-        m_AquiredImage = Ref<IImage>(m_SwapChain, &m_SwapChain->m_Images[m_SwapChain->m_LatestImage]);
+        m_LatestImage = m_Images.size();
     }
 
-    void SwapChain::PresentAquireTask::Wait() {
-        m_AquiredFence.Wait();
+    SwapChain::PresentAquireTask::PresentAquireTask(Ref<SwapChain> swapchain) : m_SwapChain(swapchain) {}
+
+    void SwapChain::PresentAquireTask::Run(VkQueue queue) {
+        m_SwapChain->PresentLatest(queue);
+        m_AquiredFence.Construct(m_SwapChain->m_Device);
+
+        VkResult res = vkAcquireNextImageKHR(m_SwapChain->m_Device->GetLogicDevice(),
+                                             m_SwapChain->m_SwapChain,
+                                             UINT64_MAX,
+                                             VK_NULL_HANDLE,
+                                             m_AquiredFence->Handle(),
+                                             &m_SwapChain->m_LatestImage);
+        if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
+            m_AquiredFence.Destruct();
+        }
     }
-    Ref<IImage> SwapChain::PresentAquireTask::GetAquiredImage() {
-        Wait();
-        return m_AquiredImage;
+
+    bool SwapChain::PresentAquireTask::IsCompleted() {
+        return !m_AquiredFence.IsConstructed() || m_AquiredFence->IsSignaled();
     }
 
 }  // namespace Engine::Vulkan

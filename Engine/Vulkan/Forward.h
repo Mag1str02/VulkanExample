@@ -6,6 +6,9 @@ namespace Engine {
 
     namespace Vulkan {
 
+        class IImage;
+        class ISwapChain;
+
         class Instance;
         class Debugger;
         class Device;
@@ -13,7 +16,6 @@ namespace Engine {
         class CommandPool;
         class CommandBuffer;
         class Image;
-        class IImage;
         class Buffer;
         class ImageSampler;
         class ImageView;

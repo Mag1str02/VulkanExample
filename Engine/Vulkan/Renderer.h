@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Common.h"
 #include "Config.h"
-
-#include "Engine/Vulkan/Common.h"
+#include "Task.h"
 
 namespace Engine::Vulkan {
 
@@ -15,6 +15,8 @@ namespace Engine::Vulkan {
         Ref<Device>   GetDevice();
         Ref<Queue>    GetQueue();
 
+        void Submit(Ref<Task> task);
+
         NO_COPY_CONSTRUCTORS(Renderer);
         NO_MOVE_CONSTRUCTORS(Renderer);
 
@@ -23,6 +25,7 @@ namespace Engine::Vulkan {
         Ref<Instance> m_Instance;
         Ref<Debugger> m_Debugger;
         Ref<Device>   m_Device;
+        Ref<Queue>    m_Queue;
     };
 
 }  // namespace Engine::Vulkan

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Engine/Vulkan/Common.h"
+#include "Common.h"
 
 namespace Engine::Vulkan {
 
-    class Object : public RefCounted<Object> {
+    class Object {
     public:
         Object()          = default;
         virtual ~Object() = default;

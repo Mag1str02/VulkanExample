@@ -2,13 +2,14 @@
 
 #include "Renderer.h"
 
-#include "Engine/Vulkan/Objects/CommandBuffer.h"
-#include "Engine/Vulkan/Objects/CommandPool.h"
-#include "Engine/Vulkan/Objects/Device.h"
-#include "Engine/Vulkan/Objects/Instance.h"
-#include "Engine/Vulkan/Objects/ImageView.h"
-#include "Engine/Vulkan/Objects/Queue.h"
-#include "Engine/Vulkan/Objects/SwapChain.h"
+#include "CommandBuffer.h"
+#include "CommandPool.h"
+#include "Device.h"
+#include "ImageView.h"
+#include "Instance.h"
+#include "Queue.h"
+#include "ResizebleSwapChain.h"
+#include "SwapChain.h"
 
 #include <GLFW/glfw3.h>
 
@@ -28,7 +29,8 @@ namespace Engine::Vulkan {
     Window::Window(Renderer* renderer) : m_Renderer(renderer) {
         VK_CHECK(glfwCreateWindowSurface(m_Renderer->GetInstance()->Handle(), m_WindowHandle, nullptr, &m_Surface));
         auto size       = GetSize();
-        m_SwapChain     = SwapChain::Create(m_Surface, m_Renderer->GetDevice(), VkExtent2D{.width = size.x, .height = size.y});
+        // m_SwapChain     = SwapChain::Create(m_Surface, m_Renderer->GetDevice(), VkExtent2D{.width = size.x, .height = size.y});
+        m_SwapChain     = ResizebleSwapChain::Create(this, m_Renderer->GetDevice());
         m_CommandBuffer = CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetQueue()->FamilyIndex())->CreateCommandBuffer();
     }
 
@@ -41,7 +43,10 @@ namespace Engine::Vulkan {
         Engine::Window::BeginFrame();
     }
     void Window::EndFrame() {
-        Ref<IImage>    image      = m_SwapChain->AquireNextImage();
+        m_Renderer->Submit(m_SwapChain->CreateAquireImageTask());
+        m_Renderer->GetQueue()->WaitIdle();
+
+        Ref<IImage>    image      = m_SwapChain->GetCurrentImage();
         Ref<ImageView> image_view = CreateRef<ImageView>(image);
         m_CommandBuffer->Begin();
         {
@@ -142,6 +147,14 @@ namespace Engine::Vulkan {
 
     VkSurfaceKHR Window::GetSurface() {
         return m_Surface;
+    }
+    VkExtent2D Window::GetExtent() {
+        int w, h;
+        glfwGetFramebufferSize(m_WindowHandle, &w, &h);
+        VkExtent2D res;
+        res.height = h;
+        res.height = w;
+        return res;
     }
 
 }  // namespace Engine::Vulkan

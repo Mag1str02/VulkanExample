@@ -5,7 +5,7 @@
 
 namespace Engine::Vulkan {
 
-    class Device : public Object {
+    class Device : public Object, public RefCounted<Device> {
     public:
         static Ref<Device> Create(VkPhysicalDevice device, Ref<Instance> instance, const Config& config);
 

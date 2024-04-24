@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Engine/Vulkan/Renderer/Renderer.h"
-#include "Engine/Vulkan/Renderer/Window.h"
+#include "Engine/Vulkan/Renderer.h"
+#include "Engine/Vulkan/Window.h"
 
 namespace Engine {
 

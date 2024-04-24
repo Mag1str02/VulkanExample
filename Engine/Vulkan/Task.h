@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Engine/Vulkan/Common.h"
-#include "Engine/Vulkan/Objects/Object.h"
+#include "Object.h"
+
+#include "Common.h"
 
 namespace Engine::Vulkan {
 
@@ -10,8 +11,8 @@ namespace Engine::Vulkan {
         Task()          = default;
         virtual ~Task() = default;
 
-        virtual void Run(Ref<Queue> queue) = 0;
-        virtual void Wait()                = 0;
+        virtual void Run(VkQueue queue) = 0;
+        virtual bool IsCompleted()         = 0;
     };
 
 }  // namespace Engine::Vulkan
