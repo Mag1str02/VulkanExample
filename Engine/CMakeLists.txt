@@ -5,8 +5,11 @@ add_library(VulkanHelpers
     Utils/Assert.cpp
 
     Vulkan/Concrete/Image.cpp
+    Vulkan/Concrete/ResizebleSwapChain.cpp
+    Vulkan/Concrete/SwapChain.cpp
 
     Vulkan/Interface/Image.cpp
+    Vulkan/Interface/SwapChain.cpp
 
     Vulkan/Managed/Image.cpp
 
@@ -22,8 +25,6 @@ add_library(VulkanHelpers
     Vulkan/ImageView.cpp
     Vulkan/Instance.cpp
     Vulkan/Queue.cpp
-    Vulkan/ResizebleSwapChain.cpp
-    Vulkan/SwapChain.cpp
     Vulkan/Task.cpp
 
     Vulkan/Config.cpp

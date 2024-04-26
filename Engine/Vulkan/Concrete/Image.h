@@ -5,8 +5,12 @@
 namespace Engine::Vulkan::Concrete {
     class Image : public Managed::Image {
     public:
-        Image(Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
+        static Ref<Image> Create(
+            Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
         ~Image();
+
+    private:
+        Image(Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
     private:
         VkDeviceMemory m_Memory;

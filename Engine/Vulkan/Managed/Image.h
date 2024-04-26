@@ -9,7 +9,6 @@ namespace Engine::Vulkan::Managed {
         Image()          = default;
         virtual ~Image() = default;
 
-        void Init(VkImage image, VkFormat format, VkImageUsageFlags usage_flags, VkExtent2D extent, Ref<Device> device);
 
         virtual VkFormat          GetFormat() const override;
         virtual VkImageUsageFlags GetUsageFlags() const override;
@@ -22,6 +21,9 @@ namespace Engine::Vulkan::Managed {
         virtual Sync::ImageState& GetSyncState() override;
 
     protected:
+        void Init(VkImage image, VkFormat format, VkImageUsageFlags usage_flags, VkExtent2D extent, Ref<Device> device);
+
+
         VkImage           m_Image      = VK_NULL_HANDLE;
         VkFormat          m_Format     = VK_FORMAT_UNDEFINED;
         VkImageUsageFlags m_UsageFlags = 0;

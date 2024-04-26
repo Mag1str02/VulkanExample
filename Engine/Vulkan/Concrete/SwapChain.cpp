@@ -1,9 +1,8 @@
 #include "SwapChain.h"
 
-#include "Device.h"
-#include "Instance.h"
+#include "Engine/Vulkan/Device.h"
 
-namespace Engine::Vulkan {
+namespace Engine::Vulkan::Concrete {
 
     namespace {
         struct SwapChainSupportDetails {
@@ -71,7 +70,8 @@ namespace Engine::Vulkan {
     Ref<SwapChain> SwapChain::Create(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain) {
         return Ref<SwapChain>(new SwapChain(surface, device, size, old_swapchain));
     }
-    SwapChain::SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain) : m_Surface(surface), m_Device(device) {
+    SwapChain::SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain) :
+        m_Surface(surface), m_Device(device) {
         auto details = GetSwapChainSupportDetails(m_Device->GetPhysicalDevice(), m_Surface);
 
         m_Extent                     = ChooseSwapExtent(details.m_Capabilities, size);
@@ -181,4 +181,4 @@ namespace Engine::Vulkan {
         return !m_AquiredFence.IsConstructed() || m_AquiredFence->IsSignaled();
     }
 
-}  // namespace Engine::Vulkan
+}  // namespace Engine::Vulkan::Concrete

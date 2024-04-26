@@ -8,8 +8,8 @@
 #include "ImageView.h"
 #include "Instance.h"
 #include "Queue.h"
-#include "ResizebleSwapChain.h"
-#include "SwapChain.h"
+
+#include "Engine/Vulkan/Concrete/ResizebleSwapChain.h"
 
 #include <GLFW/glfw3.h>
 
@@ -28,9 +28,9 @@ namespace Engine::Vulkan {
 
     Window::Window(Renderer* renderer) : m_Renderer(renderer) {
         VK_CHECK(glfwCreateWindowSurface(m_Renderer->GetInstance()->Handle(), m_WindowHandle, nullptr, &m_Surface));
-        auto size       = GetSize();
+        auto size = GetSize();
         // m_SwapChain     = SwapChain::Create(m_Surface, m_Renderer->GetDevice(), VkExtent2D{.width = size.x, .height = size.y});
-        m_SwapChain     = ResizebleSwapChain::Create(this, m_Renderer->GetDevice());
+        m_SwapChain     = Concrete::ResizebleSwapChain::Create(this, m_Renderer->GetDevice());
         m_CommandBuffer = CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetQueue()->FamilyIndex())->CreateCommandBuffer();
     }
 

@@ -8,13 +8,15 @@ namespace Engine {
 
         namespace Interface {
             class Image;
-        }
+            class SwapChain;
+        }  // namespace Interface
         namespace Managed {
             class Image;
         }
         namespace Concrete {
             class Image;
-        }
+            class SwapChain;
+        }  // namespace Concrete
         namespace Sync {
             struct Access;
             struct State;
@@ -22,8 +24,7 @@ namespace Engine {
         }  // namespace Sync
 
         using IImage = Interface::Image;
-
-        class ISwapChain;
+        using ISwapChain = Interface::SwapChain;
 
         class Instance;
         class Debugger;
@@ -34,7 +35,6 @@ namespace Engine {
         class Buffer;
         class ImageSampler;
         class ImageView;
-        class SwapChain;
 
         class Config;
         class Renderer;

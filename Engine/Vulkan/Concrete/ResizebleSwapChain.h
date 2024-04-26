@@ -1,10 +1,10 @@
 #pragma once
 
-#include "SwapChain.h"
+#include "Engine/Vulkan/Concrete/SwapChain.h"
 
-namespace Engine::Vulkan {
+namespace Engine::Vulkan::Concrete {
 
-    class ResizebleSwapChain : public ISwapChain, public RefCounted<ResizebleSwapChain> {
+    class ResizebleSwapChain : public Interface::SwapChain, public RefCounted<ResizebleSwapChain> {
     public:
         static Ref<ResizebleSwapChain> Create(Window* window, Ref<Device> device);
 
@@ -34,7 +34,7 @@ namespace Engine::Vulkan {
     private:
         Window* m_Window;
 
-        Ref<Device>    m_Device;
-        Ref<SwapChain> m_SwapChain;
+        Ref<Device>              m_Device;
+        Ref<Concrete::SwapChain> m_SwapChain;
     };
-};  // namespace Engine::Vulkan
+};  // namespace Engine::Vulkan::Concrete

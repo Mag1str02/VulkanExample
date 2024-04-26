@@ -1,26 +1,12 @@
 #pragma once
 
-#include "Common.h"
-#include "Fence.h"
-#include "Object.h"
-#include "Task.h"
-
+#include "Engine/Vulkan/Fence.h"
+#include "Engine/Vulkan/Interface/SwapChain.h"
 #include "Engine/Vulkan/Managed/Image.h"
 
-namespace Engine::Vulkan {
+namespace Engine::Vulkan::Concrete {
 
-    class ISwapChain {
-    public:
-        virtual ~ISwapChain() = default;
-
-        virtual Ref<Task>   CreateAquireImageTask() = 0;
-        virtual Ref<IImage> GetCurrentImage()       = 0;
-
-        virtual VkExtent2D GetExtent() const = 0;
-        virtual VkFormat   GetFormat() const = 0;
-    };
-
-    class SwapChain : public Object, public ISwapChain, public RefCounted<SwapChain> {
+    class SwapChain : public Interface::SwapChain, public RefCounted<SwapChain> {
     public:
         static Ref<SwapChain> Create(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain = VK_NULL_HANDLE);
         ~SwapChain();
@@ -68,5 +54,4 @@ namespace Engine::Vulkan {
 
         uint32_t m_LatestImage;
     };
-
-}  // namespace Engine::Vulkan
+}  // namespace Engine::Vulkan::Concrete

@@ -1,15 +1,15 @@
 #include "ResizebleSwapChain.h"
 
-#include "Device.h"
-#include "Window.h"
+#include "Engine/Vulkan/Device.h"
+#include "Engine/Vulkan/Window.h"
 
-namespace Engine::Vulkan {
+namespace Engine::Vulkan::Concrete {
 
     Ref<ResizebleSwapChain> ResizebleSwapChain::Create(Window* window, Ref<Device> device) {
         return Ref<ResizebleSwapChain>(new ResizebleSwapChain(window, device));
     }
     ResizebleSwapChain::ResizebleSwapChain(Window* window, Ref<Device> device) : m_Device(device), m_Window(window) {
-        m_SwapChain = SwapChain::Create(m_Window->GetSurface(), m_Device, m_Window->GetExtent());
+        m_SwapChain = Concrete::SwapChain::Create(m_Window->GetSurface(), m_Device, m_Window->GetExtent());
     }
 
     Ref<Task> ResizebleSwapChain::CreateAquireImageTask() {
@@ -36,7 +36,7 @@ namespace Engine::Vulkan {
                                                  fence.Handle(),
                                                  &m_SwapChain->m_LatestImage);
             if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
-                m_SwapChain = SwapChain::Create(m_Window->GetSurface(), m_Device, m_Window->GetExtent(), m_SwapChain->Handle());
+                m_SwapChain = Concrete::SwapChain::Create(m_Window->GetSurface(), m_Device, m_Window->GetExtent(), m_SwapChain->Handle());
             } else {
                 break;
             }
@@ -53,4 +53,4 @@ namespace Engine::Vulkan {
         return m_AquiredFence.IsSignaled();
     }
 
-}  // namespace Engine::Vulkan
+}  // namespace Engine::Vulkan::Concrete
