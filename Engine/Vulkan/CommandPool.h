@@ -9,8 +9,6 @@ namespace Engine::Vulkan {
         static Ref<CommandPool> Create(Ref<Device> device, uint32_t family_index);
         ~CommandPool();
 
-        Ref<CommandBuffer> CreateCommandBuffer();
-
         const VkCommandPool& Handle();
         uint32_t             FamilyIndex();
 

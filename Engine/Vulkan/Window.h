@@ -19,8 +19,8 @@ namespace Engine::Vulkan {
     private:
         VkSurfaceKHR m_Surface;
 
-        Renderer*          m_Renderer  = nullptr;
-        Ref<ISwapChain>    m_SwapChain = nullptr;
-        Ref<CommandBuffer> m_CommandBuffer;
+        Renderer*                     m_Renderer  = nullptr;
+        Ref<ISwapChain>               m_SwapChain = nullptr;
+        Ref<Concrete::CommandBuffer> m_CommandBuffer;
     };
 }  // namespace Engine::Vulkan

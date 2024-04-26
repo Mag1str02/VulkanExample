@@ -28,4 +28,7 @@ namespace Engine::Vulkan {
         return m_View;
     }
 
+    VkExtent2D ImageView::GetExtent() const {
+        return m_Image->GetExtent();
+    }
 }  // namespace Engine::Vulkan

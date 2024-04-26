@@ -1,6 +1,5 @@
 #include "CommandPool.h"
 
-#include "CommandBuffer.h"
 #include "Device.h"
 
 namespace Engine::Vulkan {
@@ -29,10 +28,6 @@ namespace Engine::Vulkan {
     }
     uint32_t CommandPool::FamilyIndex() {
         return m_FamilyIndex;
-    }
-
-    Ref<CommandBuffer> CommandPool::CreateCommandBuffer() {
-        return Ref<CommandBuffer>(new CommandBuffer(shared_from_this()));
     }
 
     Ref<Device> CommandPool::GetDevice() {

@@ -2,13 +2,13 @@
 
 #include "Renderer.h"
 
-#include "CommandBuffer.h"
 #include "CommandPool.h"
 #include "Device.h"
 #include "ImageView.h"
 #include "Instance.h"
 #include "Queue.h"
 
+#include "Engine/Vulkan/Concrete/CommandBuffer.h"
 #include "Engine/Vulkan/Concrete/ResizebleSwapChain.h"
 
 #include <GLFW/glfw3.h>
@@ -30,8 +30,9 @@ namespace Engine::Vulkan {
         VK_CHECK(glfwCreateWindowSurface(m_Renderer->GetInstance()->Handle(), m_WindowHandle, nullptr, &m_Surface));
         auto size = GetSize();
         // m_SwapChain     = SwapChain::Create(m_Surface, m_Renderer->GetDevice(), VkExtent2D{.width = size.x, .height = size.y});
-        m_SwapChain     = Concrete::ResizebleSwapChain::Create(this, m_Renderer->GetDevice());
-        m_CommandBuffer = CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetQueue()->FamilyIndex())->CreateCommandBuffer();
+        m_SwapChain       = Concrete::ResizebleSwapChain::Create(this, m_Renderer->GetDevice());
+        auto command_pool = CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetQueue()->FamilyIndex());
+        m_CommandBuffer   = Concrete::CommandBuffer::Create(command_pool);
     }
 
     Window::~Window() {
@@ -97,7 +98,6 @@ namespace Engine::Vulkan {
 
             vkCmdBeginRendering(m_CommandBuffer->Handle(), &info);
         }
-
         vkCmdEndRendering(m_CommandBuffer->Handle());
         {
             VkImageMemoryBarrier2 barrier{};
@@ -122,10 +122,11 @@ namespace Engine::Vulkan {
 
             vkCmdPipelineBarrier2(m_CommandBuffer->Handle(), &dependencyInfo);
         }
-
         m_CommandBuffer->End();
 
         {
+            VkCommandBuffer handle = m_CommandBuffer->Handle();
+
             VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             VkSubmitInfo         info       = {};
             info.sType                      = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -133,7 +134,7 @@ namespace Engine::Vulkan {
             info.pWaitSemaphores            = nullptr;
             info.pWaitDstStageMask          = &wait_stage;
             info.commandBufferCount         = 1;
-            info.pCommandBuffers            = &m_CommandBuffer->Handle();
+            info.pCommandBuffers            = &handle;
             info.signalSemaphoreCount       = 0;
             info.pSignalSemaphores          = nullptr;
             Fence fence(m_Renderer->GetDevice());

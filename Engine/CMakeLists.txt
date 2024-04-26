@@ -4,6 +4,7 @@ add_library(VulkanHelpers
 
     Utils/Assert.cpp
 
+    Vulkan/Concrete/CommandBuffer.cpp
     Vulkan/Concrete/Image.cpp
     Vulkan/Concrete/ResizebleSwapChain.cpp
     Vulkan/Concrete/SwapChain.cpp
@@ -11,12 +12,12 @@ add_library(VulkanHelpers
     Vulkan/Interface/Image.cpp
     Vulkan/Interface/SwapChain.cpp
 
+    Vulkan/Managed/CommandBuffer.cpp
     Vulkan/Managed/Image.cpp
 
     Vulkan/Sync/State.cpp
     
     Vulkan/Buffer.cpp
-    Vulkan/CommandBuffer.cpp
     Vulkan/CommandPool.cpp
     Vulkan/Debugger.cpp
     Vulkan/Device.cpp
