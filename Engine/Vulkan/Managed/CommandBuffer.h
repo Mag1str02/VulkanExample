@@ -27,8 +27,9 @@ namespace Engine::Vulkan::Managed {
         Ref<CommandPool> m_Pool;
 
     private:
-        VkCommandPool   m_SecondaryCommandPool   = VK_NULL_HANDLE;
-        VkCommandBuffer m_SecondaryCommandBuffer = VK_NULL_HANDLE;
+        VkCommandPool                m_SecondaryCommandPool         = VK_NULL_HANDLE;
+        VkCommandBuffer              m_CurrentSecondaryCommandBufer = VK_NULL_HANDLE;
+        std::vector<VkCommandBuffer> m_SecondaryCommandBuffers;
 
         std::vector<VkImageMemoryBarrier2>  m_ImageMemoryBariers;
         std::vector<VkBufferMemoryBarrier2> m_BufferMemoryBariers;

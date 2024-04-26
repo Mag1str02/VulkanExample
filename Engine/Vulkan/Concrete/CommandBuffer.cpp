@@ -26,6 +26,7 @@ namespace Engine::Vulkan::Concrete {
     }
 
     void CommandBuffer::Begin() {
+        ResetSecondaryCommandBuffers();
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         VK_CHECK(vkBeginCommandBuffer(m_Handle, &beginInfo));
