@@ -15,12 +15,12 @@ namespace Engine::Vulkan {
 
         VkSurfaceKHR GetSurface();
         VkExtent2D   GetExtent();
+        Ref<IImage>  GetSwapChainImage();
 
     private:
         VkSurfaceKHR m_Surface;
 
-        Renderer*                     m_Renderer  = nullptr;
-        Ref<ISwapChain>               m_SwapChain = nullptr;
-        Ref<Concrete::CommandBuffer> m_CommandBuffer;
+        Renderer*                    m_Renderer  = nullptr;
+        Ref<ISwapChain>              m_SwapChain = nullptr;
     };
 }  // namespace Engine::Vulkan

@@ -3,6 +3,7 @@
 #include "Engine/Vulkan/CommandPool.h"
 #include "Engine/Vulkan/Device.h"
 #include "Engine/Vulkan/ImageView.h"
+#include "Engine/Vulkan/Interface/Image.h"
 
 namespace Engine::Vulkan::Managed {
 
@@ -28,8 +29,12 @@ namespace Engine::Vulkan::Managed {
 
         VK_CHECK(vkAllocateCommandBuffers(m_Pool->GetDevice()->GetLogicDevice(), &allocInfo, &m_SecondaryCommandBuffer));
 
+        VkCommandBufferInheritanceInfo inheritance{};
+        inheritance.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+
         VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.pInheritanceInfo = &inheritance;
         VK_CHECK(vkBeginCommandBuffer(m_SecondaryCommandBuffer, &beginInfo));
 
         std::vector<VkRenderingAttachmentInfo> color_attachments_info;
@@ -59,6 +64,24 @@ namespace Engine::Vulkan::Managed {
         FlushBariers();
         vkCmdExecuteCommands(m_Handle, 1, &m_SecondaryCommandBuffer);
         m_SecondaryCommandBuffer = VK_NULL_HANDLE;
+    }
+    void CommandBuffer::ClearImage(Ref<IImage> image, Vec4 clear_color) {
+        FlushBariers();
+
+        VkClearColorValue color;
+        color.float32[0] = clear_color.r;
+        color.float32[1] = clear_color.g;
+        color.float32[2] = clear_color.b;
+        color.float32[3] = clear_color.a;
+
+        VkImageSubresourceRange range;
+        range.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;  // TODO: deduce from usage flags
+        range.baseArrayLayer = 0;
+        range.baseMipLevel   = 0;
+        range.layerCount     = VK_REMAINING_MIP_LEVELS;
+        range.levelCount     = VK_REMAINING_ARRAY_LAYERS;
+
+        vkCmdClearColorImage(m_Handle, image->Handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &color, 1, &range);
     }
 
     void CommandBuffer::ResetSecondaryCommandBuffers() {

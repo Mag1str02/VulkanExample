@@ -13,6 +13,7 @@ namespace Engine::Vulkan::Managed {
 
         void BeginRendering(std::vector<Ref<ImageView>> color_attachments);
         void EndRendering();
+        void ClearImage(Ref<IImage> image, Vec4 clear_color);
 
         VkCommandBuffer Handle();
 

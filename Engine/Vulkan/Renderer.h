@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "Device.h"
 #include "Task.h"
+#include "CommandPool.h"
 
 #include "Engine/Vulkan/Interface/Image.h"
 

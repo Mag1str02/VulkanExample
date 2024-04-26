@@ -9,6 +9,7 @@ namespace Engine {
 
     using namespace std::chrono_literals;
     using UVec2 = glm::u32vec2;
+    using Vec4  = glm::vec4;
 
     template <typename T>
     using Scope = std::unique_ptr<T>;

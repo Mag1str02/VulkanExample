@@ -31,6 +31,7 @@ namespace Engine::Vulkan::Concrete {
         VK_CHECK(vkBeginCommandBuffer(m_Handle, &beginInfo));
     }
     void CommandBuffer::End() {
+        FlushBariers();
         VK_CHECK(vkEndCommandBuffer(m_Handle));
     }
     void CommandBuffer::Reset() {

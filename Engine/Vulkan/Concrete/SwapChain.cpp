@@ -87,7 +87,7 @@ namespace Engine::Vulkan::Concrete {
         createInfo.imageColorSpace       = m_Format.colorSpace;
         createInfo.imageExtent           = m_Extent;
         createInfo.imageArrayLayers      = 1;
-        createInfo.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+        createInfo.imageUsage            = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
         createInfo.preTransform          = details.m_Capabilities.currentTransform;
         createInfo.compositeAlpha        = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
         createInfo.presentMode           = presentMode;
