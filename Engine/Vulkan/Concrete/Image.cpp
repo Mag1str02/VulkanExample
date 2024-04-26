@@ -1,31 +1,9 @@
 #include "Image.h"
 
-#include "Device.h"
+#include "Engine/Vulkan/Device.h"
+#include "Engine/Vulkan/Helpers.h"
 
-#include "Helpers.h"
-
-namespace Engine::Vulkan {
-
-    VkImage IImage::Handle() {
-        return m_Image;
-    }
-
-    VkExtent2D IImage::GetExtent() const {
-        return m_Extent;
-    }
-    uint32_t IImage::GetHeight() const {
-        return m_Extent.height;
-    }
-    uint32_t IImage::GetWidth() const {
-        return m_Extent.width;
-    }
-    VkFormat IImage::GetFormat() const {
-        return m_Format;
-    }
-    Ref<Device> IImage::GetDevice() const {
-        return m_Device;
-    }
-
+namespace Engine::Vulkan::Concrete {
     Image::Image(Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
         m_Extent.width  = width;
         m_Extent.height = height;
@@ -66,4 +44,4 @@ namespace Engine::Vulkan {
         vkDestroyImage(m_Device->GetLogicDevice(), m_Image, nullptr);
     }
 
-}  // namespace Engine::Vulkan
+}  // namespace Engine::Vulkan::Concrete

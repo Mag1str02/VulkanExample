@@ -4,6 +4,13 @@ add_library(VulkanHelpers
 
     Utils/Assert.cpp
 
+    Vulkan/Concrete/Image.cpp
+
+    Vulkan/Interface/Image.cpp
+
+    Vulkan/Managed/Image.cpp
+
+    Vulkan/Sync/State.cpp
     
     Vulkan/Buffer.cpp
     Vulkan/CommandBuffer.cpp
@@ -11,7 +18,6 @@ add_library(VulkanHelpers
     Vulkan/Debugger.cpp
     Vulkan/Device.cpp
     Vulkan/Fence.cpp
-    Vulkan/Image.cpp
     Vulkan/ImageSampler.cpp
     Vulkan/ImageView.cpp
     Vulkan/Instance.cpp

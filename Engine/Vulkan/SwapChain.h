@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Fence.h"
-#include "Image.h"
-#include "Object.h"
-
 #include "Common.h"
+#include "Fence.h"
+#include "Object.h"
 #include "Task.h"
+
+#include "Engine/Vulkan/Managed/Image.h"
 
 namespace Engine::Vulkan {
 
@@ -50,7 +50,7 @@ namespace Engine::Vulkan {
             Ref<SwapChain>        m_SwapChain;
         };
 
-        class Image : public IImage {
+        class Image : public Managed::Image {
         public:
             Image(SwapChain* swapchain, VkImage image);
         };

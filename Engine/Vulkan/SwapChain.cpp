@@ -117,12 +117,6 @@ namespace Engine::Vulkan {
         vkDestroySwapchainKHR(m_Device->GetLogicDevice(), m_SwapChain, nullptr);
     }
 
-    // Ref<IImage> SwapChain::AquireNextImage() {
-    //     PresentAquireTask task(std::dynamic_pointer_cast<SwapChain>(shared_from_this()));
-    //     task.Run(m_Device->GetQueue());
-    //     return task.GetAquiredImage();
-    // }
-
     Ref<Task> SwapChain::CreateAquireImageTask() {
         return Ref<PresentAquireTask>(new PresentAquireTask(std::dynamic_pointer_cast<SwapChain>(shared_from_this())));
     }

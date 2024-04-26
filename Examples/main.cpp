@@ -1,9 +1,5 @@
 #include <Engine/Application/Application.h>
-#include <Engine/Vulkan/Buffer.h>
-#include <Engine/Vulkan/Image.h>
-#include <Engine/Vulkan/ImageSampler.h>
-#include <Engine/Vulkan/ImageView.h>
-#include <Engine/Vulkan/Device.h>
+#include <Engine/Vulkan/Renderer.h>
 
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
@@ -169,7 +165,7 @@ private:
     }
 
     Ref<Vulkan::Buffer>       m_StagingBuffer;
-    Ref<Vulkan::Image>        m_Image;
+    Ref<Vulkan::IImage>       m_Image;
     Ref<Vulkan::CommandPool>  m_CommandPool;
     Ref<Vulkan::ImageView>    m_ImageView;
     Ref<Vulkan::ImageSampler> m_ImageSampler;

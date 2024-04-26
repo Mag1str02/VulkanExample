@@ -6,7 +6,23 @@ namespace Engine {
 
     namespace Vulkan {
 
-        class IImage;
+        namespace Interface {
+            class Image;
+        }
+        namespace Managed {
+            class Image;
+        }
+        namespace Concrete {
+            class Image;
+        }
+        namespace Sync {
+            struct Access;
+            struct State;
+            struct ImageState;
+        }  // namespace Sync
+
+        using IImage = Interface::Image;
+
         class ISwapChain;
 
         class Instance;
@@ -15,7 +31,6 @@ namespace Engine {
         class Queue;
         class CommandPool;
         class CommandBuffer;
-        class Image;
         class Buffer;
         class ImageSampler;
         class ImageView;
