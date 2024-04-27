@@ -84,6 +84,9 @@ namespace Engine::Vulkan {
 
         return -1;
     }
+    std::string GetDeviceName(VkPhysicalDevice device) {
+        return GetDeviceProperties(device).deviceName;
+    }
 
     void Config::CheckLayersSupport() const {
         auto unsupportedLayers = FindUnsupportedLayers();
@@ -155,17 +158,22 @@ namespace Engine::Vulkan {
         return compatibleDevices;
     }
     bool Config::CheckDevice(VkInstance instance, VkPhysicalDevice device) const {
+        std::println("Checking device {} ...", GetDeviceName(device));
         {
             if (GetUniversalQueueFamilyIndex(instance, device) == -1) {
+                std::println("No universal queue");
                 return false;
             }
         }
         {
             auto unsupportedExtensions = FindUnsupportedDeviceExtensions(device);
             if (!unsupportedExtensions.empty()) {
+                std::println("Has unsupported extensions: {}", unsupportedExtensions);
                 return false;
             }
         }
+        std::println("Device Compatible");
+
         return true;
     }
     VkPhysicalDevice Config::ChooseBestDevice(const std::vector<VkPhysicalDevice>& devices) const {

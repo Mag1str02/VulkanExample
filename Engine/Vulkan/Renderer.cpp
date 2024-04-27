@@ -12,7 +12,6 @@ namespace Engine::Vulkan {
         m_Config.AddDeviceExtension(VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME);
         m_Config.AddDeviceExtension(VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME);
         m_Config.AddDeviceExtension(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
-        m_Config.AddDeviceExtension(VK_EXT_SHADER_OBJECT_EXTENSION_NAME);
 
         m_Instance = Instance::Create(m_Config);
         m_Debugger = Debugger::Create(m_Instance);

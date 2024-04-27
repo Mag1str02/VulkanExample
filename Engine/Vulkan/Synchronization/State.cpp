@@ -1,5 +1,6 @@
 #include "State.h"
-#if 1
+
+#if 0
 #define LOG(...) std::println(__VA_ARGS__)
 #else
 #define LOG(...)
