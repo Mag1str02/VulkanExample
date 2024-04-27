@@ -9,6 +9,7 @@ namespace Engine::Vulkan::Concrete {
         return Ref<ResizebleSwapChain>(new ResizebleSwapChain(window, device));
     }
     ResizebleSwapChain::ResizebleSwapChain(Window* window, Ref<Device> device) : m_Device(device), m_Window(window) {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::ResizebleSwapChain::ResizebleSwapChain");
         m_SwapChain = Concrete::SwapChain::Create(m_Window->GetSurface(), m_Device, m_Window->GetExtent());
     }
 
@@ -27,6 +28,7 @@ namespace Engine::Vulkan::Concrete {
     }
 
     void ResizebleSwapChain::PresentAquire(VkQueue queue, Fence& fence) {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::ResizebleSwapChain::PresentAquire");
         m_SwapChain->PresentLatest(queue);
         if (m_SubOptimalFlag) {
             m_SwapChain      = Concrete::SwapChain::Create(m_Window->GetSurface(), m_Device, m_Window->GetExtent(), m_SwapChain->Handle());

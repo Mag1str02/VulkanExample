@@ -38,11 +38,13 @@ namespace Engine::Vulkan {
     }
 
     void Window::BeginFrame() {
+        PROFILER_SCOPE("Engine::Vulkan::Window::BeginFrame");
         Engine::Window::BeginFrame();
         m_Renderer->Submit(m_SwapChain->CreateAquireImageTask());
         m_Renderer->GetQueue()->WaitIdle();
     }
     void Window::EndFrame() {
+        PROFILER_SCOPE("Engine::Vulkan::Window::EndFrame");
         Engine::Window::EndFrame();
     }
 

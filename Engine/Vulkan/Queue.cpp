@@ -9,9 +9,11 @@ namespace Engine::Vulkan {
     }
 
     void Queue::WaitIdle() {
+        PROFILER_SCOPE("Engine::Vulkan::Queue::WaitIdle");
         vkQueueWaitIdle(m_Queue);
     }
     void Queue::Submit(Ref<Task> task) {
+        PROFILER_SCOPE("Engine::Vulkan::Queue::Submit");
         task->Run(m_Queue);
         m_RunningTasks.push_back(task);
         RemoveCompleted();

@@ -38,7 +38,7 @@ namespace Engine {
     }
 
     void Application::Loop() {
-        ZoneScopedN("Loop");
+        PROFILER_SCOPE("Loop");
         m_Window->BeginFrame();
         OnLoop();
         m_Window->EndFrame();

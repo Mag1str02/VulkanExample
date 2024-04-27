@@ -8,6 +8,7 @@ namespace Engine::Vulkan {
         return Ref<CommandPool>(new CommandPool(device, family_index));
     }
     CommandPool::CommandPool(Ref<Device> device, uint32_t familyIndex) {
+        PROFILER_SCOPE("Engine::Vulkan::CommandPool::CommandPool");
         DE_ASSERT(device, "Bad device");
         m_Device      = device;
         m_FamilyIndex = familyIndex;
@@ -20,6 +21,7 @@ namespace Engine::Vulkan {
     }
 
     CommandPool::~CommandPool() {
+        PROFILER_SCOPE("Engine::Vulkan::CommandPool::~CommandPool");
         vkDestroyCommandPool(m_Device->GetLogicDevice(), m_Handle, nullptr);
     }
 

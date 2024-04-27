@@ -26,7 +26,7 @@ public:
         vkDeviceWaitIdle(m_Renderer->GetDevice()->GetLogicDevice());
     }
     virtual void OnLoop() override {
-        ZoneScopedN("TestApplication::OnLoop");
+        PROFILER_SCOPE("TestApplication::OnLoop");
         auto image      = m_Window->GetSwapChainImage();
         auto image_view = CreateRef<Vulkan::ImageView>(image);
         m_CommandBuffer->Begin();

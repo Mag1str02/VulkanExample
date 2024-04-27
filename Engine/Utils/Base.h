@@ -17,6 +17,5 @@
 #include "Assert.h"
 #include "Constructors.h"
 #include "ManualLifetime.h"
+#include "Profiler.h"
 #include "Singleton.h"
-
-#include <tracy/Tracy.hpp>

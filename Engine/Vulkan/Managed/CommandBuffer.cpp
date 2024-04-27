@@ -8,6 +8,7 @@
 namespace Engine::Vulkan::Managed {
 
     void CommandBuffer::Init(VkCommandBuffer handle, Ref<CommandPool> pool) {
+        PROFILER_SCOPE("Engine::Vulkan::Managed::CommandBuffer::Init");
         m_Handle = handle;
         m_Pool   = pool;
 
@@ -17,20 +18,26 @@ namespace Engine::Vulkan::Managed {
         VK_CHECK(vkCreateCommandPool(m_Pool->GetDevice()->GetLogicDevice(), &poolInfo, nullptr, &m_SecondaryCommandPool));
     }
     CommandBuffer::~CommandBuffer() {
+        PROFILER_SCOPE("Engine::Vulkan::Managed::CommandBuffer::~CommandBuffer");
         vkDestroyCommandPool(m_Pool->GetDevice()->GetLogicDevice(), m_SecondaryCommandPool, nullptr);
     }
 
     void CommandBuffer::BeginRendering(const std::vector<Ref<ImageView>>& color_attachments) {
+        PROFILER_SCOPE("Engine::Vulkan::Managed::CommandBuffer::BeginRendering");
         DE_ASSERT(m_CurrentSecondaryCommandBufer == VK_NULL_HANDLE, "Rendering has already begun");
 
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool        = m_SecondaryCommandPool;
-        allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-        allocInfo.commandBufferCount = 1;
+        {
+            PROFILER_SCOPE("Engine::Vulkan::Managed::CommandBuffer::BeginRendering (allocate secondary command buffer)");
 
-        VK_CHECK(vkAllocateCommandBuffers(m_Pool->GetDevice()->GetLogicDevice(), &allocInfo, &m_CurrentSecondaryCommandBufer));
-        m_SecondaryCommandBuffers.push_back(m_CurrentSecondaryCommandBufer);
+            VkCommandBufferAllocateInfo allocInfo{};
+            allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            allocInfo.commandPool        = m_SecondaryCommandPool;
+            allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+            allocInfo.commandBufferCount = 1;
+
+            VK_CHECK(vkAllocateCommandBuffers(m_Pool->GetDevice()->GetLogicDevice(), &allocInfo, &m_CurrentSecondaryCommandBufer));
+            m_SecondaryCommandBuffers.push_back(m_CurrentSecondaryCommandBufer);
+        }
 
         VkCommandBufferInheritanceInfo inheritance{};
         inheritance.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
@@ -61,6 +68,7 @@ namespace Engine::Vulkan::Managed {
         vkCmdBeginRendering(m_SecondaryCommandBuffers.back(), &info);
     }
     void CommandBuffer::EndRendering() {
+        PROFILER_SCOPE("Engine::Vulkan::Managed::CommandBuffer::EndRendering");
         DE_ASSERT(m_CurrentSecondaryCommandBufer != VK_NULL_HANDLE, "Rendering was not begun");
 
         vkCmdEndRendering(m_SecondaryCommandBuffers.back());
@@ -71,6 +79,7 @@ namespace Engine::Vulkan::Managed {
         m_CurrentSecondaryCommandBufer = VK_NULL_HANDLE;
     }
     void CommandBuffer::ClearImage(Ref<IImage> image, Vec4 clear_color) {
+        PROFILER_SCOPE("Engine::Vulkan::Managed::CommandBuffer::ClearImage");
         FlushBariers();
 
         VkClearColorValue color;
@@ -90,6 +99,7 @@ namespace Engine::Vulkan::Managed {
     }
 
     void CommandBuffer::ResetSecondaryCommandBuffers() {
+        PROFILER_SCOPE("Engine::Vulkan::Managed::CommandBuffer::ResetSecondaryCommandBuffers");
         if (!m_SecondaryCommandBuffers.empty()) {
             vkFreeCommandBuffers(m_Pool->GetDevice()->GetLogicDevice(),
                                  m_SecondaryCommandPool,
@@ -110,6 +120,7 @@ namespace Engine::Vulkan::Managed {
     }
 
     void CommandBuffer::FlushBariers() {
+        PROFILER_SCOPE("Engine::Vulkan::Managed::CommandBuffer::FlushBariers");
         VkDependencyInfo info{};
         info.sType                    = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
         info.imageMemoryBarrierCount  = m_ImageMemoryBariers.size();

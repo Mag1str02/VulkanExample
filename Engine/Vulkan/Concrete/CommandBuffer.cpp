@@ -9,6 +9,7 @@ namespace Engine::Vulkan::Concrete {
         return Ref<CommandBuffer>(new CommandBuffer(pool));
     }
     CommandBuffer::CommandBuffer(Ref<CommandPool> pool) {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::CommandBuffer");
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool        = pool->Handle();
@@ -22,20 +23,24 @@ namespace Engine::Vulkan::Concrete {
     }
 
     CommandBuffer::~CommandBuffer() {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::~CommandBuffer");
         vkFreeCommandBuffers(m_Pool->GetDevice()->GetLogicDevice(), m_Pool->Handle(), 1, &m_Handle);
     }
 
     void CommandBuffer::Begin() {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::Begin");
         ResetSecondaryCommandBuffers();
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         VK_CHECK(vkBeginCommandBuffer(m_Handle, &beginInfo));
     }
     void CommandBuffer::End() {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::End");
         FlushBariers();
         VK_CHECK(vkEndCommandBuffer(m_Handle));
     }
     void CommandBuffer::Reset() {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::Reset");
         ResetSecondaryCommandBuffers();
         VK_CHECK(vkResetCommandBuffer(m_Handle, 0));
     }

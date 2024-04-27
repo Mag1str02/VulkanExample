@@ -14,6 +14,7 @@ namespace Engine::Vulkan {
         return status == VK_SUCCESS;
     }
     void IFence::Wait() const {
+        PROFILER_SCOPE("Engine::Vulkan::IFence::Wait");
         vkWaitForFences(m_Device->GetLogicDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX);
     }
     void IFence::Reset() {

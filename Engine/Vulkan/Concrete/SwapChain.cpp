@@ -72,6 +72,8 @@ namespace Engine::Vulkan::Concrete {
     }
     SwapChain::SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain) :
         m_Surface(surface), m_Device(device) {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::SwapChain::SwapChain");
+            
         auto details = GetSwapChainSupportDetails(m_Device->GetPhysicalDevice(), m_Surface);
 
         m_Extent                     = ChooseSwapExtent(details.m_Capabilities, size);
@@ -114,6 +116,7 @@ namespace Engine::Vulkan::Concrete {
         }
     }
     SwapChain::~SwapChain() {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::SwapChain::~SwapChain");
         vkDestroySwapchainKHR(m_Device->GetLogicDevice(), m_SwapChain, nullptr);
     }
 
@@ -147,6 +150,7 @@ namespace Engine::Vulkan::Concrete {
     }
 
     void SwapChain::PresentLatest(VkQueue queue) {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::SwapChain::PresentLatest");
         if (m_LatestImage != m_Images.size()) {
             VkPresentInfoKHR info   = {};
             info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -163,6 +167,7 @@ namespace Engine::Vulkan::Concrete {
     SwapChain::PresentAquireTask::PresentAquireTask(Ref<SwapChain> swapchain) : m_SwapChain(swapchain) {}
 
     void SwapChain::PresentAquireTask::Run(VkQueue queue) {
+        PROFILER_SCOPE("Engine::Vulkan::Concrete::SwapChain::PresentAquireTask::Run");
         m_SwapChain->PresentLatest(queue);
         m_AquiredFence.Construct(m_SwapChain->m_Device);
 

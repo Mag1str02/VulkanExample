@@ -56,6 +56,8 @@ namespace Engine::Vulkan::Synchronization {
     }
 
     std::vector<VkImageMemoryBarrier2> ImageState::AccessRequest(AccessScope scope, VkImageLayout layout) {
+        PROFILER_SCOPE("Engine::Vulkan::Synchronization::ImageState::AccessRequest");
+
         if (m_LastLayout == VK_IMAGE_LAYOUT_MAX_ENUM) {
             m_LastLayout    = layout;
             m_InitialLayout = layout;
