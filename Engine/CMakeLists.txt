@@ -15,7 +15,8 @@ add_library(VulkanHelpers
     Vulkan/Managed/CommandBuffer.cpp
     Vulkan/Managed/Image.cpp
 
-    Vulkan/Sync/State.cpp
+    Vulkan/Synchronization/State.cpp
+    Vulkan/Synchronization/Tracker.cpp
     
     Vulkan/Buffer.cpp
     Vulkan/CommandPool.cpp

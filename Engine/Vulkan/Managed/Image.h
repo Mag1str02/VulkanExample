@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engine/Vulkan/Interface/Image.h"
-#include "Engine/Vulkan/Sync/State.h"
+#include "Engine/Vulkan/Synchronization/State.h"
 
 namespace Engine::Vulkan::Managed {
     class Image : public Interface::Image {
@@ -18,7 +18,7 @@ namespace Engine::Vulkan::Managed {
 
         virtual VkImage           Handle() const override;
         virtual Ref<Device>       GetDevice() const override;
-        virtual Sync::ImageState& GetSyncState() override;
+        virtual Synchronization::ImageState& GetSyncState() override;
 
     protected:
         void Init(VkImage image, VkFormat format, VkImageUsageFlags usage_flags, VkExtent2D extent, Ref<Device> device);
@@ -29,7 +29,7 @@ namespace Engine::Vulkan::Managed {
         VkImageUsageFlags m_UsageFlags = 0;
         VkExtent2D        m_Extent{};
 
-        Sync::ImageState m_SyncState;
+        Synchronization::ImageState m_SyncState;
 
         Ref<Device> m_Device;
     };

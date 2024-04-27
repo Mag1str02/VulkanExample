@@ -19,11 +19,10 @@ namespace Engine {
             class SwapChain;
             class CommandBuffer;
         }  // namespace Concrete
-        namespace Sync {
-            struct Access;
-            struct State;
-            struct ImageState;
-        }  // namespace Sync
+        namespace Synchronization {
+            class AccessScope;
+            class ImageState;
+        }  // namespace Synchronization
 
         using IImage     = Interface::Image;
         using ISwapChain = Interface::SwapChain;
