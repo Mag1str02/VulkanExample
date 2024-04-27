@@ -8,6 +8,10 @@ namespace Engine::Vulkan::Synchronization {
     public:
         std::vector<VkImageMemoryBarrier2> RequestAccess(Ref<IImage> image, AccessScope scope, VkImageLayout layout);
 
+        void Reset();
+
+        bool HasImage(Ref<IImage> image) const;
+
     private:
         std::unordered_map<Ref<IImage>, ImageState> m_ImageStates;
     };

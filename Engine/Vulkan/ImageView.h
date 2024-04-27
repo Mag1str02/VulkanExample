@@ -10,6 +10,7 @@ namespace Engine::Vulkan {
 
         VkImageView Handle();
         VkExtent2D  GetExtent() const;
+        Ref<IImage> GetImage() const;
 
     private:
         Ref<IImage> m_Image;

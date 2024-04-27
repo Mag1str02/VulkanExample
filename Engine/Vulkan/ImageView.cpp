@@ -31,4 +31,7 @@ namespace Engine::Vulkan {
     VkExtent2D ImageView::GetExtent() const {
         return m_Image->GetExtent();
     }
+    Ref<IImage> ImageView::GetImage() const {
+        return m_Image;
+    }
 }  // namespace Engine::Vulkan

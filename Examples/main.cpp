@@ -2,6 +2,7 @@
 #include <Engine/Vulkan/Renderer.h>
 
 #include <Engine/Vulkan/Concrete/CommandBuffer.h>
+#include <Engine/Vulkan/Concrete/SmartCommandBuffer.h>
 #include <Engine/Vulkan/Fence.h>
 #include <Engine/Vulkan/ImageView.h>
 
@@ -19,7 +20,7 @@ public:
 
     virtual void OnStartUp() override {
         auto command_pool = Vulkan::CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetQueue()->FamilyIndex());
-        m_CommandBuffer   = Vulkan::Concrete::CommandBuffer::Create(command_pool);
+        m_CommandBuffer   = Vulkan::Concrete::SmartCommandBuffer::Create(command_pool);
     }
     virtual void OnShutDown() override {
         vkDeviceWaitIdle(m_Renderer->GetDevice()->GetLogicDevice());
@@ -29,24 +30,7 @@ public:
         auto image_view = CreateRef<Vulkan::ImageView>(image);
         m_CommandBuffer->Begin();
 
-        {
-            VkImageMemoryBarrier2 barrier{};
-            barrier.image                           = image->Handle();
-            barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-            barrier.srcStageMask                    = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
-            barrier.dstStageMask                    = VK_PIPELINE_STAGE_2_CLEAR_BIT;
-            barrier.srcAccessMask                   = 0;
-            barrier.dstAccessMask                   = VK_ACCESS_2_TRANSFER_WRITE_BIT;
-            barrier.oldLayout                       = VK_IMAGE_LAYOUT_UNDEFINED;
-            barrier.newLayout                       = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-            barrier.subresourceRange.baseArrayLayer = 0;
-            barrier.subresourceRange.baseMipLevel   = 0;
-            barrier.subresourceRange.layerCount     = 1;
-            barrier.subresourceRange.levelCount     = 1;
-            m_CommandBuffer->AddImageMemoryBarier(barrier);
-        }
-
+        m_CommandBuffer->HintInitialLayout(image, VK_IMAGE_LAYOUT_UNDEFINED);
         {
             float time = glfwGetTime();
             Vec4  clearValue;
@@ -58,43 +42,9 @@ public:
             m_CommandBuffer->ClearImage(image, clearValue);
         }
 
-        {
-            VkImageMemoryBarrier2 barrier{};
-            barrier.image                           = image->Handle();
-            barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-            barrier.srcStageMask                    = VK_PIPELINE_STAGE_2_CLEAR_BIT;
-            barrier.dstStageMask                    = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-            barrier.srcAccessMask                   = VK_ACCESS_2_TRANSFER_WRITE_BIT;
-            barrier.dstAccessMask                   = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
-            barrier.oldLayout                       = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            barrier.newLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-            barrier.subresourceRange.baseArrayLayer = 0;
-            barrier.subresourceRange.baseMipLevel   = 0;
-            barrier.subresourceRange.layerCount     = 1;
-            barrier.subresourceRange.levelCount     = 1;
-            m_CommandBuffer->AddImageMemoryBarier(barrier);
-        }
         m_CommandBuffer->BeginRendering({image_view});
         m_CommandBuffer->EndRendering();
-        {
-            VkImageMemoryBarrier2 barrier{};
-            barrier.image                           = image->Handle();
-            barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-            barrier.srcStageMask                    = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
-            barrier.dstStageMask                    = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT;
-            barrier.srcAccessMask                   = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;
-            barrier.dstAccessMask                   = 0;
-            barrier.oldLayout                       = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            barrier.newLayout                       = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-            barrier.subresourceRange.baseArrayLayer = 0;
-            barrier.subresourceRange.baseMipLevel   = 0;
-            barrier.subresourceRange.layerCount     = 1;
-            barrier.subresourceRange.levelCount     = 1;
-
-            m_CommandBuffer->AddImageMemoryBarier(barrier);
-        }
+        m_CommandBuffer->PreparePresent(image);
         m_CommandBuffer->End();
 
         {
@@ -118,7 +68,7 @@ public:
     }
 
 private:
-    Ref<Vulkan::Concrete::CommandBuffer> m_CommandBuffer;
+    Ref<Vulkan::Concrete::SmartCommandBuffer> m_CommandBuffer;
 };
 
 int main() {

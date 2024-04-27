@@ -8,10 +8,10 @@ namespace Engine::Vulkan::Managed {
     public:
         virtual ~CommandBuffer();
 
-        void AddImageMemoryBarier(VkImageMemoryBarrier2 barier);
-        void AddBufferMemoryBarier(VkBufferMemoryBarrier2 barier);
+        void AddImageMemoryBarriers(const std::vector<VkImageMemoryBarrier2>& bariers);
+        void AddBufferMemoryBarriers(const std::vector<VkBufferMemoryBarrier2>& bariers);
 
-        void BeginRendering(std::vector<Ref<ImageView>> color_attachments);
+        void BeginRendering(const std::vector<Ref<ImageView>>& color_attachments);
         void EndRendering();
         void ClearImage(Ref<IImage> image, Vec4 clear_color);
 

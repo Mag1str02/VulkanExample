@@ -1,4 +1,9 @@
 #include "State.h"
+#if 1
+#define LOG(...) std::println(__VA_ARGS__)
+#else
+#define LOG(...)
+#endif
 
 namespace Engine::Vulkan::Synchronization {
 
@@ -6,7 +11,6 @@ namespace Engine::Vulkan::Synchronization {
         static constexpr VkAccessFlags2          kWriteAccessMask           = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_TRANSFER_WRITE_BIT;
         static constexpr VkAccessFlags2          kReadAccessMask            = 0;
         static constexpr VkImageSubresourceRange kDefaultImageResourceRange = {
-            .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT | VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT,
             .baseMipLevel   = 0,
             .levelCount     = VK_REMAINING_MIP_LEVELS,
             .baseArrayLayer = 0,
@@ -22,15 +26,15 @@ namespace Engine::Vulkan::Synchronization {
 
     }  // namespace
 
-    AccessScope::AccessScope(VkPipelineStageFlags2 stages, VkAccessFlags2 access) : m_Stage(stages), m_Access(access) {}
+    AccessScope::AccessScope(VkPipelineStageFlags2 stages, VkAccessFlags2 access) : m_Stage(stages), m_Access(access) {
+        Verify();
+    }
 
     void AccessScope::Verify() const {
-        VkAccessFlags2 supported_accesses_mask = ~(kWriteAccessMask | kReadAccessMask);
-        DE_ASSERT((~supported_accesses_mask & m_Access) == 0, std::format("Found unsupported access mask: {}", m_Stage));
+        VkAccessFlags2 supported_accesses_mask = kWriteAccessMask | kReadAccessMask;
+        DE_ASSERT((~supported_accesses_mask & m_Access) == 0, std::format("Found unsupported access mask: {:x}", m_Access));
         DE_ASSERT(std::popcount(GetReadAccess()) <= 1, "Cannot use multiple read access in single access request");
         DE_ASSERT(std::popcount(GetWriteAccess()) <= 1, "Cannot use multiple write access in single access request");
-        DE_ASSERT(std::popcount(m_Stage) > 0, "No stages specified");
-        DE_ASSERT(std::popcount(m_Access) > 0, "No access specified");
 
         // TODO: Check stage-access match
     }
@@ -56,6 +60,7 @@ namespace Engine::Vulkan::Synchronization {
             m_InitialLayout = layout;
         }
         std::vector<VkImageMemoryBarrier2> barriers;
+        LOG("Access Request: Stages={:x} Access={:x} Layout={}", scope.GetStages(), scope.GetAccess(), (uint32_t)layout);
 
         {
             bool emmit   = false;
@@ -67,6 +72,8 @@ namespace Engine::Vulkan::Synchronization {
                 emmit                 = true;
 
                 m_LastUnavailableWrite = AccessScope();
+
+                LOG("Emmiting last write availability...");
             }
 
             if (layout != m_InitialLayout) {
@@ -76,25 +83,46 @@ namespace Engine::Vulkan::Synchronization {
 
                 m_LastLayout = layout;
                 m_VisibleStages.clear();  // Assuming that layout transition makes execution dependency with all operation before
+
+                LOG("Emmiting layout transition...");
+            } else if (scope.GetWriteAccess() != VK_ACCESS_2_NONE && !m_VisibleStages.empty()) {
+                auto barrier = CreateImageBarrier();
+                for (const auto& [access, stages] : m_VisibleStages) {
+                    barrier.srcStageMask |= stages;
+                }
+                barrier.dstStageMask = scope.GetStages();
+                barriers.push_back(barrier);
+
+                m_VisibleStages.clear();
+
+                LOG("Emmiting execution dependency for WAR...");
             }
 
             // Visibility operations for access scope
             {
-                if (auto it = m_VisibleStages.find(scope.GetReadAccess());
-                    it == m_VisibleStages.end() || (it->second & scope.GetStages()) != scope.GetStages()) {
-                    it = m_VisibleStages.try_emplace(scope.GetReadAccess(), VK_PIPELINE_STAGE_2_NONE).first;
-                    barrier.dstAccessMask |= scope.GetReadAccess();
-                    barrier.dstStageMask |= (it->second & scope.GetStages()) ^ scope.GetStages();
-                    it->second |= scope.GetStages();
-                    emmit = true;
+                if (scope.GetReadAccess() != VK_ACCESS_2_NONE) {
+                    auto it = m_VisibleStages.find(scope.GetReadAccess());
+                    if (it == m_VisibleStages.end() || (it->second & scope.GetStages()) != scope.GetStages()) {
+                        it = m_VisibleStages.try_emplace(scope.GetReadAccess(), VK_PIPELINE_STAGE_2_NONE).first;
+                        barrier.dstAccessMask |= scope.GetReadAccess();
+                        barrier.dstStageMask |= (it->second & scope.GetStages()) ^ scope.GetStages();
+                        it->second |= scope.GetStages();
+                        emmit = true;
+
+                        LOG("Emmiting visibility for read access...");
+                    }
                 }
-                if (auto it = m_VisibleStages.find(scope.GetWriteAccess());
-                    it == m_VisibleStages.end() || (it->second & scope.GetStages()) != scope.GetStages()) {
-                    it = m_VisibleStages.try_emplace(scope.GetWriteAccess(), VK_PIPELINE_STAGE_2_NONE).first;
-                    barrier.dstAccessMask |= scope.GetWriteAccess();
-                    barrier.dstStageMask |= (it->second & scope.GetStages()) ^ scope.GetStages();
-                    it->second |= scope.GetStages();
-                    emmit = true;
+                if (scope.GetWriteAccess() != VK_ACCESS_2_NONE) {
+                    auto it = m_VisibleStages.find(scope.GetWriteAccess());
+                    if (it == m_VisibleStages.end() || (it->second & scope.GetStages()) != scope.GetStages()) {
+                        it = m_VisibleStages.try_emplace(scope.GetWriteAccess(), VK_PIPELINE_STAGE_2_NONE).first;
+                        barrier.dstAccessMask |= scope.GetWriteAccess();
+                        barrier.dstStageMask |= (it->second & scope.GetStages()) ^ scope.GetStages();
+                        it->second |= scope.GetStages();
+                        emmit = true;
+
+                        LOG("Emmiting visibility for write access...");
+                    }
                 }
             }
             if (emmit) {
@@ -102,17 +130,7 @@ namespace Engine::Vulkan::Synchronization {
             }
         }
 
-        // Exec dependecy to prevent WAR hazard
-        if (scope.GetWriteAccess() != VK_ACCESS_2_NONE) {
-            auto barrier = CreateImageBarrier();
-            for (const auto& [access, stages] : m_VisibleStages) {
-                barrier.srcStageMask |= stages;
-            }
-            barrier.dstStageMask = scope.GetStages();
-            barriers.push_back(barrier);
-
-            m_VisibleStages.clear();
-        }
+        LOG("Access Request Complete: {} barriers emmited\n", barriers.size());
         return barriers;
     }
 

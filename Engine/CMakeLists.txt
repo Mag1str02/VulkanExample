@@ -7,6 +7,7 @@ add_library(VulkanHelpers
     Vulkan/Concrete/CommandBuffer.cpp
     Vulkan/Concrete/Image.cpp
     Vulkan/Concrete/ResizebleSwapChain.cpp
+    Vulkan/Concrete/SmartCommandBuffer.cpp
     Vulkan/Concrete/SwapChain.cpp
 
     Vulkan/Interface/Image.cpp

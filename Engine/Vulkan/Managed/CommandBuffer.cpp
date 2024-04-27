@@ -20,7 +20,7 @@ namespace Engine::Vulkan::Managed {
         vkDestroyCommandPool(m_Pool->GetDevice()->GetLogicDevice(), m_SecondaryCommandPool, nullptr);
     }
 
-    void CommandBuffer::BeginRendering(std::vector<Ref<ImageView>> color_attachments) {
+    void CommandBuffer::BeginRendering(const std::vector<Ref<ImageView>>& color_attachments) {
         DE_ASSERT(m_CurrentSecondaryCommandBufer == VK_NULL_HANDLE, "Rendering has already begun");
 
         VkCommandBufferAllocateInfo allocInfo{};
@@ -102,11 +102,11 @@ namespace Engine::Vulkan::Managed {
     VkCommandBuffer CommandBuffer::Handle() {
         return m_Handle;
     }
-    void CommandBuffer::AddImageMemoryBarier(VkImageMemoryBarrier2 barier) {
-        m_ImageMemoryBariers.push_back(std::move(barier));
+    void CommandBuffer::AddImageMemoryBarriers(const std::vector<VkImageMemoryBarrier2>& bariers) {
+        m_ImageMemoryBariers.insert(m_ImageMemoryBariers.end(), bariers.begin(), bariers.end());
     }
-    void CommandBuffer::AddBufferMemoryBarier(VkBufferMemoryBarrier2 barier) {
-        m_BufferMemoryBariers.push_back(std::move(barier));
+    void CommandBuffer::AddBufferMemoryBarriers(const std::vector<VkBufferMemoryBarrier2>& bariers) {
+        m_BufferMemoryBariers.insert(m_BufferMemoryBariers.end(), bariers.begin(), bariers.end());
     }
 
     void CommandBuffer::FlushBariers() {

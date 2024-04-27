@@ -16,4 +16,11 @@ namespace Engine::Vulkan::Helpers {
         return 0;
     }
 
+    VkImageAspectFlags ImageAspectFlagsFromFormat(VkFormat format) {
+        switch (format) {
+            case VK_FORMAT_B8G8R8A8_SRGB: return VK_IMAGE_ASPECT_COLOR_BIT;
+            default: DE_ASSERT(false, std::format("Image format {} not supported", (uint32_t)format)); return VK_FORMAT_UNDEFINED;
+        };
+    }
+
 }  // namespace Engine::Vulkan::Helpers
