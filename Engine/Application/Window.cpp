@@ -31,8 +31,11 @@ namespace Engine {
     }
 
     void Window::BeginFrame() {
+        ZoneScopedN("Engine::Window::BeginFrame");
         glfwPollEvents();
     }
-    void Window::EndFrame() {}
+    void Window::EndFrame() {
+        ZoneScopedN("Engine::Window::EndFrame");
+    }
 
 }  // namespace Engine

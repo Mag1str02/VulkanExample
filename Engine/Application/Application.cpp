@@ -2,6 +2,8 @@
 
 #include "Engine/Utils/Assert.h"
 
+#include <tracy/Tracy.hpp>
+
 #include <GLFW/glfw3.h>
 
 namespace Engine {
@@ -28,12 +30,15 @@ namespace Engine {
         std::cerr << "Running" << std::endl;
         OnStartUp();
         while (!m_Window->ShouldClose()) {
+            FrameMarkStart("Frame");
             Loop();
+            FrameMarkEnd("Frame");
         }
         OnShutDown();
     }
 
     void Application::Loop() {
+        ZoneScopedN("Loop");
         m_Window->BeginFrame();
         OnLoop();
         m_Window->EndFrame();

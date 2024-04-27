@@ -18,3 +18,5 @@
 #include "Constructors.h"
 #include "ManualLifetime.h"
 #include "Singleton.h"
+
+#include <tracy/Tracy.hpp>
