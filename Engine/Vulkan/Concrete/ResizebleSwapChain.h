@@ -36,5 +36,6 @@ namespace Engine::Vulkan::Concrete {
 
         Ref<Device>              m_Device;
         Ref<Concrete::SwapChain> m_SwapChain;
+        bool                     m_SubOptimalFlag = false;
     };
 };  // namespace Engine::Vulkan::Concrete

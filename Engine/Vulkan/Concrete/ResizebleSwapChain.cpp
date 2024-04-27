@@ -28,6 +28,10 @@ namespace Engine::Vulkan::Concrete {
 
     void ResizebleSwapChain::PresentAquire(VkQueue queue, Fence& fence) {
         m_SwapChain->PresentLatest(queue);
+        if (m_SubOptimalFlag) {
+            m_SwapChain      = Concrete::SwapChain::Create(m_Window->GetSurface(), m_Device, m_Window->GetExtent(), m_SwapChain->Handle());
+            m_SubOptimalFlag = false;
+        }
         while (true) {
             VkResult res = vkAcquireNextImageKHR(m_Device->GetLogicDevice(),
                                                  m_SwapChain->Handle(),
@@ -35,9 +39,12 @@ namespace Engine::Vulkan::Concrete {
                                                  VK_NULL_HANDLE,
                                                  fence.Handle(),
                                                  &m_SwapChain->m_LatestImage);
-            if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
+            if (res == VK_ERROR_OUT_OF_DATE_KHR) {
                 m_SwapChain = Concrete::SwapChain::Create(m_Window->GetSurface(), m_Device, m_Window->GetExtent(), m_SwapChain->Handle());
             } else {
+                if (res == VK_SUBOPTIMAL_KHR) {
+                    m_SubOptimalFlag = true;
+                }
                 break;
             }
         }
