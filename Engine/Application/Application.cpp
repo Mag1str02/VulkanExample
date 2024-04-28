@@ -30,9 +30,8 @@ namespace Engine {
         std::cerr << "Running" << std::endl;
         OnStartUp();
         while (!m_Window->ShouldClose()) {
-            FrameMarkStart("Frame");
+            FrameMarkNamed("Frame");
             Loop();
-            FrameMarkEnd("Frame");
         }
         OnShutDown();
     }

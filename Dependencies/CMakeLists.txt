@@ -20,8 +20,3 @@ target_link_libraries(Dependencies
     PUBLIC volk
     PUBLIC TracyClient
 )
-
-target_compile_definitions(TracyClient
-    PUBLIC TRACY_ENABLE
-    PUBLIC WIN32_LEAN_AND_MEAN
-)
