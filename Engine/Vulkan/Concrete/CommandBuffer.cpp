@@ -37,6 +37,7 @@ namespace Engine::Vulkan::Concrete {
     void CommandBuffer::End() {
         PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::End");
         FlushBariers();
+        TracyVkCollect(m_Pool->GetDevice()->GetTracyCtx(), m_Handle);
         VK_CHECK(vkEndCommandBuffer(m_Handle));
     }
     void CommandBuffer::Reset() {

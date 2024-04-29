@@ -13,6 +13,7 @@ namespace Engine::Vulkan {
 
         VkDevice         GetLogicDevice();
         VkPhysicalDevice GetPhysicalDevice();
+        tracy::VkCtx*    GetTracyCtx();
 
         Ref<Queue> GetQueue();
 
@@ -20,6 +21,8 @@ namespace Engine::Vulkan {
         Device(VkPhysicalDevice device, Ref<Instance> instance, const Config& config);
 
     private:
+        tracy::VkCtx* m_TracyContext;
+
         ManualLifetime<Queue> m_Queue;
 
         VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;

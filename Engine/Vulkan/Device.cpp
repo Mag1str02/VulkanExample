@@ -27,9 +27,14 @@ namespace Engine::Vulkan {
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
+        VkPhysicalDeviceHostQueryResetFeatures hostQueryFeature{};
+        hostQueryFeature.sType          = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES;
+        hostQueryFeature.hostQueryReset = VK_TRUE;
+
         VkPhysicalDeviceSynchronization2Features synchronization2Feature{};
         synchronization2Feature.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;
-        synchronization2Feature.synchronization2 = true;
+        synchronization2Feature.synchronization2 = VK_TRUE;
+        synchronization2Feature.pNext            = &hostQueryFeature;
 
         VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeature{};
         dynamicRenderingFeature.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
@@ -53,9 +58,17 @@ namespace Engine::Vulkan {
         vkGetDeviceQueue(m_LogicDevice, universal_queue_family_index, 0, &m_QueueHandle);
 
         m_Queue.Construct(this, m_QueueHandle, universal_queue_family_index);
+
+        // TODO: Validate that tracy extensions and features available
+        m_TracyContext = TracyVkContextHostCalibrated(m_PhysicalDevice,
+                                                      m_LogicDevice,
+                                                      vkResetQueryPool,
+                                                      vkGetPhysicalDeviceCalibrateableTimeDomainsEXT,
+                                                      vkGetCalibratedTimestampsEXT);
     }
 
     Device::~Device() {
+        TracyVkDestroy(m_TracyContext);
         m_Queue.Destruct();
         vkDestroyDevice(m_LogicDevice, nullptr);
     }
@@ -69,6 +82,9 @@ namespace Engine::Vulkan {
 
     Ref<Queue> Device::GetQueue() {
         return Ref<Queue>(shared_from_this(), m_Queue.Get());
+    }
+    tracy::VkCtx* Device::GetTracyCtx() {
+        return m_TracyContext;
     }
 
 }  // namespace Engine::Vulkan

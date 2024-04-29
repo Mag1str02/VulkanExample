@@ -30,9 +30,8 @@ public:
         auto image      = m_Window->GetSwapChainImage();
         auto image_view = CreateRef<Vulkan::ImageView>(image);
         m_CommandBuffer->Begin();
-
-        m_CommandBuffer->HintInitialLayout(image, VK_IMAGE_LAYOUT_UNDEFINED);
         {
+            TracyVkZone(m_Renderer->GetDevice()->GetTracyCtx(), m_CommandBuffer->Handle(), "SwapChainClear");
             float time = glfwGetTime();
             Vec4  clearValue;
             clearValue.r = (cos(time) + 1) / 2;
@@ -40,15 +39,16 @@ public:
             clearValue.b = 0;
             clearValue.a = 1;
 
+            m_CommandBuffer->HintInitialLayout(image, VK_IMAGE_LAYOUT_UNDEFINED);
             m_CommandBuffer->ClearImage(image, clearValue);
+            m_CommandBuffer->BeginRendering({image_view});
+            m_CommandBuffer->EndRendering();
+            m_CommandBuffer->PreparePresent(image);
         }
-
-        m_CommandBuffer->BeginRendering({image_view});
-        m_CommandBuffer->EndRendering();
-        m_CommandBuffer->PreparePresent(image);
         m_CommandBuffer->End();
 
         {
+            PROFILER_SCOPE("TestApplication::OnLoop (Submit)");
             VkCommandBuffer handle = m_CommandBuffer->Handle();
 
             VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;

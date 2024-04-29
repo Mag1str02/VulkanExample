@@ -13,7 +13,6 @@ namespace Engine::Vulkan::Concrete {
         void End();
         void Reset();
 
-
         NO_COPY_CONSTRUCTORS(CommandBuffer);
         NO_MOVE_CONSTRUCTORS(CommandBuffer);
 
