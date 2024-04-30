@@ -1,6 +1,4 @@
 #include "State.h"
-#include <optional>
-#include "vulkan/vulkan_core.h"
 
 #if 0
 #define LOG(...) std::println(__VA_ARGS__)
@@ -63,9 +61,9 @@ namespace Engine::Vulkan::Synchronization {
         DE_ASSERT(layout != VK_IMAGE_LAYOUT_UNDEFINED, "Access with image layout undefined is not supported");
         PROFILER_SCOPE("Engine::Vulkan::Synchronization::ImageState::AccessRequest");
 
-        if (m_InitialLayout == VK_IMAGE_LAYOUT_MAX_ENUM) {
-            m_InitialLayout = layout;
-            m_CurrentLayout = layout;
+        if (m_SyncReq.layout == VK_IMAGE_LAYOUT_MAX_ENUM) {
+            m_SyncReq.layout = layout;
+            m_CurrentLayout  = layout;
         }
 
         bool is_write = scope.GetWriteAccess() != 0 || m_CurrentLayout != layout;
@@ -129,12 +127,12 @@ namespace Engine::Vulkan::Synchronization {
                 m_LastWriteAccess         = scope.GetWriteAccess();
                 m_LastWritePipelineStages = scope.GetStages();
 
-                m_InitialWriteAccess         = scope.GetAccess();
-                m_InitialWritePipelineStages = scope.GetStages();
-
-                m_InitialSynchronizedReadersStages = m_SynchronizedReadersStages;
-                m_InitialSynchronizedReaders       = m_SynchronizedReaders;
-                m_WasFirstWrite                    = true;
+                m_SyncReq.stages = scope.GetStages() | m_SynchronizedReadersStages;
+                m_SyncReq.access = scope.GetAccess();
+                for (const auto& [access, _] : m_SynchronizedReaders) {
+                    m_SyncReq.access |= access;
+                }
+                m_WasFirstWrite = true;
 
                 m_SynchronizedReadersStages = VK_PIPELINE_STAGE_2_NONE;
                 m_SynchronizedReaders.clear();
@@ -147,5 +145,8 @@ namespace Engine::Vulkan::Synchronization {
         m_CurrentLayout = layout;
         return result;
     }
-
+    const ImageRequirements& ImageState::GetSynchronizationRequirements() const {
+        DE_ASSERT(m_SyncReq.layout != VK_IMAGE_LAYOUT_UNDEFINED, "No accesses were made");
+        return m_SyncReq;
+    }
 }  // namespace Engine::Vulkan::Synchronization

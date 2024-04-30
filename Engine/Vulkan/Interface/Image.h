@@ -15,8 +15,8 @@ namespace Engine::Vulkan::Interface {
         virtual VkImageUsageFlags GetUsageFlags() const = 0;
         virtual VkExtent2D        GetExtent() const     = 0;
 
-        virtual VkImage           Handle() const    = 0;
-        virtual Ref<Device>       GetDevice() const = 0;
+        virtual VkImage                      Handle() const    = 0;
+        virtual Ref<Device>                  GetDevice() const = 0;
         virtual Synchronization::ImageState& GetSyncState()    = 0;
     };
 };  // namespace Engine::Vulkan::Interface

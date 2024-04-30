@@ -19,15 +19,16 @@ namespace Engine::Vulkan::Concrete {
         void PresentAquire(VkQueue queue, Fence& fence);
 
     private:
-        class PresentAquireTask : public Task {
+        class PresentAquireTask : public Task, public RefCounted<PresentAquireTask> {
         public:
             PresentAquireTask(Ref<ResizebleSwapChain> swapchain);
 
             virtual void Run(VkQueue queue) override;
-            virtual bool IsCompleted() override;
+
+            virtual Ref<const IFence> GetFence() const override;
 
         private:
-            Fence                   m_AquiredFence;
+            Concrete::Fence         m_AquiredFence;
             Ref<ResizebleSwapChain> m_SwapChain;
         };
 

@@ -1,5 +1,7 @@
 #include "SwapChain.h"
 
+#include "Fence.h"
+
 #include "Engine/Vulkan/Device.h"
 
 namespace Engine::Vulkan::Concrete {
@@ -73,7 +75,7 @@ namespace Engine::Vulkan::Concrete {
     SwapChain::SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain) :
         m_Surface(surface), m_Device(device) {
         PROFILER_SCOPE("Engine::Vulkan::Concrete::SwapChain::SwapChain");
-            
+
         auto details = GetSwapChainSupportDetails(m_Device->GetPhysicalDevice(), m_Surface);
 
         m_Extent                     = ChooseSwapExtent(details.m_Capabilities, size);
@@ -109,7 +111,6 @@ namespace Engine::Vulkan::Concrete {
             m_LatestImage = actual_image_count;
             VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actual_image_count, m_ImageHandles.data()));
 
-            m_Images.reserve(actual_image_count);
             for (size_t i = 0; i < actual_image_count; ++i) {
                 m_Images.emplace_back(this, m_ImageHandles[i]);
             }
@@ -121,7 +122,7 @@ namespace Engine::Vulkan::Concrete {
     }
 
     Ref<Task> SwapChain::CreateAquireImageTask() {
-        return Ref<PresentAquireTask>(new PresentAquireTask(std::dynamic_pointer_cast<SwapChain>(shared_from_this())));
+        return Ref<PresentAquireTask>(new PresentAquireTask(shared_from_this()));
     }
     Ref<IImage> SwapChain::GetCurrentImage() {
         if (m_LatestImage == m_Images.size()) {
@@ -182,8 +183,11 @@ namespace Engine::Vulkan::Concrete {
         }
     }
 
-    bool SwapChain::PresentAquireTask::IsCompleted() {
-        return !m_AquiredFence.IsConstructed() || m_AquiredFence->IsSignaled();
+    Ref<const IFence> SwapChain::PresentAquireTask::GetFence() const {
+        if (!m_AquiredFence.IsConstructed()) {
+            return nullptr;
+        }
+        return Ref<const Concrete::Fence>(shared_from_this(), m_AquiredFence.Get());
     }
 
 }  // namespace Engine::Vulkan::Concrete

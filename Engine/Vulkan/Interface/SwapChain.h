@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Engine/Vulkan/Common.h"
+#include "Engine/Vulkan/Object.h"
 #include "Engine/Vulkan/Task.h"
 
 namespace Engine::Vulkan::Interface {
-    class SwapChain {
+    class SwapChain : public Object {
     public:
         virtual ~SwapChain() = default;
 

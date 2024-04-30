@@ -3,7 +3,7 @@
 
 #include <Engine/Vulkan/Concrete/CommandBuffer.h>
 #include <Engine/Vulkan/Concrete/SmartCommandBuffer.h>
-#include <Engine/Vulkan/Fence.h>
+#include <Engine/Vulkan/Concrete/Fence.h>
 #include <Engine/Vulkan/ImageView.h>
 
 #include <GLFW/glfw3.h>
@@ -59,7 +59,7 @@ public:
             info.pCommandBuffers            = &handle;
             info.signalSemaphoreCount       = 0;
             info.pSignalSemaphores          = nullptr;
-            Vulkan::Fence fence(m_Renderer->GetDevice());
+            Vulkan::Concrete::Fence fence(m_Renderer->GetDevice());
 
             VK_CHECK(vkQueueSubmit(m_Renderer->GetQueue()->Handle(), 1, &info, fence.Handle()));
             fence.Wait();

@@ -58,8 +58,8 @@ namespace Engine::Vulkan::Concrete {
     void ResizebleSwapChain::PresentAquireTask::Run(VkQueue queue) {
         m_SwapChain->PresentAquire(queue, m_AquiredFence);
     }
-    bool ResizebleSwapChain::PresentAquireTask::IsCompleted() {
-        return m_AquiredFence.IsSignaled();
+    Ref<const IFence> ResizebleSwapChain::PresentAquireTask::GetFence() const {
+        return Ref<const IFence>(shared_from_this(), &m_AquiredFence);
     }
 
 }  // namespace Engine::Vulkan::Concrete

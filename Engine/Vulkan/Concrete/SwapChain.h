@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Vulkan/Fence.h"
+#include "Engine/Vulkan/Concrete/Fence.h"
 #include "Engine/Vulkan/Interface/SwapChain.h"
 #include "Engine/Vulkan/Managed/Image.h"
 
@@ -24,16 +24,17 @@ namespace Engine::Vulkan::Concrete {
         void PresentLatest(VkQueue queue);
 
     private:
-        class PresentAquireTask : public Task {
+        class PresentAquireTask : public Task, public RefCounted<PresentAquireTask> {
         public:
             PresentAquireTask(Ref<SwapChain> swapchain);
 
             virtual void Run(VkQueue queue) override;
-            virtual bool IsCompleted() override;
+
+            virtual Ref<const IFence> GetFence() const override;
 
         private:
-            ManualLifetime<Fence> m_AquiredFence;
-            Ref<SwapChain>        m_SwapChain;
+            ManualLifetime<Concrete::Fence> m_AquiredFence;
+            Ref<SwapChain>                  m_SwapChain;
         };
 
         class Image : public Managed::Image {

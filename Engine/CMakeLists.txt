@@ -4,15 +4,19 @@ add_library(VulkanHelpers
 
     Utils/Assert.cpp
 
+    Vulkan/Concrete/Fence.cpp
     Vulkan/Concrete/CommandBuffer.cpp
     Vulkan/Concrete/Image.cpp
     Vulkan/Concrete/ResizebleSwapChain.cpp
     Vulkan/Concrete/SmartCommandBuffer.cpp
     Vulkan/Concrete/SwapChain.cpp
 
+    Vulkan/Interface/Fence.cpp
     Vulkan/Interface/Image.cpp
+    Vulkan/Interface/Semaphore.cpp
     Vulkan/Interface/SwapChain.cpp
 
+    Vulkan/Managed/Fence.cpp
     Vulkan/Managed/CommandBuffer.cpp
     Vulkan/Managed/Image.cpp
 
@@ -23,7 +27,6 @@ add_library(VulkanHelpers
     Vulkan/CommandPool.cpp
     Vulkan/Debugger.cpp
     Vulkan/Device.cpp
-    Vulkan/Fence.cpp
     Vulkan/ImageSampler.cpp
     Vulkan/ImageView.cpp
     Vulkan/Instance.cpp

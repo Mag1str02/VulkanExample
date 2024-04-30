@@ -69,11 +69,5 @@ namespace Engine::Vulkan::Concrete {
             m_CommandBuffer->AddImageMemoryBarrier(*barrier);
         }
     }
-    void SmartCommandBuffer::HintInitialLayout(Ref<IImage> image, VkImageLayout layout) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::SmartCommandBuffer::HintInitialLayout");
-
-        DE_ASSERT(!m_Tracker.HasImage(image), "Image was already used in buffer");
-        RequestImageAccess(image, {VK_PIPELINE_STAGE_2_NONE, VK_ACCESS_2_NONE}, layout);
-    }
 
 }  // namespace Engine::Vulkan::Concrete

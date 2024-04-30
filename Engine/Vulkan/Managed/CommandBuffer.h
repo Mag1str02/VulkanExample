@@ -19,6 +19,8 @@ namespace Engine::Vulkan::Managed {
         VkCommandBuffer Handle();
 
     protected:
+        CommandBuffer() = default;
+
         void ResetSecondaryCommandBuffers();
         void Init(VkCommandBuffer handle, Ref<CommandPool> pool);
         void FlushBariers();

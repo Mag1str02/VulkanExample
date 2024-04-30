@@ -19,8 +19,14 @@ namespace Engine::Vulkan {
     private:
         void RemoveCompleted();
 
+        struct TaskContext {
+            Ref<Task>       task;
+            VkCommandBuffer syncronization_buffer;
+        };
+
     private:
-        std::vector<Ref<Task>> m_RunningTasks;
+        std::vector<TaskContext> m_RunningTasks;
+        VkCommandPool            m_Pool;
 
         Device*  m_Device;
         VkQueue  m_Queue;

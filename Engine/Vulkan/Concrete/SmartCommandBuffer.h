@@ -20,8 +20,6 @@ namespace Engine::Vulkan::Concrete {
         void PrepareColorAttachment(Ref<IImage> image);
         void PrepareClear(Ref<IImage> image);
 
-        void HintInitialLayout(Ref<IImage> image, VkImageLayout layout);
-
         void AddImageMemoryBarrier(const VkImageMemoryBarrier2& barrier);  // TMP
 
         VkCommandBuffer Handle();
