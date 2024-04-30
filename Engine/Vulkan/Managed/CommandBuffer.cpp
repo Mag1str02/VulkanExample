@@ -112,11 +112,11 @@ namespace Engine::Vulkan::Managed {
     VkCommandBuffer CommandBuffer::Handle() {
         return m_Handle;
     }
-    void CommandBuffer::AddImageMemoryBarriers(const std::vector<VkImageMemoryBarrier2>& bariers) {
-        m_ImageMemoryBariers.insert(m_ImageMemoryBariers.end(), bariers.begin(), bariers.end());
+    void CommandBuffer::AddImageMemoryBarrier(const VkImageMemoryBarrier2& barier) {
+        m_ImageMemoryBariers.push_back(barier);
     }
-    void CommandBuffer::AddBufferMemoryBarriers(const std::vector<VkBufferMemoryBarrier2>& bariers) {
-        m_BufferMemoryBariers.insert(m_BufferMemoryBariers.end(), bariers.begin(), bariers.end());
+    void CommandBuffer::AddBufferMemoryBarrier(const VkBufferMemoryBarrier2& barier) {
+        m_BufferMemoryBariers.push_back(barier);
     }
 
     void CommandBuffer::FlushBariers() {

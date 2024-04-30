@@ -40,7 +40,7 @@ namespace Engine::Vulkan::Concrete {
     }
 
     void SmartCommandBuffer::AddImageMemoryBarrier(const VkImageMemoryBarrier2& barrier) {
-        m_CommandBuffer->AddImageMemoryBarriers({barrier});
+        m_CommandBuffer->AddImageMemoryBarrier({barrier});
     }
 
     VkCommandBuffer SmartCommandBuffer::Handle() {
@@ -64,8 +64,10 @@ namespace Engine::Vulkan::Concrete {
     void SmartCommandBuffer::RequestImageAccess(Ref<IImage> image, Synchronization::AccessScope scope, VkImageLayout layout) {
         PROFILER_SCOPE("Engine::Vulkan::Concrete::SmartCommandBuffer::RequestImageAccess");
 
-        auto barriers = m_Tracker.RequestAccess(std::move(image), scope, layout);
-        m_CommandBuffer->AddImageMemoryBarriers(barriers);
+        auto barrier = m_Tracker.RequestAccess(std::move(image), scope, layout);
+        if (barrier) {
+            m_CommandBuffer->AddImageMemoryBarrier(*barrier);
+        }
     }
     void SmartCommandBuffer::HintInitialLayout(Ref<IImage> image, VkImageLayout layout) {
         PROFILER_SCOPE("Engine::Vulkan::Concrete::SmartCommandBuffer::HintInitialLayout");

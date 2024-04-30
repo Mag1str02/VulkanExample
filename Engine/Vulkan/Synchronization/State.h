@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/Vulkan/Common.h"
+#include "vulkan/vulkan_core.h"
 
 namespace Engine::Vulkan::Synchronization {
     class AccessScope {
@@ -25,18 +26,26 @@ namespace Engine::Vulkan::Synchronization {
 
     class ImageState {
     public:
-        std::vector<VkImageMemoryBarrier2> AccessRequest(AccessScope scope, VkImageLayout layout);
-
-        VkImageLayout         GetInitialImageLayout() const;
-        VkPipelineStageFlags2 GetFirstWriteStages() const;
+        std::optional<VkImageMemoryBarrier2> AccessRequest(AccessScope scope, VkImageLayout layout);
 
     private:
-        AccessScope   m_LastUnavailableWrite;
-        VkImageLayout m_LastLayout = VK_IMAGE_LAYOUT_MAX_ENUM;
+        using SynchronizedReaders = std::unordered_map<VkAccessFlags2, VkPipelineStageFlags2>;
 
-        std::unordered_map<VkAccessFlags2, VkPipelineStageFlags2> m_VisibleStages;
+        bool          m_WasFirstWrite = true;
+        VkImageLayout m_CurrentLayout = VK_IMAGE_LAYOUT_MAX_ENUM;
 
-        VkImageLayout         m_InitialLayout    = VK_IMAGE_LAYOUT_MAX_ENUM;
-        VkPipelineStageFlags2 m_FirstWriteStages = VK_PIPELINE_STAGE_2_NONE;
+        VkAccessFlags2        m_LastWriteAccess         = VK_ACCESS_2_NONE;
+        VkPipelineStageFlags2 m_LastWritePipelineStages = VK_PIPELINE_STAGE_2_NONE;
+
+        VkPipelineStageFlags2 m_SynchronizedReadersStages = VK_ACCESS_2_NONE;
+        SynchronizedReaders   m_SynchronizedReaders;
+
+        VkImageLayout m_InitialLayout = VK_IMAGE_LAYOUT_MAX_ENUM;
+
+        VkAccessFlags2        m_InitialWriteAccess         = VK_ACCESS_2_NONE;
+        VkPipelineStageFlags2 m_InitialWritePipelineStages = VK_PIPELINE_STAGE_2_NONE;
+
+        VkPipelineStageFlags2 m_InitialSynchronizedReadersStages = VK_PIPELINE_STAGE_2_NONE;
+        SynchronizedReaders   m_InitialSynchronizedReaders;
     };
 }  // namespace Engine::Vulkan::Synchronization

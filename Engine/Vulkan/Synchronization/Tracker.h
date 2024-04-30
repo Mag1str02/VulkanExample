@@ -6,7 +6,7 @@ namespace Engine::Vulkan::Synchronization {
 
     class Tracker {
     public:
-        std::vector<VkImageMemoryBarrier2> RequestAccess(Ref<IImage> image, AccessScope scope, VkImageLayout layout);
+        std::optional<VkImageMemoryBarrier2> RequestAccess(Ref<IImage> image, AccessScope scope, VkImageLayout layout);
 
         void Reset();
 

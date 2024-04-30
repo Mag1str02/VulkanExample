@@ -1,4 +1,5 @@
 #include "Tracker.h"
+#include <optional>
 
 #include "State.h"
 
@@ -7,14 +8,14 @@
 
 namespace Engine::Vulkan::Synchronization {
 
-    std::vector<VkImageMemoryBarrier2> Tracker::RequestAccess(Ref<IImage> image, AccessScope scope, VkImageLayout layout) {
+    std::optional<VkImageMemoryBarrier2> Tracker::RequestAccess(Ref<IImage> image, AccessScope scope, VkImageLayout layout) {
         PROFILER_SCOPE("Engine::Vulkan::Synchronization::Tracker::RequestAccess");
-        auto barriers = m_ImageStates[image].AccessRequest(scope, layout);
-        for (auto& barrier : barriers) {
-            barrier.image                       = image->Handle();
-            barrier.subresourceRange.aspectMask = Helpers::ImageAspectFlagsFromFormat(image->GetFormat());
-        }
-        return barriers;
+        auto barrier = m_ImageStates[image].AccessRequest(scope, layout);
+        if (barrier) {
+            barrier->image                       = image->Handle();
+            barrier->subresourceRange.aspectMask = Helpers::ImageAspectFlagsFromFormat(image->GetFormat());
+        };
+        return barrier;
     }
 
     void Tracker::Reset() {

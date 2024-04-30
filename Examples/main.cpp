@@ -39,11 +39,9 @@ public:
             clearValue.b = 0;
             clearValue.a = 1;
 
-            m_CommandBuffer->HintInitialLayout(image, VK_IMAGE_LAYOUT_UNDEFINED);
             m_CommandBuffer->ClearImage(image, clearValue);
             m_CommandBuffer->BeginRendering({image_view});
             m_CommandBuffer->EndRendering();
-            m_CommandBuffer->PreparePresent(image);
         }
         m_CommandBuffer->End();
 

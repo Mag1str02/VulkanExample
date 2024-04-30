@@ -1,4 +1,6 @@
 #include "State.h"
+#include <optional>
+#include "vulkan/vulkan_core.h"
 
 #if 0
 #define LOG(...) std::println(__VA_ARGS__)
@@ -36,6 +38,8 @@ namespace Engine::Vulkan::Synchronization {
         DE_ASSERT((~supported_accesses_mask & m_Access) == 0, std::format("Found unsupported access mask: {:x}", m_Access));
         DE_ASSERT(std::popcount(GetReadAccess()) <= 1, "Cannot use multiple read access in single access request");
         DE_ASSERT(std::popcount(GetWriteAccess()) <= 1, "Cannot use multiple write access in single access request");
+        DE_ASSERT(std::popcount(m_Access) > 0, "Cannot create access scope without access mask");
+        DE_ASSERT(std::popcount(m_Stage) > 0, "Cannot create access scope without stage mask");
 
         // TODO: Check stage-access match
     }
@@ -55,92 +59,93 @@ namespace Engine::Vulkan::Synchronization {
         return m_Stage;
     }
 
-    std::vector<VkImageMemoryBarrier2> ImageState::AccessRequest(AccessScope scope, VkImageLayout layout) {
+    std::optional<VkImageMemoryBarrier2> ImageState::AccessRequest(AccessScope scope, VkImageLayout layout) {
+        DE_ASSERT(layout != VK_IMAGE_LAYOUT_UNDEFINED, "Access with image layout undefined is not supported");
         PROFILER_SCOPE("Engine::Vulkan::Synchronization::ImageState::AccessRequest");
 
-        if (m_LastLayout == VK_IMAGE_LAYOUT_MAX_ENUM) {
-            m_LastLayout    = layout;
+        if (m_InitialLayout == VK_IMAGE_LAYOUT_MAX_ENUM) {
             m_InitialLayout = layout;
+            m_CurrentLayout = layout;
         }
-        std::vector<VkImageMemoryBarrier2> barriers;
-        LOG("Access Request: Stages={:x} Access={:x} Layout={}", scope.GetStages(), scope.GetAccess(), (uint32_t)layout);
 
-        {
-            bool emmit   = false;
-            auto barrier = CreateImageBarrier();
+        bool is_write = scope.GetWriteAccess() != 0 || m_CurrentLayout != layout;
 
-            if (!m_LastUnavailableWrite.Empty()) {
-                barrier.srcAccessMask = m_LastUnavailableWrite.GetAccess();
-                barrier.srcStageMask  = m_LastUnavailableWrite.GetStages();
-                emmit                 = true;
+        std::optional<VkImageMemoryBarrier2> result;
+        VkImageMemoryBarrier2                barrier = CreateImageBarrier();
+        barrier.oldLayout                            = m_CurrentLayout;
+        barrier.newLayout                            = layout;
+        if (m_WasFirstWrite) {
+            if (is_write) {
+                barrier.srcAccessMask = m_LastWriteAccess;  // TODO: Maybe access op should only be performed once
+                barrier.srcStageMask  = m_LastWritePipelineStages | m_SynchronizedReadersStages;
 
-                m_LastUnavailableWrite = AccessScope();
+                barrier.dstAccessMask = scope.GetAccess();
+                barrier.dstStageMask  = scope.GetStages();
 
-                LOG("Emmiting last write availability...");
-            }
+                result = barrier;
 
-            if (layout != m_InitialLayout) {
-                barrier.oldLayout = m_LastLayout;
-                barrier.newLayout = layout;
-                emmit             = true;
+                m_SynchronizedReadersStages = VK_PIPELINE_STAGE_2_NONE;
+                m_SynchronizedReaders.clear();
 
-                m_LastLayout = layout;
-                m_VisibleStages.clear();  // Assuming that layout transition makes execution dependency with all operation before
+                m_LastWriteAccess         = scope.GetWriteAccess();
+                m_LastWritePipelineStages = scope.GetStages();
+            } else {
+                VkAccessFlags2        access = VK_ACCESS_2_NONE;
+                VkPipelineStageFlags2 stages = VK_PIPELINE_STAGE_2_NONE;
 
-                LOG("Emmiting layout transition...");
-            } else if (scope.GetWriteAccess() != VK_ACCESS_2_NONE && !m_VisibleStages.empty()) {
-                auto barrier = CreateImageBarrier();
-                for (const auto& [access, stages] : m_VisibleStages) {
-                    barrier.srcStageMask |= stages;
+                auto it = m_SynchronizedReaders.find(scope.GetAccess());
+                if (it == m_SynchronizedReaders.end()) {
+                    access = scope.GetAccess();  // TODO: maybe visibility operations should only be performed once
+                    stages = scope.GetStages();
+
+                    m_SynchronizedReadersStages |= stages;
+                    m_SynchronizedReaders[scope.GetAccess()] = scope.GetStages();
+                } else if ((it->second & scope.GetStages()) != scope.GetStages()) {
+                    access = scope.GetAccess();  // TODO: maybe visibility operations should only be performed once
+                    stages = (it->second & scope.GetStages()) ^ scope.GetStages();
+
+                    m_SynchronizedReadersStages |= stages;
+                    it->second |= scope.GetStages();
                 }
+
+                if (stages != VK_PIPELINE_STAGE_2_NONE || access != VK_ACCESS_2_NONE) {
+                    barrier.srcAccessMask = m_LastWriteAccess;
+                    barrier.srcStageMask  = m_LastWritePipelineStages;
+
+                    barrier.dstAccessMask = access;
+                    barrier.dstStageMask  = stages;
+
+                    result = barrier;
+                }
+            }
+        } else {
+            if (is_write) {
+                barrier.srcStageMask = m_SynchronizedReadersStages;
+
                 barrier.dstStageMask = scope.GetStages();
-                barriers.push_back(barrier);
 
-                m_VisibleStages.clear();
+                result = barrier;
 
-                LOG("Emmiting execution dependency for WAR...");
-            }
+                m_LastWriteAccess         = scope.GetWriteAccess();
+                m_LastWritePipelineStages = scope.GetStages();
 
-            // Visibility operations for access scope
-            {
-                if (scope.GetReadAccess() != VK_ACCESS_2_NONE) {
-                    auto it = m_VisibleStages.find(scope.GetReadAccess());
-                    if (it == m_VisibleStages.end() || (it->second & scope.GetStages()) != scope.GetStages()) {
-                        it = m_VisibleStages.try_emplace(scope.GetReadAccess(), VK_PIPELINE_STAGE_2_NONE).first;
-                        barrier.dstAccessMask |= scope.GetReadAccess();
-                        barrier.dstStageMask |= (it->second & scope.GetStages()) ^ scope.GetStages();
-                        it->second |= scope.GetStages();
-                        emmit = true;
+                m_InitialWriteAccess         = scope.GetAccess();
+                m_InitialWritePipelineStages = scope.GetStages();
 
-                        LOG("Emmiting visibility for read access...");
-                    }
-                }
-                if (scope.GetWriteAccess() != VK_ACCESS_2_NONE) {
-                    auto it = m_VisibleStages.find(scope.GetWriteAccess());
-                    if (it == m_VisibleStages.end() || (it->second & scope.GetStages()) != scope.GetStages()) {
-                        it = m_VisibleStages.try_emplace(scope.GetWriteAccess(), VK_PIPELINE_STAGE_2_NONE).first;
-                        barrier.dstAccessMask |= scope.GetWriteAccess();
-                        barrier.dstStageMask |= (it->second & scope.GetStages()) ^ scope.GetStages();
-                        it->second |= scope.GetStages();
-                        emmit = true;
+                m_InitialSynchronizedReadersStages = m_SynchronizedReadersStages;
+                m_InitialSynchronizedReaders       = m_SynchronizedReaders;
+                m_WasFirstWrite                    = true;
 
-                        LOG("Emmiting visibility for write access...");
-                    }
-                }
-            }
-            if (emmit) {
-                barriers.push_back(barrier);
+                m_SynchronizedReadersStages = VK_PIPELINE_STAGE_2_NONE;
+                m_SynchronizedReaders.clear();
+            } else {
+                m_SynchronizedReadersStages |= scope.GetStages();
+                m_SynchronizedReaders[scope.GetAccess()] |= scope.GetStages();
             }
         }
 
-        LOG("Access Request Complete: {} barriers emmited\n", barriers.size());
-        return barriers;
+        m_CurrentLayout = layout;
+        return result;
     }
 
-    VkImageLayout ImageState::GetInitialImageLayout() const {
-        return m_InitialLayout;
-    }
-    VkPipelineStageFlags2 ImageState::GetFirstWriteStages() const {
-        return m_FirstWriteStages;
-    }
 }  // namespace Engine::Vulkan::Synchronization

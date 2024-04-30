@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan::Managed {
@@ -8,8 +9,8 @@ namespace Engine::Vulkan::Managed {
     public:
         virtual ~CommandBuffer();
 
-        void AddImageMemoryBarriers(const std::vector<VkImageMemoryBarrier2>& bariers);
-        void AddBufferMemoryBarriers(const std::vector<VkBufferMemoryBarrier2>& bariers);
+        void AddImageMemoryBarrier(const VkImageMemoryBarrier2& barier);
+        void AddBufferMemoryBarrier(const VkBufferMemoryBarrier2& barier);
 
         void BeginRendering(const std::vector<Ref<ImageView>>& color_attachments);
         void EndRendering();
