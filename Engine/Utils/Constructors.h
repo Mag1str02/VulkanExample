@@ -23,3 +23,17 @@
 #define DEFAULT_MOVE_CONSTRUCTORS(class_name)            \
     class_name(class_name&& other)            = default; \
     class_name& operator=(class_name&& other) = default;
+
+namespace Engine {
+    struct NonCopyable {
+        NonCopyable() = default;
+        NO_COPY_CONSTRUCTORS(NonCopyable);
+    };
+    struct NonMovable {
+        NonMovable() = default;
+        NO_MOVE_CONSTRUCTORS(NonMovable);
+    };
+    struct NonCopyMoveable : NonCopyable, NonMovable {
+        NonCopyMoveable() = default;
+    };
+}  // namespace Engine

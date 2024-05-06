@@ -1,11 +1,10 @@
 #pragma once
 
-#include "Object.h"
 #include "Queue.h"
 
 namespace Engine::Vulkan {
 
-    class Device : public Object, public RefCounted<Device> {
+    class Device : public RefCounted<Device> {
     public:
         static Ref<Device> Create(VkPhysicalDevice device, Ref<Instance> instance, const Config& config);
 

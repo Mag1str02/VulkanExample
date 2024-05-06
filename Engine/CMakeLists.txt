@@ -5,6 +5,7 @@ add_library(VulkanHelpers
     Utils/Assert.cpp
 
     Vulkan/Concrete/Fence.cpp
+    Vulkan/Concrete/Semaphore.cpp
     Vulkan/Concrete/CommandBuffer.cpp
     Vulkan/Concrete/Image.cpp
     Vulkan/Concrete/ResizebleSwapChain.cpp
@@ -12,6 +13,7 @@ add_library(VulkanHelpers
     Vulkan/Concrete/SwapChain.cpp
 
     Vulkan/Interface/Fence.cpp
+    Vulkan/Interface/Semaphore.cpp
     Vulkan/Interface/Image.cpp
     Vulkan/Interface/Semaphore.cpp
     Vulkan/Interface/SwapChain.cpp
@@ -20,7 +22,8 @@ add_library(VulkanHelpers
     Vulkan/Managed/CommandBuffer.cpp
     Vulkan/Managed/Image.cpp
 
-    Vulkan/Synchronization/State.cpp
+    Vulkan/Synchronization/AccessScope.cpp
+    Vulkan/Synchronization/ImageState.cpp
     Vulkan/Synchronization/Tracker.cpp
     
     Vulkan/Buffer.cpp

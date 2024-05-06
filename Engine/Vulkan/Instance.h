@@ -1,12 +1,10 @@
 #pragma once
 
-#include "Object.h"
-
 #include "Config.h"
 
 namespace Engine::Vulkan {
 
-    class Instance : public Object {
+    class Instance : public NonCopyMoveable {
     public:
         static Ref<Instance> Create(const Config& config);
 

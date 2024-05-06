@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Object.h"
 #include "Task.h"
 
 namespace Engine::Vulkan {
-    class Queue : public Object {
+    class Queue : NonCopyMoveable {
     public:
         Queue(Device* device, VkQueue queue, uint32_t queue_family_index);
         ~Queue();

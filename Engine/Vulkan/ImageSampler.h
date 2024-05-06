@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Object.h"
+#include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan {
 
-    class ImageSampler {
+    class ImageSampler : NonCopyMoveable {
     public:
         ImageSampler(Ref<Device> device);
         ~ImageSampler();
@@ -15,4 +15,4 @@ namespace Engine::Vulkan {
         Ref<Device> m_Device;
         VkSampler   m_Sampler;
     };
-}  // namespace Vulkan
+}  // namespace Engine::Vulkan

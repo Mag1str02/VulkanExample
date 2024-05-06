@@ -4,7 +4,7 @@
 
 namespace Engine::Vulkan {
 
-    class Debugger : public Object {
+    class Debugger : public NonCopyMoveable {
     public:
         static VkDebugUtilsMessengerCreateInfoEXT GenCreateInfo();
         static Ref<Debugger>                      Create(Ref<Instance> instance);

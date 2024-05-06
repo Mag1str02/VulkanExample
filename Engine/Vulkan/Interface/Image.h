@@ -2,7 +2,7 @@
 
 #include "Engine/Vulkan/Common.h"
 
-namespace Engine::Vulkan::Interface {
+namespace Engine::Vulkan::Interface {    
     class Image {
     public:
         Image()          = default;
@@ -17,6 +17,5 @@ namespace Engine::Vulkan::Interface {
 
         virtual VkImage                      Handle() const    = 0;
         virtual Ref<Device>                  GetDevice() const = 0;
-        virtual Synchronization::ImageState& GetSyncState()    = 0;
     };
 };  // namespace Engine::Vulkan::Interface
