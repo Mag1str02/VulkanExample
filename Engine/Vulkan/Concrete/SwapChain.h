@@ -6,13 +6,12 @@
 
 namespace Engine::Vulkan::Concrete {
 
-    class SwapChain : public Interface::SwapChain, public RefCounted<SwapChain> {
+    class SwapChain final : public Interface::SwapChain, public RefCounted<SwapChain> {
     public:
         static Ref<SwapChain> Create(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain = VK_NULL_HANDLE);
         ~SwapChain();
 
-        virtual Ref<Task>   CreateAquireImageTask() override;
-        virtual Ref<IImage> GetCurrentImage() override;
+        virtual Ref<Interface::SwapChain::PresentAquireTask> CreateAquireImageTask() override;
 
         virtual VkFormat   GetFormat() const override;
         virtual VkExtent2D GetExtent() const override;
@@ -20,27 +19,40 @@ namespace Engine::Vulkan::Concrete {
         VkSwapchainKHR Handle();
 
     private:
-        SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain);
-        void PresentLatest(VkQueue queue);
-
-    private:
-        class PresentAquireTask : public Task, public RefCounted<PresentAquireTask> {
+        class PresentAquireTask : public Interface::SwapChain::PresentAquireTask {
         public:
             PresentAquireTask(Ref<SwapChain> swapchain);
 
-            virtual void Run(VkQueue queue) override;
+            virtual void RecordBarriers(Managed::CommandBuffer& buffer) const override;
+            virtual bool RequiresBarriers() const override;
+            virtual bool RequiresSemaphore() const override;
 
-            virtual Ref<const IFence> GetFence() const override;
+            virtual void Run(VkQueue queue, VkSemaphore wait_semaphore, VkSemaphore signal_semaphore) override;
+
+            virtual Ref<IImage> GetAquiredImage() const override;
+
+            virtual bool IsCompleted() const override;
+            virtual void Wait() const override;
 
         private:
-            ManualLifetime<Concrete::Fence> m_AquiredFence;
-            Ref<SwapChain>                  m_SwapChain;
+            Synchronization::ImageTracker      m_PresentImageTracker;
+            std::vector<VkImageMemoryBarrier2> m_PresentImageBarriers;
+
+            Concrete::Fence m_Fence;
+            Ref<SwapChain>  m_SwapChain;
+            Ref<IImage>     m_AquiredImage;
         };
 
         class Image : public Managed::Image {
         public:
             Image(SwapChain* swapchain, VkImage image);
+
+            virtual bool SemaphoreRequired() const override;
         };
+
+    private:
+        SwapChain(VkSurfaceKHR surface, Ref<Device> device, VkExtent2D size, VkSwapchainKHR old_swapchain);
+        VkResult PresentLatest(VkQueue queue, VkSemaphore wait_semaphore, const Synchronization::ImageTracker& tracker);
 
     private:
         friend class ResizebleSwapChain;

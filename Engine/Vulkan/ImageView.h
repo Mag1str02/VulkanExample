@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Object.h"
+#include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan {
-    class ImageView {
+    class ImageView : public NonCopyMoveable {
     public:
         ImageView(Ref<IImage> image);
         ~ImageView();

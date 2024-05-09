@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ImageTracker.h"
+
 #include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan::Synchronization {
@@ -13,7 +15,7 @@ namespace Engine::Vulkan::Synchronization {
         bool HasImage(Ref<IImage> image) const;
 
     private:
-        std::unordered_map<Ref<IImage>, ImageState> m_ImageStates;
+        std::unordered_map<Ref<IImage>, ImageTracker> m_ImageStates;
     };
 
 }  // namespace Engine::Vulkan::Synchronization

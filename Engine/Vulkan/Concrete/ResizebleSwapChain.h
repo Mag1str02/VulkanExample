@@ -8,28 +8,40 @@ namespace Engine::Vulkan::Concrete {
     public:
         static Ref<ResizebleSwapChain> Create(Window* window, Ref<Device> device);
 
-        virtual Ref<Task>   CreateAquireImageTask() override;
-        virtual Ref<IImage> GetCurrentImage() override;
+        virtual Ref<Interface::SwapChain::PresentAquireTask> CreateAquireImageTask() override;
 
         virtual VkExtent2D GetExtent() const override;
         virtual VkFormat   GetFormat() const override;
 
     private:
         ResizebleSwapChain(Window* window, Ref<Device> device);
-        void PresentAquire(VkQueue queue, Fence& fence);
 
     private:
-        class PresentAquireTask : public Task, public RefCounted<PresentAquireTask> {
+        class PresentAquireTask : public Interface::SwapChain::PresentAquireTask {
         public:
             PresentAquireTask(Ref<ResizebleSwapChain> swapchain);
 
-            virtual void Run(VkQueue queue) override;
+            virtual void RecordBarriers(Managed::CommandBuffer& buffer) const override;
+            virtual bool RequiresBarriers() const override;
+            virtual bool RequiresSemaphore() const override;
 
-            virtual Ref<const IFence> GetFence() const override;
+            virtual void Run(VkQueue queue, VkSemaphore wait_semaphore, VkSemaphore signal_semaphore) override;
+
+            virtual Ref<IImage> GetAquiredImage() const override;
+
+            virtual bool IsCompleted() const override;
+            virtual void Wait() const override;
 
         private:
-            Concrete::Fence         m_AquiredFence;
+            void RecreateSwapChain();
+
+        private:
+            Synchronization::ImageTracker      m_PresentImageTracker;
+            std::vector<VkImageMemoryBarrier2> m_PresentImageBarriers;
+
+            Concrete::Fence         m_Fence;
             Ref<ResizebleSwapChain> m_SwapChain;
+            Ref<IImage>             m_AquiredImage;
         };
 
     private:

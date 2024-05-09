@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Object.h"
+#include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan {
 
-    class CommandPool : public RefCounted<CommandPool> {
+    class CommandPool : public RefCounted<CommandPool>, NonCopyMoveable {
     public:
         static Ref<CommandPool> Create(Ref<Device> device, uint32_t family_index);
         ~CommandPool();
@@ -13,9 +13,6 @@ namespace Engine::Vulkan {
         uint32_t             FamilyIndex();
 
         Ref<Device> GetDevice();
-
-        NO_COPY_CONSTRUCTORS(CommandPool);
-        NO_MOVE_CONSTRUCTORS(CommandPool);
 
     private:
         CommandPool(Ref<Device> device, uint32_t familyIndex);

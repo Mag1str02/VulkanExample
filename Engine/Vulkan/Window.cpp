@@ -40,8 +40,10 @@ namespace Engine::Vulkan {
     void Window::BeginFrame() {
         PROFILER_SCOPE("Engine::Vulkan::Window::BeginFrame");
         Engine::Window::BeginFrame();
-        m_Renderer->Submit(m_SwapChain->CreateAquireImageTask());
+        auto task = m_SwapChain->CreateAquireImageTask();
+        m_Renderer->Submit(task);
         m_Renderer->GetQueue()->WaitIdle();
+        m_SwapChainImage = task->GetAquiredImage();
     }
     void Window::EndFrame() {
         PROFILER_SCOPE("Engine::Vulkan::Window::EndFrame");
@@ -60,7 +62,7 @@ namespace Engine::Vulkan {
         return res;
     }
     Ref<IImage> Window::GetSwapChainImage() {
-        return m_SwapChain->GetCurrentImage();
+        return m_SwapChainImage;
     }
 
 }  // namespace Engine::Vulkan

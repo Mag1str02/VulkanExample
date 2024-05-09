@@ -1,29 +1,24 @@
 #pragma once
 
-#include "Common.h"
-#include "Object.h"
-
-#include "Engine/Vulkan/Synchronization/State.h"
+#include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan {
 
-    class Task : public Object {
+    class SyncRequirements {
     public:
-        struct SynchronizationRequirements {
-            std::unordered_map<Ref<IImage>, Synchronization::ImageRequirements> image_requirements;
-        };
+        virtual void RecordBarriers(Managed::CommandBuffer& buffer) const = 0;
+        virtual bool RequiresBarriers() const                             = 0;
+        virtual bool RequiresSemaphore() const                            = 0;
+    };
 
+    class Task : public SyncRequirements {
     public:
         virtual ~Task() = default;
 
-        // virtual SynchronizationRequirements GetSynchronizationRequirements() const = 0;
-        // virtual Ref<Semaphore>              GetSemaphore() const                   = 0;
-        virtual Ref<const IFence> GetFence() const = 0;
+        virtual void Wait() const        = 0;
+        virtual bool IsCompleted() const = 0;
 
-        virtual void Run(VkQueue queue) = 0;
-
-    protected:
-        Task() = default;
+        virtual void                    Run(VkQueue queue, VkSemaphore wait_semaphore, VkSemaphore signal_semaphore) = 0;
     };
 
 }  // namespace Engine::Vulkan

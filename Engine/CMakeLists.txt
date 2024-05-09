@@ -13,14 +13,14 @@ add_library(VulkanHelpers
 
     Vulkan/Interface/Fence.cpp
     Vulkan/Interface/Image.cpp
-    Vulkan/Interface/Semaphore.cpp
     Vulkan/Interface/SwapChain.cpp
 
     Vulkan/Managed/Fence.cpp
     Vulkan/Managed/CommandBuffer.cpp
     Vulkan/Managed/Image.cpp
 
-    Vulkan/Synchronization/State.cpp
+    Vulkan/Synchronization/AccessScope.cpp
+    Vulkan/Synchronization/ImageTracker.cpp
     Vulkan/Synchronization/Tracker.cpp
     
     Vulkan/Buffer.cpp

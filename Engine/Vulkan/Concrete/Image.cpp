@@ -49,4 +49,8 @@ namespace Engine::Vulkan::Concrete {
         vkDestroyImage(m_Device->GetLogicDevice(), m_Image, nullptr);
     }
 
+    bool Image::SemaphoreRequired() const {
+        return false;
+    }
+
 }  // namespace Engine::Vulkan::Concrete

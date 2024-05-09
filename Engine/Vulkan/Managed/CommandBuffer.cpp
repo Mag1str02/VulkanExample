@@ -109,7 +109,7 @@ namespace Engine::Vulkan::Managed {
         m_SecondaryCommandBuffers.clear();
     }
 
-    VkCommandBuffer CommandBuffer::Handle() {
+    const VkCommandBuffer& CommandBuffer::Handle() {
         return m_Handle;
     }
     void CommandBuffer::AddImageMemoryBarrier(const VkImageMemoryBarrier2& barier) {

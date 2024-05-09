@@ -8,30 +8,26 @@ namespace Engine {
 
         namespace Interface {
             class Fence;
-            class Semaphore;
             class Image;
             class SwapChain;
         }  // namespace Interface
         namespace Managed {
             class Fence;
-            class Semaphore;
             class Image;
             class CommandBuffer;
         }  // namespace Managed
         namespace Concrete {
             class Fence;
-            class Semaphore;
             class Image;
             class SwapChain;
             class CommandBuffer;
         }  // namespace Concrete
         namespace Synchronization {
             class AccessScope;
-            class ImageState;
+            class ImageTracker;
         }  // namespace Synchronization
 
         using IFence     = Interface::Fence;
-        using ISemaphore = Interface::Semaphore;
         using IImage     = Interface::Image;
         using ISwapChain = Interface::SwapChain;
 

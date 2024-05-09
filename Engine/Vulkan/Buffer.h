@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Object.h"
+#include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan {
 
-    class Buffer : public Object {
+    class Buffer : NonCopyMoveable {
     public:
         Buffer(Ref<Device> device, uint64_t size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
         ~Buffer();

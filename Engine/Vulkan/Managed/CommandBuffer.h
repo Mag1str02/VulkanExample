@@ -16,7 +16,7 @@ namespace Engine::Vulkan::Managed {
         void EndRendering();
         void ClearImage(Ref<IImage> image, Vec4 clear_color);
 
-        VkCommandBuffer Handle();
+        const VkCommandBuffer& Handle();
 
     protected:
         CommandBuffer() = default;

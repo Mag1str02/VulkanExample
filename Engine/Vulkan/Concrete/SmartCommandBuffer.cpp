@@ -3,7 +3,7 @@
 #include "CommandBuffer.h"
 
 #include "Engine/Vulkan/ImageView.h"
-#include "Engine/Vulkan/Synchronization/State.h"
+#include "Engine/Vulkan/Synchronization/AccessScope.h"
 
 namespace Engine::Vulkan::Concrete {
 

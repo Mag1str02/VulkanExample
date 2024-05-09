@@ -32,7 +32,9 @@ namespace Engine::Vulkan::Managed {
     VkImageUsageFlags Image::GetUsageFlags() const {
         return m_UsageFlags;
     }
-    Synchronization::ImageState& Image::GetSyncState() {
+
+    Image::SyncState& Image::GetSyncState() {
         return m_SyncState;
     }
+
 };  // namespace Engine::Vulkan::Managed

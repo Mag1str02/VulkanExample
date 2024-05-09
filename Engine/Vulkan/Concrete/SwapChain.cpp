@@ -3,6 +3,7 @@
 #include "Fence.h"
 
 #include "Engine/Vulkan/Device.h"
+#include "Engine/Vulkan/Managed/CommandBuffer.h"
 
 namespace Engine::Vulkan::Concrete {
 
@@ -48,7 +49,7 @@ namespace Engine::Vulkan::Concrete {
             if (maxImageCount == 0) {
                 maxImageCount = UINT32_MAX;
             }
-            return std::clamp(minImageCount + 1, minImageCount, maxImageCount);
+            return std::clamp(minImageCount + 2, minImageCount, maxImageCount);
         }
 
         SwapChainSupportDetails GetSwapChainSupportDetails(VkPhysicalDevice device, VkSurfaceKHR surface) {
@@ -109,6 +110,8 @@ namespace Engine::Vulkan::Concrete {
             VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actual_image_count, nullptr));
             m_ImageHandles.resize(actual_image_count);
             m_LatestImage = actual_image_count;
+
+            std::println("Image amount {}", actual_image_count);
             VK_CHECK(vkGetSwapchainImagesKHR(m_Device->GetLogicDevice(), m_SwapChain, &actual_image_count, m_ImageHandles.data()));
 
             for (size_t i = 0; i < actual_image_count; ++i) {
@@ -121,14 +124,8 @@ namespace Engine::Vulkan::Concrete {
         vkDestroySwapchainKHR(m_Device->GetLogicDevice(), m_SwapChain, nullptr);
     }
 
-    Ref<Task> SwapChain::CreateAquireImageTask() {
+    Ref<Interface::SwapChain::PresentAquireTask> SwapChain::CreateAquireImageTask() {
         return Ref<PresentAquireTask>(new PresentAquireTask(shared_from_this()));
-    }
-    Ref<IImage> SwapChain::GetCurrentImage() {
-        if (m_LatestImage == m_Images.size()) {
-            return nullptr;
-        }
-        return Ref<Image>(shared_from_this(), &m_Images[m_LatestImage]);
     }
 
     VkFormat SwapChain::GetFormat() const {
@@ -150,44 +147,80 @@ namespace Engine::Vulkan::Concrete {
         m_UsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     }
 
-    void SwapChain::PresentLatest(VkQueue queue) {
+    bool SwapChain::Image::SemaphoreRequired() const {
+        return true;
+    }
+
+    VkResult SwapChain::PresentLatest(VkQueue queue, VkSemaphore wait_semaphore, const Synchronization::ImageTracker& tracker) {
         PROFILER_SCOPE("Engine::Vulkan::Concrete::SwapChain::PresentLatest");
+
         if (m_LatestImage != m_Images.size()) {
+            DE_ASSERT(wait_semaphore != VK_NULL_HANDLE, "Present must wait on semaphore");
+
+            Synchronization::UpdateImageState(m_Images[m_LatestImage], tracker.GetPrefix(), tracker.GetSuffix());
+
             VkPresentInfoKHR info   = {};
             info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            info.waitSemaphoreCount = 0;
-            info.pWaitSemaphores    = nullptr;
+            info.waitSemaphoreCount = 1;
+            info.pWaitSemaphores    = &wait_semaphore;
             info.swapchainCount     = 1;
             info.pSwapchains        = &m_SwapChain;
             info.pImageIndices      = &m_LatestImage;
-            VkResult err            = vkQueuePresentKHR(queue, &info);
+
+            std::println("Presenting: {}", m_LatestImage);
+            auto res      = vkQueuePresentKHR(queue, &info);
+            m_LatestImage = m_Images.size();
+
+            return res;
         }
-        m_LatestImage = m_Images.size();
+        return VK_SUCCESS;
     }
 
-    SwapChain::PresentAquireTask::PresentAquireTask(Ref<SwapChain> swapchain) : m_SwapChain(swapchain) {}
+    SwapChain::PresentAquireTask::PresentAquireTask(Ref<SwapChain> swapchain) : m_Fence(swapchain->m_Device), m_SwapChain(swapchain) {
+        auto latest_image = m_SwapChain->m_LatestImage;
+        if (latest_image != m_SwapChain->m_Images.size()) {
+            auto& image = m_SwapChain->m_Images[latest_image];
 
-    void SwapChain::PresentAquireTask::Run(VkQueue queue) {
+            m_PresentImageTracker.AccessRequest(Synchronization::AccessScope(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+            m_PresentImageBarriers = Synchronization::ConnectSyncStates(image, image.GetSyncState(), m_PresentImageTracker.GetPrefix());
+        }
+    }
+
+    void SwapChain::PresentAquireTask::Run(VkQueue queue, VkSemaphore wait_semaphore, VkSemaphore signal_semaphore) {
         PROFILER_SCOPE("Engine::Vulkan::Concrete::SwapChain::PresentAquireTask::Run");
-        m_SwapChain->PresentLatest(queue);
-        m_AquiredFence.Construct(m_SwapChain->m_Device);
 
-        VkResult res = vkAcquireNextImageKHR(m_SwapChain->m_Device->GetLogicDevice(),
-                                             m_SwapChain->m_SwapChain,
-                                             UINT64_MAX,
-                                             VK_NULL_HANDLE,
-                                             m_AquiredFence->Handle(),
-                                             &m_SwapChain->m_LatestImage);
-        if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR) {
-            m_AquiredFence.Destruct();
-        }
+        VK_CHECK(m_SwapChain->PresentLatest(queue, wait_semaphore, m_PresentImageTracker));
+        VK_CHECK(vkAcquireNextImageKHR(m_SwapChain->m_Device->GetLogicDevice(),
+                                       m_SwapChain->m_SwapChain,
+                                       UINT64_MAX,
+                                       signal_semaphore,
+                                       m_Fence.Handle(),
+                                       &m_SwapChain->m_LatestImage));
+        m_AquiredImage = Ref<IImage>(m_SwapChain, &m_SwapChain->m_Images[m_SwapChain->m_LatestImage]);
     }
 
-    Ref<const IFence> SwapChain::PresentAquireTask::GetFence() const {
-        if (!m_AquiredFence.IsConstructed()) {
-            return nullptr;
+    void SwapChain::PresentAquireTask::RecordBarriers(Managed::CommandBuffer& buffer) const {
+        for (const auto& barrier : m_PresentImageBarriers) {
+            buffer.AddImageMemoryBarrier(barrier);
         }
-        return Ref<const Concrete::Fence>(shared_from_this(), m_AquiredFence.Get());
+    }
+    bool SwapChain::PresentAquireTask::RequiresBarriers() const {
+        return !m_PresentImageBarriers.empty();
+    }
+    bool SwapChain::PresentAquireTask::RequiresSemaphore() const {
+        return true;
+    }
+
+    Ref<IImage> SwapChain::PresentAquireTask::GetAquiredImage() const {
+        DE_ASSERT(m_AquiredImage != nullptr, "PresentAquireTask was not runned yet");
+        return m_AquiredImage;
+    }
+
+    bool SwapChain::PresentAquireTask::IsCompleted() const {
+        return m_Fence.IsSignaled();
+    }
+    void SwapChain::PresentAquireTask::Wait() const {
+        m_Fence.Wait();
     }
 
 }  // namespace Engine::Vulkan::Concrete

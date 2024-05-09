@@ -38,7 +38,7 @@ namespace Engine::Vulkan {
         const auto& mapping = GetDebuggerMapping();
         auto        it      = mapping.find(reinterpret_cast<Instance*>(pUserData));
         if (it == mapping.end()) {
-            std::cerr << "VK: " << pCallbackData->pMessage << std::endl;
+            std::cout << "VK: " << pCallbackData->pMessage << std::endl;
             return VK_FALSE;
         }
         return it->second->OnMessage(pCallbackData->pMessage);
@@ -84,7 +84,7 @@ namespace Engine::Vulkan {
     }
 
     VkBool32 Debugger::OnMessage(const std::string& msg) {
-        std::cerr << "Vulkan: " << msg << std::endl << std::endl;
+        std::cout << "Vulkan: " << msg << std::endl << std::endl;
         return VK_FALSE;
     }
 }  // namespace Engine::Vulkan
