@@ -21,14 +21,13 @@ namespace {
 namespace Engine::Vulkan {
 
     Window::Window(Renderer* renderer) : m_Renderer(renderer) {
-        VkSurfaceKHR surface;
-        VK_CHECK(glfwCreateWindowSurface(m_Renderer->GetInstance()->Handle(), m_WindowHandle, nullptr, &surface));
-        m_Surface = Surface::Create(surface, m_Renderer->GetDevice());
+        VkSurfaceKHR handle;
+        VK_CHECK(glfwCreateWindowSurface(m_Renderer->GetInstance()->Handle(), m_WindowHandle, nullptr, &handle));
+        auto surface = Surface::Create(handle, m_Renderer->GetDevice());
+        m_FrameGraph.Construct(surface);
     }
 
-    Window::~Window() {
-        m_Surface.reset();
-    }
+    Window::~Window() {}
 
     void Window::BeginFrame() {
         PROFILER_SCOPE("Engine::Vulkan::Window::BeginFrame");
@@ -37,6 +36,10 @@ namespace Engine::Vulkan {
     void Window::EndFrame() {
         PROFILER_SCOPE("Engine::Vulkan::Window::EndFrame");
         Engine::Window::EndFrame();
+    }
+
+    RenderGraph::RenderGraph* Window::GetRenderGraph() const {
+        return m_FrameGraph->GetInternalGraph();
     }
 
 }  // namespace Engine::Vulkan

@@ -13,10 +13,10 @@ namespace Engine::Vulkan::RenderGraph {
 
         template <typename T>
         bool Is() const {
-            return dynamic_cast<T*>(this) != nullptr;
+            return dynamic_cast<const T*>(this) != nullptr;
         }
         template <typename T>
-        T* As() const {
+        T* As() {
             T* ptr = dynamic_cast<T*>(this);
             DE_ASSERT(ptr != nullptr, "Bad type");
             return ptr;

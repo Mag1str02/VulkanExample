@@ -19,7 +19,6 @@ add_library(VulkanHelpers
     Vulkan/RenderGraph/Entry.cpp
     Vulkan/RenderGraph/FrameGraph.cpp
     Vulkan/RenderGraph/Pass.cpp
-    Vulkan/RenderGraph/Resource.cpp
     Vulkan/RenderGraph/Node.cpp
     Vulkan/RenderGraph/IPassNode.cpp
     Vulkan/RenderGraph/PassNode.cpp
@@ -36,6 +35,7 @@ add_library(VulkanHelpers
     Vulkan/Renderer/Instance.cpp
     Vulkan/Renderer/GraphicsQueue.cpp
     Vulkan/Renderer/PresentationQueue.cpp
+    Vulkan/Renderer/Queue.cpp
     Vulkan/Renderer/Renderer.cpp
     Vulkan/Renderer/Task.cpp
     Vulkan/Renderer/Executor.cpp

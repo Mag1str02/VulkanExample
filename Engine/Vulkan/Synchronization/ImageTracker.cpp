@@ -216,19 +216,19 @@ namespace Engine::Vulkan::Synchronization {
     }
 
     void UpdateImageState(IImage& image, const ImageTracker::State& prefix, const std::optional<ImageTracker::State>& suffix) {
-        auto& current_suffix = image.GetSyncState();
+        // auto& current_suffix = image.GetSyncState();
 
-        if (suffix.has_value()) {
-            current_suffix = *suffix;
-        } else {
-            if (prefix.layout == current_suffix.layout) {
-                for (const auto& [access, stages] : prefix.read_accesses.GetReaders()) {
-                    current_suffix.read_accesses.AddAccess({stages, access});
-                }
-            } else {
-                current_suffix = prefix;
-            }
-        }
+        // if (suffix.has_value()) {
+        //     current_suffix = *suffix;
+        // } else {
+        //     if (prefix.layout == current_suffix.layout) {
+        //         for (const auto& [access, stages] : prefix.read_accesses.GetReaders()) {
+        //             current_suffix.read_accesses.AddAccess({stages, access});
+        //         }
+        //     } else {
+        //         current_suffix = prefix;
+        //     }
+        // }
     }
 
 }  // namespace Engine::Vulkan::Synchronization

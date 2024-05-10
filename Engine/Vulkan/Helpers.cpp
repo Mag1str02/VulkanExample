@@ -12,14 +12,14 @@ namespace Engine::Vulkan::Helpers {
             }
         }
 
-        DE_ASSERT(false, "Failed to find suitable memory type!");
+        DE_ASSERT_FAIL("Failed to find suitable memory type!");
         return 0;
     }
 
     VkImageAspectFlags ImageAspectFlagsFromFormat(VkFormat format) {
         switch (format) {
             case VK_FORMAT_B8G8R8A8_SRGB: return VK_IMAGE_ASPECT_COLOR_BIT;
-            default: DE_ASSERT(false, std::format("Image format {} not supported", (uint32_t)format)); return VK_FORMAT_UNDEFINED;
+            default: DE_ASSERT_FAIL("Image format {} not supported", (uint32_t)format);
         };
     }
 

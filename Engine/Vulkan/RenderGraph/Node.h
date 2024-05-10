@@ -9,6 +9,8 @@ namespace Engine::Vulkan::RenderGraph {
         virtual ~Node() = default;
 
     protected:
+        friend class RenderGraph;
+
         virtual const std::unordered_set<Node*>& GetProducers() const = 0;
         virtual const std::unordered_set<Node*>& GetConsumers() const = 0;
 

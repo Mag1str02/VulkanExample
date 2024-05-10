@@ -1,6 +1,6 @@
 #include "Fence.h"
 
-#include "Engine/Vulkan/Device.h"
+#include "Engine/Vulkan/Renderer/Device.h"
 
 namespace Engine::Vulkan::Managed {
 
@@ -17,7 +17,7 @@ namespace Engine::Vulkan::Managed {
         switch (status) {
             case VK_SUCCESS: return true;
             case VK_NOT_READY: return false;
-            default: DE_ASSERT(false, std::format("Bad fence wait result {}", (int64_t)status)); return false;
+            default: DE_ASSERT_FAIL("Bad fence wait result {}", (int64_t)status);
         }
     }
 

@@ -23,6 +23,8 @@ namespace Engine::Vulkan::RenderGraph {
         virtual void AddReadWriteInput(ResourceNode& resource) final override;
 
     private:
+        friend class RenderGraph;
+
         std::unordered_set<Node*> m_Producers;
         std::unordered_set<Node*> m_Consumers;
     };

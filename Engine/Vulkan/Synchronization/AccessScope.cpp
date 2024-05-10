@@ -13,7 +13,7 @@ namespace Engine::Vulkan::Synchronization {
 
     void AccessScope::Verify() const {
         VkAccessFlags2 supported_accesses_mask = kWriteAccessMask | kReadAccessMask;
-        DE_ASSERT((~supported_accesses_mask & m_Access) == 0, std::format("Found unsupported access mask: {:x}", m_Access));
+        DE_ASSERT((~supported_accesses_mask & m_Access) == 0, "Found unsupported access mask: {:x}", m_Access);
         DE_ASSERT(std::popcount(GetReadAccess()) <= 1, "Cannot use multiple read access in single access request");
         DE_ASSERT(std::popcount(GetWriteAccess()) <= 1, "Cannot use multiple write access in single access request");
         DE_ASSERT(std::popcount(m_Access) > 0, "Cannot create access scope without access mask");

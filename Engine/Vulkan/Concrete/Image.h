@@ -9,8 +9,6 @@ namespace Engine::Vulkan::Concrete {
             Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
         ~Image();
 
-        virtual bool SemaphoreRequired() const override;
-
     private:
         Image(Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 

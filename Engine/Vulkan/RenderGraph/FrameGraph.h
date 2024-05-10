@@ -4,13 +4,16 @@
 
 namespace Engine::Vulkan::RenderGraph {
 
-    class FrameGraph : public RenderGraph {
+    class FrameGraph final : private RenderGraph {
     public:
         FrameGraph(Ref<Surface> surface);
 
+        virtual const std::string& GetName() const override;
+
+        RenderGraph* GetInternalGraph() const;
+
     private:
-        Ref<SwapChain> m_SwapChain;
-        Ref<Surface>   m_Surface;
+        RenderGraph* m_InternalGraph = nullptr;
     };
 
 }  // namespace Engine::Vulkan::RenderGraph

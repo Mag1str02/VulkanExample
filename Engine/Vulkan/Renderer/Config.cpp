@@ -94,7 +94,7 @@ namespace Engine::Vulkan {
             for (const auto& unsupportedLayer : unsupportedLayers) {
                 std::cerr << "Found unsupported layer: " << unsupportedLayer << std::endl;
             }
-            DE_ASSERT(false, std::format("Found {} unsupported layers", unsupportedLayers.size()));
+            DE_ASSERT_FAIL("Found {} unsupported layers", unsupportedLayers.size());
         }
     }
     void Config::CheckInstanceExtensionSupport() const {
@@ -103,7 +103,7 @@ namespace Engine::Vulkan {
             for (const auto& ext : unsupportedExtensions) {
                 std::cerr << "Found unsupported extension: " << ext << std::endl;
             }
-            DE_ASSERT(false, std::format("Found {} unsupported extensions", unsupportedExtensions.size()));
+            DE_ASSERT_FAIL("Found {} unsupported extensions", unsupportedExtensions.size());
         }
     }
 

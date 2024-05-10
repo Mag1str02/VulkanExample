@@ -7,6 +7,8 @@
 namespace Engine::Vulkan {
 
     Renderer::Renderer() {
+        InitConfig();
+
         m_Instance                   = Instance::Create(m_Config);
         m_Debugger                   = Debugger::Create(m_Instance);
         VkPhysicalDevice best_device = m_Config.ChooseDevice(m_Instance->Handle(), m_Instance->GetAllDevices());

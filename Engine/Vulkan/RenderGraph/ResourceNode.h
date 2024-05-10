@@ -9,8 +9,8 @@ namespace Engine::Vulkan::RenderGraph {
         virtual std::optional<std::string> Validate() const override;
 
     protected:
-        virtual void InstantiateResource() = 0;
-        virtual void ClaimResource()       = 0;
+        virtual void Instantiate() = 0;
+        virtual void Claim()       = 0;
 
         virtual const std::unordered_set<Node*>& GetProducers() const final override;
         virtual const std::unordered_set<Node*>& GetConsumers() const final override;
@@ -25,6 +25,7 @@ namespace Engine::Vulkan::RenderGraph {
 
     private:
         friend class PassNode;
+        friend class RenderGraph;
 
         std::unordered_set<Node*> m_Producers;
         std::unordered_set<Node*> m_Consumers;

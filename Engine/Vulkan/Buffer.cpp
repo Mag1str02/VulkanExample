@@ -1,7 +1,8 @@
 #include "Buffer.h"
 
-#include "Device.h"
 #include "Helpers.h"
+
+#include "Engine/Vulkan/Renderer/Device.h"
 
 namespace Engine::Vulkan {
 

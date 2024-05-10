@@ -1,8 +1,7 @@
 #include "ImageView.h"
 
-#include "Device.h"
-
 #include "Engine/Vulkan/Interface/Image.h"
+#include "Engine/Vulkan/Renderer/Device.h"
 
 namespace Engine::Vulkan {
 

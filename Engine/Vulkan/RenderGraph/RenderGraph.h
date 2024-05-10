@@ -17,7 +17,7 @@ namespace Engine::Vulkan::RenderGraph {
         T* CreateEnrty(Args&&... args) {
             auto scope = CreateScope<T>(std::forward<Args>(args)...);
             T*   ptr   = scope.get();
-            m_OwnerEntries.emplace(ptr, std::move(scope));
+            m_OwnedEntries.emplace(ptr, std::move(scope));
             return ptr;
         }
 
@@ -27,18 +27,39 @@ namespace Engine::Vulkan::RenderGraph {
         virtual void AddReadWriteInput(ResourceNode& resource) final override;
 
     private:
+        std::unordered_set<Node*> GetNodes() const;
+
+    private:
         class Task : public Vulkan::Task {
         public:
             Task(RenderGraph* graph);
 
         private:
-            std::vector<Scope<Pass>> m_Passes;
+            std::vector<Node*> TopologicalSort(const std::unordered_set<Node*>& nodes) const;
 
-            RenderGraph* m_Graph = nullptr;
+            void InstantiateResource(const std::vector<ResourceNode*>& resources) const;
+            void ClaimResource(const std::vector<ResourceNode*>& resources) const;
+
+            void CreatePasses(const std::vector<PassNode*>& passes);
+
+            template <typename T>
+            std::vector<T*> FilterNodes(const std::vector<Node*>& nodes) const {
+                std::vector<T*> filtered_nodes;
+                for (const auto& node : nodes) {
+                    if (node->Is<T>()) {
+                        filtered_nodes.push_back(node->As<T>());
+                    }
+                }
+                return filtered_nodes;
+            }
+
+        private:
+            std::vector<Scope<Pass>> m_Passes;
+            RenderGraph*             m_Graph = nullptr;
         };
 
     private:
-        std::unordered_map<Entry*, Scope<Entry>> m_OwnerEntries;
+        std::unordered_map<Entry*, Scope<Entry>> m_OwnedEntries;
 
         std::unordered_map<std::string, ResourceNode*> m_ExternalOutputResource;
         std::unordered_map<std::string, ResourceNode*> m_ExternalInputROResource;

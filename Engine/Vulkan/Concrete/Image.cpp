@@ -1,7 +1,7 @@
 #include "Image.h"
 
-#include "Engine/Vulkan/Device.h"
 #include "Engine/Vulkan/Helpers.h"
+#include "Engine/Vulkan/Renderer/Device.h"
 
 namespace Engine::Vulkan::Concrete {
     Ref<Image> Image::Create(
@@ -41,16 +41,12 @@ namespace Engine::Vulkan::Concrete {
         VK_CHECK(vkAllocateMemory(device->GetLogicDevice(), &allocInfo, nullptr, &memory));
         VK_CHECK(vkBindImageMemory(device->GetLogicDevice(), handle, memory, 0));
 
-        Init(handle, format, usage, {.width = width, .height = height}, device);
+        Init(handle, format, usage, {.width = width, .height = height}, device.get());
     }
     Image::~Image() {
         PROFILER_SCOPE("Engine::Vulkan::Concrete::Image::~Image");
         vkFreeMemory(m_Device->GetLogicDevice(), m_Memory, nullptr);
         vkDestroyImage(m_Device->GetLogicDevice(), m_Image, nullptr);
-    }
-
-    bool Image::SemaphoreRequired() const {
-        return false;
     }
 
 }  // namespace Engine::Vulkan::Concrete

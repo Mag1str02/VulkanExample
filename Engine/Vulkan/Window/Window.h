@@ -2,6 +2,7 @@
 
 #include "Engine/Application/Window.h"
 #include "Engine/Vulkan/Common.h"
+#include "Engine/Vulkan/RenderGraph/FrameGraph.h"
 
 namespace Engine::Vulkan {
 
@@ -13,8 +14,10 @@ namespace Engine::Vulkan {
         virtual void BeginFrame() override;
         virtual void EndFrame() override;
 
+        virtual RenderGraph::RenderGraph* GetRenderGraph() const;
+
     private:
-        Ref<Surface> m_Surface;
+        ManualLifetime<RenderGraph::FrameGraph> m_FrameGraph;
 
         Renderer* m_Renderer = nullptr;
     };

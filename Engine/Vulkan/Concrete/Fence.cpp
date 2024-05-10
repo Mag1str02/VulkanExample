@@ -1,6 +1,6 @@
 #include "Fence.h"
 
-#include "Engine/Vulkan/Device.h"
+#include "Engine/Vulkan/Renderer/Device.h"
 
 namespace Engine::Vulkan::Concrete {
     Fence::Fence(Ref<Device> device) {

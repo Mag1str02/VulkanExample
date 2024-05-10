@@ -1,6 +1,7 @@
 #include <Engine/Application/Application.h>
-#include <Engine/Vulkan/Renderer.h>
+#include <Engine/Vulkan/Renderer/Renderer.h>
 
+#include <Engine/Vulkan/CommandPool.h>
 #include <Engine/Vulkan/Concrete/CommandBuffer.h>
 #include <Engine/Vulkan/Concrete/Fence.h>
 #include <Engine/Vulkan/Concrete/SmartCommandBuffer.h>
@@ -20,7 +21,7 @@ public:
     TestApplication() = default;
 
     virtual void OnStartUp() override {
-        auto command_pool = Vulkan::CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetQueue()->FamilyIndex());
+        auto command_pool = Vulkan::CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetGraphicsQueue()->FamilyIndex());
         m_CommandBuffer   = Vulkan::Concrete::SmartCommandBuffer::Create(command_pool);
     }
     virtual void OnShutDown() override {
