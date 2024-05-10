@@ -7,9 +7,7 @@ namespace Engine {
     namespace Vulkan {
 
         namespace Interface {
-            class Fence;
             class Image;
-            class SwapChain;
         }  // namespace Interface
         namespace Managed {
             class Fence;
@@ -19,7 +17,6 @@ namespace Engine {
         namespace Concrete {
             class Fence;
             class Image;
-            class SwapChain;
             class CommandBuffer;
         }  // namespace Concrete
         namespace Synchronization {
@@ -27,9 +24,18 @@ namespace Engine {
             class ImageTracker;
         }  // namespace Synchronization
 
-        using IFence     = Interface::Fence;
-        using IImage     = Interface::Image;
-        using ISwapChain = Interface::SwapChain;
+        namespace RenderGraph {
+            class Node;
+            class ResourceNode;
+            class IPassNode;
+            class PassNode;
+            class RenderGraph;
+
+            class Pass;
+            class Resource;
+        }  // namespace RenderGraph
+
+        using IImage = Interface::Image;
 
         class Instance;
         class Debugger;
@@ -39,10 +45,13 @@ namespace Engine {
         class Buffer;
         class ImageSampler;
         class ImageView;
+        class Surface;
+        class SwapChain;
 
         class Config;
         class Renderer;
         class Window;
+        class Task;
 
     }  // namespace Vulkan
 

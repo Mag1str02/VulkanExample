@@ -1,6 +1,5 @@
 #include "Device.h"
 
-#include "CommandPool.h"
 #include "Instance.h"
 
 namespace Engine::Vulkan {
@@ -18,12 +17,12 @@ namespace Engine::Vulkan {
         int32_t universal_queue_family_index = config.GetUniversalQueueFamilyIndex(m_Instance->Handle(), m_PhysicalDevice);
         DE_ASSERT(universal_queue_family_index != -1, "No universal queue family");
 
-        float                   priority = 1.0f;
+        float                   priorities[2] = {0.5f, 0.5f};
         VkDeviceQueueCreateInfo queueCreateInfo{};
         queueCreateInfo.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo.queueFamilyIndex = universal_queue_family_index;
-        queueCreateInfo.queueCount       = 1;
-        queueCreateInfo.pQueuePriorities = &priority;
+        queueCreateInfo.queueCount       = 2;
+        queueCreateInfo.pQueuePriorities = priorities;
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
@@ -54,10 +53,13 @@ namespace Engine::Vulkan {
 
         VK_CHECK(vkCreateDevice(m_PhysicalDevice, &createInfo, nullptr, &m_LogicDevice));
 
-        VkQueue m_QueueHandle;
-        vkGetDeviceQueue(m_LogicDevice, universal_queue_family_index, 0, &m_QueueHandle);
+        VkQueue graphic_queue;
+        VkQueue presentation_queue;
+        vkGetDeviceQueue(m_LogicDevice, universal_queue_family_index, 0, &graphic_queue);
+        vkGetDeviceQueue(m_LogicDevice, universal_queue_family_index, 1, &presentation_queue);
 
-        m_Queue.Construct(this, m_QueueHandle, universal_queue_family_index);
+        m_GraphicsQueue.Construct(this, graphic_queue, universal_queue_family_index);
+        m_PresentationQueue.Construct(this, presentation_queue, universal_queue_family_index);
 
         // TODO: Validate that tracy extensions and features available
         m_TracyContext = TracyVkContextHostCalibrated(m_PhysicalDevice,
@@ -69,7 +71,8 @@ namespace Engine::Vulkan {
 
     Device::~Device() {
         TracyVkDestroy(m_TracyContext);
-        m_Queue.Destruct();
+        m_GraphicsQueue.Destruct();
+        m_PresentationQueue.Destruct();
         vkDestroyDevice(m_LogicDevice, nullptr);
     }
 
@@ -80,8 +83,14 @@ namespace Engine::Vulkan {
         return m_PhysicalDevice;
     }
 
-    Ref<Queue> Device::GetQueue() {
-        return Ref<Queue>(shared_from_this(), m_Queue.Get());
+    Ref<Instance> Device::GetInstance() {
+        return m_Instance;
+    }
+    Ref<GraphicsQueue> Device::GetGraphicsQueue() {
+        return Ref<GraphicsQueue>(shared_from_this(), m_GraphicsQueue.Get());
+    }
+    Ref<PresentationQueue> Device::GetPresentationQueue() {
+        return Ref<PresentationQueue>(shared_from_this(), m_PresentationQueue.Get());
     }
     tracy::VkCtx* Device::GetTracyCtx() {
         return m_TracyContext;

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Queue.h"
+#include "GraphicsQueue.h"
+#include "PresentationQueue.h"
 
 namespace Engine::Vulkan {
 
@@ -14,7 +15,9 @@ namespace Engine::Vulkan {
         VkPhysicalDevice GetPhysicalDevice();
         tracy::VkCtx*    GetTracyCtx();
 
-        Ref<Queue> GetQueue();
+        Ref<Instance>          GetInstance();
+        Ref<GraphicsQueue>     GetGraphicsQueue();
+        Ref<PresentationQueue> GetPresentationQueue();
 
     private:
         Device(VkPhysicalDevice device, Ref<Instance> instance, const Config& config);
@@ -22,12 +25,13 @@ namespace Engine::Vulkan {
     private:
         tracy::VkCtx* m_TracyContext;
 
-        ManualLifetime<Queue> m_Queue;
+        ManualLifetime<GraphicsQueue>     m_GraphicsQueue;
+        ManualLifetime<PresentationQueue> m_PresentationQueue;
 
         VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
         VkDevice         m_LogicDevice    = VK_NULL_HANDLE;
 
-        Ref<Instance> m_Instance = nullptr;
+        Ref<Instance> m_Instance;
     };
 
 };  // namespace Engine::Vulkan

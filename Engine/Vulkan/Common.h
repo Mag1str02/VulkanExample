@@ -8,10 +8,10 @@
 
 #include <tracy/TracyVulkan.hpp>
 
-#define VK_CHECK(...)                                                                                      \
-    {                                                                                                      \
-        auto _____res = __VA_ARGS__;                                                                       \
-        DE_ASSERT(_____res == VK_SUCCESS, std::format("{} returned {}", #__VA_ARGS__, (int64_t)_____res)); \
+#define VK_CHECK(...)                                                                         \
+    {                                                                                         \
+        auto _____res = __VA_ARGS__;                                                          \
+        DE_ASSERT(_____res == VK_SUCCESS, "{} returned {}", #__VA_ARGS__, (int64_t)_____res); \
     }
 
 namespace Engine::Vulkan {

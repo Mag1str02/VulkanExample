@@ -7,36 +7,47 @@ add_library(VulkanHelpers
     Vulkan/Concrete/Fence.cpp
     Vulkan/Concrete/CommandBuffer.cpp
     Vulkan/Concrete/Image.cpp
-    Vulkan/Concrete/ResizebleSwapChain.cpp
     Vulkan/Concrete/SmartCommandBuffer.cpp
-    Vulkan/Concrete/SwapChain.cpp
 
     Vulkan/Interface/Fence.cpp
     Vulkan/Interface/Image.cpp
-    Vulkan/Interface/SwapChain.cpp
 
     Vulkan/Managed/Fence.cpp
     Vulkan/Managed/CommandBuffer.cpp
     Vulkan/Managed/Image.cpp
 
+    Vulkan/RenderGraph/Entry.cpp
+    Vulkan/RenderGraph/FrameGraph.cpp
+    Vulkan/RenderGraph/Pass.cpp
+    Vulkan/RenderGraph/Resource.cpp
+    Vulkan/RenderGraph/Node.cpp
+    Vulkan/RenderGraph/IPassNode.cpp
+    Vulkan/RenderGraph/PassNode.cpp
+    Vulkan/RenderGraph/ResourceNode.cpp
+    Vulkan/RenderGraph/RenderGraph.cpp
+
     Vulkan/Synchronization/AccessScope.cpp
     Vulkan/Synchronization/ImageTracker.cpp
     Vulkan/Synchronization/Tracker.cpp
     
+    Vulkan/Renderer/Config.cpp
+    Vulkan/Renderer/Debugger.cpp
+    Vulkan/Renderer/Device.cpp
+    Vulkan/Renderer/Instance.cpp
+    Vulkan/Renderer/GraphicsQueue.cpp
+    Vulkan/Renderer/PresentationQueue.cpp
+    Vulkan/Renderer/Renderer.cpp
+    Vulkan/Renderer/Task.cpp
+    Vulkan/Renderer/Executor.cpp
+
+    Vulkan/Window/SwapChain.cpp
+    Vulkan/Window/Surface.cpp
+    Vulkan/Window/Window.cpp
+
     Vulkan/Buffer.cpp
     Vulkan/CommandPool.cpp
-    Vulkan/Debugger.cpp
-    Vulkan/Device.cpp
     Vulkan/ImageSampler.cpp
     Vulkan/ImageView.cpp
-    Vulkan/Instance.cpp
-    Vulkan/Queue.cpp
-    Vulkan/Task.cpp
-
-    Vulkan/Config.cpp
-    Vulkan/ImGuiWindow.cpp
-    Vulkan/Renderer.cpp
-    Vulkan/Window.cpp
 
     Vulkan/Helpers.cpp
 )

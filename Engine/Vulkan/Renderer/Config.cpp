@@ -73,7 +73,7 @@ namespace Engine::Vulkan {
 
         for (uint32_t i = 0; i < queueFamilies.size(); ++i) {
             const auto& props = queueFamilies[i];
-            if ((props.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0 || (props.queueFlags & VK_QUEUE_COMPUTE_BIT) == 0) {
+            if ((props.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0 || (props.queueFlags & VK_QUEUE_COMPUTE_BIT) == 0 || props.queueCount < 2) {
                 continue;
             }
             if (!glfwGetPhysicalDevicePresentationSupport(instance, device, i)) {

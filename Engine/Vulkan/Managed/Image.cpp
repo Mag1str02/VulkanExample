@@ -1,8 +1,13 @@
 #include "Image.h"
 
+#include "Engine/Vulkan/Renderer/Device.h"
+
 namespace Engine::Vulkan::Managed {
 
-    void Image::Init(VkImage image, VkFormat format, VkImageUsageFlags usage_flags, VkExtent2D extent, Ref<Device> device) {
+    Image::Image(VkImage image, VkFormat format, VkImageUsageFlags usage_flags, VkExtent2D extent, Device* device) {
+        Init(image, format, usage_flags, extent, device);
+    }
+    void Image::Init(VkImage image, VkFormat format, VkImageUsageFlags usage_flags, VkExtent2D extent, Device* device) {
         m_Image      = image;
         m_Format     = format;
         m_UsageFlags = usage_flags;
@@ -27,14 +32,10 @@ namespace Engine::Vulkan::Managed {
         return m_Format;
     }
     Ref<Device> Image::GetDevice() const {
-        return m_Device;
+        return m_Device->shared_from_this();
     }
     VkImageUsageFlags Image::GetUsageFlags() const {
         return m_UsageFlags;
-    }
-
-    Image::SyncState& Image::GetSyncState() {
-        return m_SyncState;
     }
 
 };  // namespace Engine::Vulkan::Managed

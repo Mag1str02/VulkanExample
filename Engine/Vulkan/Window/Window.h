@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Common.h"
 #include "Engine/Application/Window.h"
+#include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan {
 
@@ -13,15 +13,9 @@ namespace Engine::Vulkan {
         virtual void BeginFrame() override;
         virtual void EndFrame() override;
 
-        VkSurfaceKHR GetSurface();
-        VkExtent2D   GetExtent();
-        Ref<IImage>  GetSwapChainImage();
-
     private:
-        VkSurfaceKHR m_Surface;
+        Ref<Surface> m_Surface;
 
-        Renderer*       m_Renderer  = nullptr;
-        Ref<ISwapChain> m_SwapChain = nullptr;
-        Ref<IImage>     m_SwapChainImage;
+        Renderer* m_Renderer = nullptr;
     };
 }  // namespace Engine::Vulkan
