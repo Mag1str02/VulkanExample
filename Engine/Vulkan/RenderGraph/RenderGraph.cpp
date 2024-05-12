@@ -12,7 +12,6 @@ namespace Engine::Vulkan::RenderGraph {
         if (!m_ExternalResources.empty()) {
             return std::unexpected<std::string>("Cannot create task because render graph has external resources");
         }
-
         auto error = Validate();
         if (error) {
             return std::unexpected<std::string>(std::format("Graph contains error: {}", *error));
@@ -23,6 +22,10 @@ namespace Engine::Vulkan::RenderGraph {
     }
 
     std::optional<std::string> RenderGraph::Validate() const {
+        if (!m_UnresolvedDependenciesMapping.Empty()) {
+            return "Render graph has unresolved external dependencies";
+        }
+
         for (const auto& [entry, _] : m_OwnedEntries) {
             auto error = entry->Validate();
             if (error) {
@@ -37,6 +40,14 @@ namespace Engine::Vulkan::RenderGraph {
     void RenderGraph::AddExternalResource(const std::string& name, ResourceNode& resource, DependencyType dependency_type) {
         bool inserted = m_ExternalResources.emplace(name, std::pair<ResourceNode*, DependencyType>(&resource, dependency_type)).second;
         DE_ASSERT(inserted == true, "Resource with name {} already exists", name);
+
+        auto unresolved_deps = m_UnresolvedDependenciesMapping.Get(name);
+        for (const auto& pass : unresolved_deps) {
+            DE_ASSERT(dependency_type == m_UnresolvedDependenciesTypes[pass][name], "Dependcy type mismatch");
+            pass->AddExternalResource(name, resource, dependency_type);
+            m_UnresolvedDependenciesTypes[pass].erase(name);
+            m_UnresolvedDependenciesMapping.RemoveMapping(pass, name);
+        }
     }
     ResourceNode* RenderGraph::GetExternalResource(const std::string& name, DependencyType dependency_type) const {
         auto it = m_ExternalResources.find(name);
@@ -61,7 +72,25 @@ namespace Engine::Vulkan::RenderGraph {
         return nodes;
     }
 
-    void RenderGraph::CreateInternalDependency(const std::string& name, ResourceNode& resource, IPassNode& pass, DependencyType dependency_type) {}
-    void RenderGraph::CreateExternalDependency(const std::string& name, IPassNode& pass, DependencyType dependency_type) {}
+    void RenderGraph::CreateInternalDependency(const std::string& name, ResourceNode& resource, IPassEntry& pass, DependencyType dependency_type) {
+        DE_ASSERT(m_OwnedEntries.contains(&resource), "Cannot create internal dependency because resource is not owned by render graph");
+        DE_ASSERT(m_OwnedEntries.contains(&pass), "Cannot create internal dependency because pass is not owned by render graph");
+
+        pass.AddExternalResource(name, resource, dependency_type);
+    }
+    void RenderGraph::CreateExternalDependency(const std::string& name, IPassEntry& pass, DependencyType dependency_type) {
+        DE_ASSERT(m_OwnedEntries.contains(&pass), "Cannot create external dependency because pass is not owned by render graph");
+        if (auto it = m_ExternalResources.find(name); it != m_ExternalResources.end()) {
+            DE_ASSERT(dependency_type == it->second.second,
+                      "Dependecy type mismatch: pass_type={} external_type{}",
+                      (int64_t)dependency_type,
+                      (int64_t)it->second.second);
+            pass.AddExternalResource(name, *it->second.first, dependency_type);
+        } else {
+            auto emplaced = m_UnresolvedDependenciesTypes[&pass].emplace(name, dependency_type).second;
+            DE_ASSERT(emplaced, "Such external dependency already exist");
+            m_UnresolvedDependenciesMapping.AddMapping(&pass, name);
+        }
+    }
 
 }  // namespace Engine::Vulkan::RenderGraph

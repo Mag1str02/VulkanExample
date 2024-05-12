@@ -30,6 +30,7 @@ namespace Engine::Vulkan::RenderGraph {
         m_SignalSemaphore = std::move(semaphore);
     }
     void SwapChainAquirePassNode::Pass::Prepare() {
+        DE_ASSERT(m_SignalSemaphore != nullptr, "No semaphore");
         if (m_State->GetCurrentIteration()->IsOutOfDate()) {
             m_State->CreateNewIteration();
         }

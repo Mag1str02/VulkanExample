@@ -14,6 +14,14 @@ namespace Engine::Vulkan::RenderGraph {
     private:
         std::vector<INode*> TopologicalSort(const std::unordered_set<INode*>& nodes) const;
 
+        class Task : public ITask {
+        public:
+            Task() = default;
+
+            virtual bool IsCompleted() const override;
+            virtual void Run(Executor* executor) override;
+        };
+
     private:
         std::vector<Scope<IPassCluster>> m_PassClusters;
         std::vector<Scope<IPass>>        m_Passes;

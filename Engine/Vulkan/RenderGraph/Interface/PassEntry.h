@@ -1,12 +1,13 @@
 #pragma once
 
 #include "DependencyType.h"
+#include "Entry.h"
 
 #include "Engine/Vulkan/Common.h"
 
 namespace Engine::Vulkan::RenderGraph::Interface {
 
-    class PassEntry {
+    class PassEntry : public virtual IEntry {
     public:
         virtual ResourceNode* GetExternalResource(const std::string& name, DependencyType dependency_type) const = 0;
 

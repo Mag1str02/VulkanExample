@@ -26,6 +26,7 @@ namespace Engine::Vulkan::RenderGraph {
         } else {
             m_Producers.emplace(&resource);
         }
+        resource.AddDependency(*this, dependency_type);
     }
     ResourceNode* PassNode::GetExternalResource(const std::string& name, DependencyType dependency_type) const {
         auto it = m_Resources.find(name);

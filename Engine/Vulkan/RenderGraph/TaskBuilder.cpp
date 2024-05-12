@@ -47,7 +47,7 @@ namespace Engine::Vulkan::RenderGraph {
             pass->Prepare();
         }
 
-        return nullptr;
+        return Ref<Task>(new Task());
     }
 
     std::vector<INode*> TaskBuilder::TopologicalSort(const std::unordered_set<INode*>& nodes) const {
@@ -79,5 +79,10 @@ namespace Engine::Vulkan::RenderGraph {
         std::sort(sorted_nodes.begin(), sorted_nodes.end(), [&counters](INode* a, INode* b) { return counters[a] < counters[b]; });
         return sorted_nodes;
     }
+
+    bool TaskBuilder::Task::IsCompleted() const {
+        return true;
+    }
+    void TaskBuilder::Task::Run(Executor* executor) {}
 
 }  // namespace Engine::Vulkan::RenderGraph

@@ -7,7 +7,7 @@
 
 namespace Engine::Vulkan::RenderGraph {
 
-    class PassNode : public IEntry, protected IPassNode, IPassEntry, INode {
+    class PassNode : public virtual IEntry, public IPassNode, public IPassEntry, public INode {
     public:
         virtual ~PassNode() = default;
 

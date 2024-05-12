@@ -21,6 +21,8 @@ namespace Engine::Vulkan::RenderGraph {
         void AddDependency(PassNode& pass, DependencyType dependency_type);
 
     private:
+        friend class PassNode;
+
         std::unordered_set<Node*> m_Producers;
         std::unordered_set<Node*> m_Consumers;
 

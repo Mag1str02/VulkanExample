@@ -62,8 +62,6 @@ namespace Engine {
 
         }  // namespace RenderGraph
 
-        using IImage = Interface::Image;
-
         class Instance;
         class Debugger;
         class Device;
@@ -83,6 +81,9 @@ namespace Engine {
         class Executor;
         class Semaphore;
         class SemaphorePool;
+
+        using IImage = Interface::Image;
+        using ITask  = Task;
 
     }  // namespace Vulkan
 

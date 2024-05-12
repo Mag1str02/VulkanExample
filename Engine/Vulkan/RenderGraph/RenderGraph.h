@@ -8,7 +8,7 @@
 
 namespace Engine::Vulkan::RenderGraph {
 
-    class RenderGraph : public IEntry, IPassEntry {
+    class RenderGraph : public virtual IEntry, public IPassEntry {
     public:
         template <typename T, typename... Args>
         T* CreateEnrty(Args&&... args) {
@@ -19,8 +19,9 @@ namespace Engine::Vulkan::RenderGraph {
         }
 
         std::expected<Ref<Task>, std::string> CreateTask(Ref<SemaphorePool> semaphore_pool);
-        void CreateInternalDependency(const std::string& name, ResourceNode& resource, IPassNode& pass, DependencyType dependency_type);
-        void CreateExternalDependency(const std::string& name, IPassNode& pass, DependencyType dependency_type);
+
+        void CreateInternalDependency(const std::string& name, ResourceNode& resource, IPassEntry& pass, DependencyType dependency_type);
+        void CreateExternalDependency(const std::string& name, IPassEntry& pass, DependencyType dependency_type);
 
         virtual std::optional<std::string> Validate() const override;
 
@@ -35,6 +36,9 @@ namespace Engine::Vulkan::RenderGraph {
 
         std::unordered_map<Entry*, Scope<Entry>>                                  m_OwnedEntries;
         std::unordered_map<std::string, std::pair<ResourceNode*, DependencyType>> m_ExternalResources;
+
+        Mapping<IPassEntry*, std::string>                                                m_UnresolvedDependenciesMapping;
+        std::unordered_map<IPassEntry*, std::unordered_map<std::string, DependencyType>> m_UnresolvedDependenciesTypes;
     };
 
 }  // namespace Engine::Vulkan::RenderGraph

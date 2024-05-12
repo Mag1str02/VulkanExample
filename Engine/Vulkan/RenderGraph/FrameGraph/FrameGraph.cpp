@@ -12,13 +12,16 @@ namespace Engine::Vulkan::RenderGraph {
     FrameGraph::FrameGraph(Ref<Surface> surface) {
         auto shared_state = CreateRef<SwapChainNodesState>(surface);
 
-        auto* auquire_pass_node = CreateEnrty<SwapChainAquirePassNode>(shared_state);
-        auto* present_pass_node = CreateEnrty<SwapChainPresentPassNode>(shared_state);
-
+        auto* auquire_pass_node  = CreateEnrty<SwapChainAquirePassNode>(shared_state);
+        auto* present_pass_node  = CreateEnrty<SwapChainPresentPassNode>(shared_state);
         auto* auquire_image_node = CreateEnrty<SwapChainImageNode>(shared_state);
         auto* present_image_node = CreateEnrty<SwapChainImageNode>(shared_state);
+        m_InternalGraph          = CreateEnrty<RenderGraph>();
 
-        m_InternalGraph = CreateEnrty<RenderGraph>();
+        CreateInternalDependency(kAquireImageName, *auquire_image_node, *auquire_pass_node, DependencyType::Output);
+        CreateInternalDependency(kAquireImageName, *auquire_image_node, *m_InternalGraph, DependencyType::ReadWriteInput);
+        CreateInternalDependency(kPresentImageName, *present_image_node, *m_InternalGraph, DependencyType::Output);
+        CreateInternalDependency(kPresentImageName, *present_image_node, *present_pass_node, DependencyType::ReadOnlyInput);
     }
 
     RenderGraph* FrameGraph::GetInternalGraph() const {
