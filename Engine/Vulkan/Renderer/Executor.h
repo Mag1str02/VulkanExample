@@ -9,9 +9,14 @@ namespace Engine::Vulkan {
         Executor(Ref<Device> device);
         ~Executor();
 
-        void Submit(Ref<Task> task);
+        void        Submit(Ref<Task> task);
+        Ref<Device> GetDevice();
 
     private:
-        Ref<Device> m_Device;
+        void RemoveCompleted();
+
+    private:
+        Ref<Device>            m_Device;
+        std::vector<Ref<Task>> m_RunningTasks;
     };
 }  // namespace Engine::Vulkan

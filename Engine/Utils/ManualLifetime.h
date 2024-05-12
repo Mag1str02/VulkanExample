@@ -53,6 +53,15 @@ namespace Engine {
             return reinterpret_cast<const T*>(&m_Storage);
         }
 
+        operator T&() {
+            DE_ASSERT(m_Consturcted, "Object is not created");
+            return *reinterpret_cast<T*>(&m_Storage);
+        }
+        operator const T&() const {
+            DE_ASSERT(m_Consturcted, "Object is not created");
+            return *reinterpret_cast<const T*>(&m_Storage);
+        }
+
         bool IsConstructed() const {
             return m_Consturcted;
         }

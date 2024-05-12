@@ -16,14 +16,16 @@ add_library(VulkanHelpers
     Vulkan/Managed/CommandBuffer.cpp
     Vulkan/Managed/Image.cpp
 
-    Vulkan/RenderGraph/Entry.cpp
-    Vulkan/RenderGraph/FrameGraph.cpp
-    Vulkan/RenderGraph/Pass.cpp
-    Vulkan/RenderGraph/Node.cpp
-    Vulkan/RenderGraph/IPassNode.cpp
     Vulkan/RenderGraph/PassNode.cpp
     Vulkan/RenderGraph/ResourceNode.cpp
     Vulkan/RenderGraph/RenderGraph.cpp
+    Vulkan/RenderGraph/TaskBuilder.cpp
+    
+    Vulkan/RenderGraph/FrameGraph/FrameGraph.cpp
+    Vulkan/RenderGraph/FrameGraph/SwapChainAquirePassNode.cpp
+    Vulkan/RenderGraph/FrameGraph/SwapChainPresentPassNode.cpp
+    Vulkan/RenderGraph/FrameGraph/SwapChainImageNode.cpp
+    Vulkan/RenderGraph/FrameGraph/SwapChainNodesState.cpp
 
     Vulkan/Synchronization/AccessScope.cpp
     Vulkan/Synchronization/ImageTracker.cpp
@@ -37,6 +39,7 @@ add_library(VulkanHelpers
     Vulkan/Renderer/PresentationQueue.cpp
     Vulkan/Renderer/Queue.cpp
     Vulkan/Renderer/Renderer.cpp
+    Vulkan/Renderer/SemaphorePool.cpp
     Vulkan/Renderer/Task.cpp
     Vulkan/Renderer/Executor.cpp
 

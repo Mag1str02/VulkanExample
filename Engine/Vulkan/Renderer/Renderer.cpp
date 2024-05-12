@@ -3,6 +3,9 @@
 #include "Debugger.h"
 #include "Device.h"
 #include "Instance.h"
+#include "SemaphorePool.h"
+
+#include "Engine/Vulkan/RenderGraph/RenderGraph.h"
 
 namespace Engine::Vulkan {
 
@@ -14,10 +17,13 @@ namespace Engine::Vulkan {
         VkPhysicalDevice best_device = m_Config.ChooseDevice(m_Instance->Handle(), m_Instance->GetAllDevices());
 
         m_Device = Device::Create(best_device, m_Instance, m_Config);
+
+        m_SemaphorePool = SemaphorePool::Create(m_Device);
         m_Executor.Construct(m_Device);
     }
     Renderer::~Renderer() {
         m_Executor.Destruct();
+        m_SemaphorePool.reset();
         m_Debugger.reset();
         m_Device.reset();
 
@@ -36,8 +42,15 @@ namespace Engine::Vulkan {
         m_Config.AddDeviceExtension(VK_EXT_CALIBRATED_TIMESTAMPS_EXTENSION_NAME);
     }
 
-    void Renderer::Submit(Ref<Task> task) {
-        m_Executor->Submit(task);
+    std::optional<std::string> Renderer::SubmitRenderGraph(RenderGraph::RenderGraph& graph) {
+        PROFILER_SCOPE("Engine::Vulkan::Renderer::Renderer::SubmitRenderGraph");
+
+        auto res = graph.CreateTask(m_SemaphorePool);
+        if (!res.has_value()) {
+            return res.error();
+        }
+        m_Executor->Submit(res.value());
+        return std::nullopt;
     }
 
     Ref<Device> Renderer::GetDevice() {

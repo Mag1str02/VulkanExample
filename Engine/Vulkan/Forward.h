@@ -25,14 +25,41 @@ namespace Engine {
         }  // namespace Synchronization
 
         namespace RenderGraph {
-            class Node;
+            namespace Interface {
+                enum class DependencyType;
+                class DynamicType;
+                class Entry;
+                class Node;
+                class Pass;
+                class PassNode;
+                class PassEntry;
+                class PassCluster;
+                class StaticResourceNode;
+                class ImageResourceNode;
+            }  // namespace Interface
+
+            using Interface::DependencyType;
+            using Interface::DynamicType;
+            using Interface::ImageResourceNode;
+            using Interface::StaticResourceNode;
+
+            using IEntry       = Interface::Entry;
+            using INode        = Interface::Node;
+            using IPass        = Interface::Pass;
+            using IPassNode    = Interface::PassNode;
+            using IPassEntry   = Interface::PassEntry;
+            using IPassCluster = Interface::PassCluster;
+
             class ResourceNode;
-            class IPassNode;
             class PassNode;
             class RenderGraph;
+            class TaskBuilder;
 
-            class Pass;
-            class Resource;
+            class SwapChainNodesState;
+            class SwapChainAquirePassNode;
+            class SwapChainPresentPassNode;
+            class SwapChainImageNode;
+
         }  // namespace RenderGraph
 
         using IImage = Interface::Image;
@@ -51,7 +78,11 @@ namespace Engine {
         class Config;
         class Renderer;
         class Window;
+
         class Task;
+        class Executor;
+        class Semaphore;
+        class SemaphorePool;
 
     }  // namespace Vulkan
 

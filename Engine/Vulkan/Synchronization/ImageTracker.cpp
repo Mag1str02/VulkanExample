@@ -151,7 +151,6 @@ namespace Engine::Vulkan::Synchronization {
 
         if (current_suffix.layout == prefix.layout) {
             for (const auto& [access, stages] : prefix.read_accesses.GetReaders()) {
-                std::println("Reader access");
                 auto [sync_access, sync_stages] = current_suffix.read_accesses.AddAccess({stages, access});
                 if (sync_access != VK_ACCESS_2_NONE || sync_stages != VK_PIPELINE_STAGE_2_NONE) {
                     auto barrier = create_barrier();

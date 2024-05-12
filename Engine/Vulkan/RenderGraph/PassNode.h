@@ -1,29 +1,32 @@
 #pragma once
 
-#include "IPassNode.h"
-#include "Node.h"
+#include "Engine/Vulkan/RenderGraph/Interface/Entry.h"
+#include "Engine/Vulkan/RenderGraph/Interface/Node.h"
+#include "Engine/Vulkan/RenderGraph/Interface/PassEntry.h"
+#include "Engine/Vulkan/RenderGraph/Interface/PassNode.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
-    class PassNode : public Node, public IPassNode {
+    class PassNode : public IEntry, protected IPassNode, IPassEntry, INode {
     public:
         virtual ~PassNode() = default;
 
-    protected:
-        virtual Scope<Pass> CreatePass() = 0;
+        virtual ResourceNode* GetExternalResource(const std::string& name, DependencyType dependency_type) const final override;
 
-        virtual const std::unordered_set<Node*>& GetProducers() const final override;
-        virtual const std::unordered_set<Node*>& GetConsumers() const final override;
+    private:
+        virtual void AddExternalResource(const std::string& name, ResourceNode& resource, DependencyType dependency_type) final override;
+
+        virtual const std::unordered_set<INode*>& GetProducers() const final override;
+        virtual const std::unordered_set<INode*>& GetConsumers() const final override;
 
         virtual uint32_t GetProducersCount() const final override;
         virtual uint32_t GetConsumersCount() const final override;
 
-        virtual void AddOutput(ResourceNode& resource) final override;
-        virtual void AddReadOnlyInput(ResourceNode& resource) final override;
-        virtual void AddReadWriteInput(ResourceNode& resource) final override;
-
     private:
-        friend class RenderGraph;
+        friend class TaskBuilder;
+        friend class DynamicType;
+
+        std::unordered_map<std::string, std::pair<ResourceNode*, DependencyType>> m_Resources;
 
         std::unordered_set<Node*> m_Producers;
         std::unordered_set<Node*> m_Consumers;

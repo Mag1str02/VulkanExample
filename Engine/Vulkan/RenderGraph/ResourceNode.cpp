@@ -3,6 +3,7 @@
 #include "PassNode.h"
 
 namespace Engine::Vulkan::RenderGraph {
+
     std::optional<std::string> ResourceNode::Validate() const {
         if (GetProducersCount() > 1) {
             return {std::format("ResourceNode cannot have more than 1 producer")};
@@ -13,10 +14,10 @@ namespace Engine::Vulkan::RenderGraph {
         return std::nullopt;
     }
 
-    const std::unordered_set<Node*>& ResourceNode::GetProducers() const {
+    const std::unordered_set<INode*>& ResourceNode::GetProducers() const {
         return m_Producers;
     }
-    const std::unordered_set<Node*>& ResourceNode::GetConsumers() const {
+    const std::unordered_set<INode*>& ResourceNode::GetConsumers() const {
         return m_Consumers;
     }
 
@@ -27,17 +28,19 @@ namespace Engine::Vulkan::RenderGraph {
         return m_Consumers.size();
     }
 
-    void ResourceNode::AddReadConsumer(PassNode& pass) {
-        ++m_ReadConsumers;
-        m_Consumers.emplace(&pass);
-    }
-    void ResourceNode::AddWriteConsumer(PassNode& pass) {
-        ++m_WriteConsumers;
-        m_Consumers.emplace(&pass);
-    }
-
-    void ResourceNode::AddProducer(PassNode& pass) {
-        m_Producers.emplace(&pass);
+    void ResourceNode::AddDependency(PassNode& pass, DependencyType dependency_type) {
+        Node* node = (Node*)&pass;
+        switch (dependency_type) {
+            case DependencyType::Output: m_Producers.emplace(node); break;
+            case DependencyType::ReadOnlyInput:
+                m_Consumers.emplace(node);
+                ++m_ReadConsumers;
+                break;
+            case DependencyType::ReadWriteInput:
+                m_Consumers.emplace(node);
+                ++m_WriteConsumers;
+                break;
+        }
     }
 
 }  // namespace Engine::Vulkan::RenderGraph

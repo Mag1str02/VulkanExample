@@ -2,14 +2,11 @@
 
 #include "Engine/Vulkan/Common.h"
 
-namespace Engine::Vulkan::RenderGraph {
+namespace Engine::Vulkan::RenderGraph::Interface {
 
-    class Entry : NonCopyMoveable {
+    class DynamicType {
     public:
-        virtual ~Entry() = default;
-
-        virtual std::optional<std::string> Validate() const = 0;
-        virtual const std::string&         GetName() const  = 0;
+        virtual ~DynamicType() = default;
 
         template <typename T>
         bool Is() const {
@@ -28,4 +25,5 @@ namespace Engine::Vulkan::RenderGraph {
             return ptr;
         }
     };
-}  // namespace Engine::Vulkan::RenderGraph
+
+}  // namespace Engine::Vulkan::RenderGraph::Interface

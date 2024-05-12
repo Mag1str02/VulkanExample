@@ -35,6 +35,10 @@ namespace Engine::Vulkan {
     }
     void Window::EndFrame() {
         PROFILER_SCOPE("Engine::Vulkan::Window::EndFrame");
+        auto error = m_Renderer->SubmitRenderGraph(m_FrameGraph);
+        if (error) {
+            std::println("Failed to submit framegraph due: {}", *error);
+        }
         Engine::Window::EndFrame();
     }
 

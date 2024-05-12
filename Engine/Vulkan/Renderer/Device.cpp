@@ -62,10 +62,6 @@ namespace Engine::Vulkan {
         m_PresentationQueue.Construct(this, presentation_queue, universal_queue_family_index);
 
         // TODO: Validate that tracy extensions and features available
-        std::println("{}", (void*)vkResetQueryPool);
-        std::println("{}", (void*)vkGetPhysicalDeviceCalibrateableTimeDomainsEXT);
-        std::println("{}", (void*)vkGetCalibratedTimestampsEXT);
-
         m_TracyContext = TracyVkContextHostCalibrated(m_PhysicalDevice,
                                                       m_LogicDevice,
                                                       vkResetQueryPool,
@@ -80,6 +76,9 @@ namespace Engine::Vulkan {
         vkDestroyDevice(m_LogicDevice, nullptr);
     }
 
+    void Device::WaitIdle() {
+        VK_CHECK(vkDeviceWaitIdle(m_LogicDevice));
+    }
     VkDevice Device::GetLogicDevice() {
         return m_LogicDevice;
     }

@@ -15,7 +15,7 @@ namespace Engine::Vulkan {
         Ref<Instance> GetInstance();
         Ref<Device>   GetDevice();
 
-        void Submit(Ref<Task> task);
+        std::optional<std::string> SubmitRenderGraph(RenderGraph::RenderGraph& graph);
 
         NO_COPY_CONSTRUCTORS(Renderer);
         NO_MOVE_CONSTRUCTORS(Renderer);
@@ -28,6 +28,7 @@ namespace Engine::Vulkan {
         Ref<Instance>            m_Instance;
         Ref<Debugger>            m_Debugger;
         Ref<Device>              m_Device;
+        Ref<SemaphorePool>       m_SemaphorePool;
         ManualLifetime<Executor> m_Executor;
     };
 

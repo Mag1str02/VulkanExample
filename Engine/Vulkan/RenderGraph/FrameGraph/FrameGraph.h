@@ -1,14 +1,12 @@
 #pragma once
 
-#include "RenderGraph.h"
+#include "Engine/Vulkan/RenderGraph/RenderGraph.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
-    class FrameGraph final : private RenderGraph {
+    class FrameGraph final : public RenderGraph {
     public:
         FrameGraph(Ref<Surface> surface);
-
-        virtual const std::string& GetName() const override;
 
         RenderGraph* GetInternalGraph() const;
 

@@ -47,12 +47,8 @@ namespace Engine::Vulkan {
 
             VK_CHECK(vkGetSwapchainImagesKHR(m_Surface->GetDevice()->GetLogicDevice(), m_SwapChain, &actual_image_count, m_ImageHandles.data()));
 
-            for (size_t i = 0; i < actual_image_count; ++i) {
-                m_Images.emplace_back(m_ImageHandles[i],
-                                      m_Surface->GetFormat().format,
-                                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-                                      m_Surface->GetExtent(),
-                                      m_Surface->GetDevice().get());
+            for (uint32_t i = 0; i < actual_image_count; ++i) {
+                m_Images.emplace_back(Image(m_Surface.get(), m_SwapChain, m_ImageHandles[i], i));
             }
         }
     }
@@ -65,26 +61,45 @@ namespace Engine::Vulkan {
         return m_SwapChain;
     }
 
-    std::pair<VkResult, Ref<IImage>> SwapChain::AcquireImage(VkSemaphore signal_semaphore, VkFence signal_fence) {
+    VkResult SwapChain::AcquireImage(VkSemaphore signal_semaphore, VkFence signal_fence) {
         uint32_t next_image;
         VkResult res =
             vkAcquireNextImageKHR(m_Surface->GetDevice()->GetLogicDevice(), m_SwapChain, UINT64_MAX, signal_semaphore, signal_fence, &next_image);
         switch (res) {
-            case VK_SUCCESS: m_CurrentImage = next_image; return {VK_SUCCESS, Ref<IImage>(shared_from_this(), &m_Images[m_CurrentImage])};
-            case VK_SUBOPTIMAL_KHR:
-                m_CurrentImage = next_image;
-                return {VK_SUBOPTIMAL_KHR, Ref<IImage>(shared_from_this(), &m_Images[m_CurrentImage])};
-            case VK_ERROR_OUT_OF_DATE_KHR: m_CurrentImage = m_Images.size(); return {VK_ERROR_OUT_OF_DATE_KHR, nullptr};
+            case VK_SUCCESS: m_CurrentImage = next_image; break;
+            case VK_SUBOPTIMAL_KHR: m_CurrentImage = next_image; break;
+            case VK_ERROR_OUT_OF_DATE_KHR: m_CurrentImage = m_Images.size(); break;
             default: DE_ASSERT_FAIL("Failed to acquire swapchain image {}", (int64_t)res);
         }
+        return res;
+    }
+    Ref<Surface> SwapChain::GetSurface() const {
+        return m_Surface;
     }
 
-    uint32_t SwapChain::GetCurrentImageIndex() const {
+    Ref<SwapChain::Image> SwapChain::GetCurrentImage() {
         DE_ASSERT(m_CurrentImage != m_Images.size(), "No image was aquired yet");
-        return m_CurrentImage;
+        return Ref<SwapChain::Image>(shared_from_this(), &m_Images[m_CurrentImage]);
     }
     uint32_t SwapChain::GetImageCount() const {
         return m_Images.size();
     }
 
+    uint32_t SwapChain::Image::GetIndex() const {
+        return m_Index;
+    }
+
+    SwapChain::Image::Image(Image&& other) : Managed::Image(other), m_Index(other.m_Index), m_SwapChainHandle(other.m_SwapChainHandle) {}
+    SwapChain::Image::Image(Surface* surface, VkSwapchainKHR swapchain, VkImage handle, uint32_t index) :
+        Managed::Image(handle,
+                       surface->GetFormat().format,
+                       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                       surface->GetExtent(),
+                       surface->GetDevice().get()),
+        m_Index(index),
+        m_SwapChainHandle(swapchain) {}
+
+    const VkSwapchainKHR& SwapChain::Image::GetSwapChainHandle() {
+        return m_SwapChainHandle;
+    }
 }  // namespace Engine::Vulkan

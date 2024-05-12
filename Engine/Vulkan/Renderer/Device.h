@@ -11,6 +11,8 @@ namespace Engine::Vulkan {
 
         ~Device();
 
+        void WaitIdle();
+
         VkDevice         GetLogicDevice();
         VkPhysicalDevice GetPhysicalDevice();
         tracy::VkCtx*    GetTracyCtx();

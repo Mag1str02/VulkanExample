@@ -1,18 +1,15 @@
 #pragma once
 
-#include "Pass.h"
-#include "PassNode.h"
+#include "Engine/Vulkan/RenderGraph/Interface/Entry.h"
+#include "Engine/Vulkan/RenderGraph/Interface/Pass.h"
+#include "Engine/Vulkan/RenderGraph/Interface/PassEntry.h"
 
 #include "Engine/Vulkan/Renderer/Task.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
-    class RenderGraph : public IPassNode, public Entry {
+    class RenderGraph : public IEntry, IPassEntry {
     public:
-        std::expected<Ref<Task>, std::string> CreateTask();
-
-        virtual std::optional<std::string> Validate() const override;
-
         template <typename T, typename... Args>
         T* CreateEnrty(Args&&... args) {
             auto scope = CreateScope<T>(std::forward<Args>(args)...);
@@ -21,49 +18,23 @@ namespace Engine::Vulkan::RenderGraph {
             return ptr;
         }
 
-    protected:
-        virtual void AddOutput(ResourceNode& resource) final override;
-        virtual void AddReadOnlyInput(ResourceNode& resource) final override;
-        virtual void AddReadWriteInput(ResourceNode& resource) final override;
+        std::expected<Ref<Task>, std::string> CreateTask(Ref<SemaphorePool> semaphore_pool);
+        void CreateInternalDependency(const std::string& name, ResourceNode& resource, IPassNode& pass, DependencyType dependency_type);
+        void CreateExternalDependency(const std::string& name, IPassNode& pass, DependencyType dependency_type);
+
+        virtual std::optional<std::string> Validate() const override;
 
     private:
-        std::unordered_set<Node*> GetNodes() const;
+        virtual void          AddExternalResource(const std::string& name, ResourceNode& resource, DependencyType dependency_type) final override;
+        virtual ResourceNode* GetExternalResource(const std::string& name, DependencyType dependency_type) const final override;
+
+        std::unordered_set<INode*> GetNodes() const;
 
     private:
-        class Task : public Vulkan::Task {
-        public:
-            Task(RenderGraph* graph);
+        friend class TaskBuilder;
 
-        private:
-            std::vector<Node*> TopologicalSort(const std::unordered_set<Node*>& nodes) const;
-
-            void InstantiateResource(const std::vector<ResourceNode*>& resources) const;
-            void ClaimResource(const std::vector<ResourceNode*>& resources) const;
-
-            void CreatePasses(const std::vector<PassNode*>& passes);
-
-            template <typename T>
-            std::vector<T*> FilterNodes(const std::vector<Node*>& nodes) const {
-                std::vector<T*> filtered_nodes;
-                for (const auto& node : nodes) {
-                    if (node->Is<T>()) {
-                        filtered_nodes.push_back(node->As<T>());
-                    }
-                }
-                return filtered_nodes;
-            }
-
-        private:
-            std::vector<Scope<Pass>> m_Passes;
-            RenderGraph*             m_Graph = nullptr;
-        };
-
-    private:
-        std::unordered_map<Entry*, Scope<Entry>> m_OwnedEntries;
-
-        std::unordered_map<std::string, ResourceNode*> m_ExternalOutputResource;
-        std::unordered_map<std::string, ResourceNode*> m_ExternalInputROResource;
-        std::unordered_map<std::string, ResourceNode*> m_ExternalInputRWResource;
+        std::unordered_map<Entry*, Scope<Entry>>                                  m_OwnedEntries;
+        std::unordered_map<std::string, std::pair<ResourceNode*, DependencyType>> m_ExternalResources;
     };
 
 }  // namespace Engine::Vulkan::RenderGraph
