@@ -10,4 +10,5 @@ namespace Engine::Vulkan::RenderGraph::Interface {
 
         virtual std::optional<std::string> Validate() const = 0;
     };
+
 }  // namespace Engine::Vulkan::RenderGraph::Interface

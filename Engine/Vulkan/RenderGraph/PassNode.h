@@ -1,35 +1,35 @@
 #pragma once
 
-#include "Engine/Vulkan/RenderGraph/Interface/Entry.h"
 #include "Engine/Vulkan/RenderGraph/Interface/Node.h"
-#include "Engine/Vulkan/RenderGraph/Interface/PassEntry.h"
+#include "Engine/Vulkan/RenderGraph/Interface/PassFactory.h"
 #include "Engine/Vulkan/RenderGraph/Interface/PassNode.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
-    class PassNode : public virtual IEntry, public IPassNode, public IPassEntry, public INode {
+    class PassNode : public IPassFactory, public IPassNode, public INode {
     public:
-        virtual ~PassNode() = default;
+        virtual ~PassNode();
 
-        virtual ResourceNode* GetExternalResource(const std::string& name, DependencyType dependency_type) const final override;
-
-    private:
-        virtual void AddExternalResource(const std::string& name, ResourceNode& resource, DependencyType dependency_type) final override;
-
-        virtual const std::unordered_set<INode*>& GetProducers() const final override;
-        virtual const std::unordered_set<INode*>& GetConsumers() const final override;
-
-        virtual uint32_t GetProducersCount() const final override;
-        virtual uint32_t GetConsumersCount() const final override;
+    protected:
+        virtual IResourceNode* GetExternalResource(const std::string& name, DependencyType dependency_type) const final override;
 
     private:
-        friend class TaskBuilder;
-        friend class DynamicType;
+        virtual void AddExternalResource(IResourceNode* resource, const std::string& name, DependencyType dependency_type) final override;
+        virtual void RemoveExternalResource(IResourceNode* resource) final override;
+        virtual void RemoveDependency(INode* node) final override;
 
-        std::unordered_map<std::string, std::pair<ResourceNode*, DependencyType>> m_Resources;
+        virtual const std::unordered_set<Node*>& GetConsumers() const final override;
+        virtual const std::unordered_set<Node*>& GetProducers() const final override;
 
-        std::unordered_set<Node*> m_Producers;
-        std::unordered_set<Node*> m_Consumers;
+        IResourceNode* GetUnderlyingResource(IResourceNode* resource) const;
+
+    private:
+        std::unordered_map<std::string, IResourceNode*>    m_ResourceByName;
+        std::unordered_map<IResourceNode*, std::string>    m_ResourceNames;
+        std::unordered_map<IResourceNode*, DependencyType> m_ResourceTypes;
+
+        std::unordered_set<INode*> m_Consumers;
+        std::unordered_set<INode*> m_Producers;
     };
 
 }  // namespace Engine::Vulkan::RenderGraph

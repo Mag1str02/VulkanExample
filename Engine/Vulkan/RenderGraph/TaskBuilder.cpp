@@ -4,6 +4,7 @@
 #include "Engine/Vulkan/RenderGraph/Interface/Pass.h"
 #include "Engine/Vulkan/RenderGraph/Interface/PassCluster.h"
 #include "Engine/Vulkan/RenderGraph/Interface/PassNode.h"
+#include "Engine/Vulkan/RenderGraph/Interface/PassFactory.h"
 #include "Engine/Vulkan/RenderGraph/Interface/StaticResourceNode.h"
 
 namespace Engine::Vulkan::RenderGraph {
@@ -33,19 +34,19 @@ namespace Engine::Vulkan::RenderGraph {
         auto sorted_nodes = TopologicalSort(nodes);
 
         auto static_resource_nodes = FilterNodes<StaticResourceNode>(sorted_nodes);
-        auto pass_nodes            = FilterNodes<IPassNode>(sorted_nodes);
+        auto pass_nodes            = FilterNodes<IPassFactory>(sorted_nodes);
 
         for (const auto& static_resource : static_resource_nodes) {
             static_resource->Instantiate();
         }
-        for (const auto& pass : pass_nodes) {
-            m_Passes.emplace_back(pass->CreatePass());
-        }
+        // for (const auto& pass : pass_nodes) {
+        //     m_Passes.emplace_back(pass->CreatePass());
+        // }
 
-        // TODO: execute pass->Prepare()  concurrently according to non static resource dependencies
-        for (const auto& pass : m_Passes) {
-            pass->Prepare();
-        }
+        // // TODO: execute pass->Prepare()  concurrently according to non static resource dependencies
+        // for (const auto& pass : m_Passes) {
+        //     pass->Prepare();
+        // }
 
         return Ref<Task>(new Task());
     }

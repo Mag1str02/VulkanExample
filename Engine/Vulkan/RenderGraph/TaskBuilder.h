@@ -7,6 +7,9 @@
 namespace Engine::Vulkan::RenderGraph {
 
     class TaskBuilder {
+    private:
+        using Graph = std::unordered_map<INode*, std::unordered_set<INode*>>;
+
     public:
         TaskBuilder(RenderGraph* graph, Ref<SemaphorePool> semaphore_pool);
         Ref<Task> Build();

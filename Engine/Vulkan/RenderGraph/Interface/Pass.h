@@ -9,9 +9,6 @@ namespace Engine::Vulkan::RenderGraph::Interface {
         virtual ~Pass() = default;
 
         virtual void Prepare() = 0;
-
-    private:
-        friend class ::Engine::Vulkan::RenderGraph::TaskBuilder;
     };
 
 }  // namespace Engine::Vulkan::RenderGraph::Interface

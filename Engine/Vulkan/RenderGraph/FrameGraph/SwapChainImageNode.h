@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Engine/Vulkan/RenderGraph/Interface/ImageResourceNode.h"
+#include "Engine/Vulkan/RenderGraph/ResourceNode.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
-    class SwapChainImageNode : public ImageResourceNode {
+    class SwapChainImageNode : public ImageResourceNode, public ResourceNode {
     public:
         SwapChainImageNode(Ref<SwapChainNodesState> state);
 

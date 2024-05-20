@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Engine/Vulkan/RenderGraph/ResourceNode.h"
+#include "ResourceNode.h"
 
 namespace Engine::Vulkan::RenderGraph::Interface {
 
-    class ImageResourceNode : virtual public ResourceNode {
-    protected:
+    class ImageResourceNode {
+    public:
         virtual Ref<IImage> GetImage() = 0;
     };
 }  // namespace Engine::Vulkan::RenderGraph::Interface

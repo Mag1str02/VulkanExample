@@ -18,10 +18,10 @@ namespace Engine::Vulkan::RenderGraph {
         auto* present_image_node = CreateEnrty<SwapChainImageNode>(shared_state);
         m_InternalGraph          = CreateEnrty<RenderGraph>();
 
-        CreateInternalDependency(kAquireImageName, *auquire_image_node, *auquire_pass_node, DependencyType::Output);
-        CreateInternalDependency(kAquireImageName, *auquire_image_node, *m_InternalGraph, DependencyType::ReadWriteInput);
-        CreateInternalDependency(kPresentImageName, *present_image_node, *m_InternalGraph, DependencyType::Output);
-        CreateInternalDependency(kPresentImageName, *present_image_node, *present_pass_node, DependencyType::ReadOnlyInput);
+        CreateDependency(auquire_image_node, auquire_pass_node, kAquireImageName, DependencyType::Output);
+        CreateDependency(auquire_image_node, m_InternalGraph, kAquireImageName, DependencyType::ReadWriteInput);
+        CreateDependency(present_image_node, m_InternalGraph, kPresentImageName, DependencyType::Output);
+        CreateDependency(present_image_node, present_pass_node, kPresentImageName, DependencyType::ReadOnlyInput);
     }
 
     RenderGraph* FrameGraph::GetInternalGraph() const {

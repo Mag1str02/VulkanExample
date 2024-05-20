@@ -2,37 +2,76 @@
 
 #include "ResourceNode.h"
 
+#include "Engine/Vulkan/RenderGraph/Interface/ProxyResourceNode.h"
+
 namespace Engine::Vulkan::RenderGraph {
 
-    const std::unordered_set<INode*>& PassNode::GetProducers() const {
-        return m_Producers;
+    PassNode::~PassNode() {
+        for (const auto& [resource, _] : m_ResourceNames) {
+            resource->RemoveDependency(this);
+        }
     }
+
+    IResourceNode* PassNode::GetExternalResource(const std::string& name, DependencyType dependency_type) const {
+        auto res_it = m_ResourceByName.find(name);
+        if (res_it == m_ResourceByName.end()) {
+            return nullptr;
+        }
+        auto dep_it = m_ResourceTypes.find(res_it->second);
+        if (dep_it->second != dependency_type) {
+            return nullptr;
+        }
+        return GetUnderlyingResource(res_it->second);
+    }
+
+    void PassNode::AddExternalResource(IResourceNode* resource, const std::string& name, DependencyType dependency_type) {
+        bool inserted = m_ResourceNames.emplace(resource, name).second;
+        DE_ASSERT(inserted == true, "Pass Node already linked to this node");
+        inserted = m_ResourceByName.emplace(name, resource).second;
+        DE_ASSERT(inserted == true, "Pass Node already has external resource node with name {}", name);
+        m_ResourceTypes.emplace(resource, dependency_type);
+
+        if (dependency_type == DependencyType::Output) {
+            m_Consumers.emplace(resource);
+        } else {
+            m_Producers.emplace(resource);
+        }
+        resource->AddDependency(this, dependency_type);
+    }
+    void PassNode::RemoveExternalResource(IResourceNode* resource) {
+        RemoveDependency(resource);
+        resource->RemoveDependency(this);
+    }
+
+    void PassNode::RemoveDependency(INode* node) {
+        IResourceNode* resource = node->As<IResourceNode>();
+        auto           res_it   = m_ResourceNames.find(resource);
+        if (res_it != m_ResourceNames.end()) {
+            auto type_it = m_ResourceTypes.find(resource);
+            if (type_it->second == DependencyType::Output) {
+                m_Consumers.erase(resource);
+            } else {
+                m_Producers.erase(resource);
+            }
+
+            m_ResourceByName.erase(res_it->second);
+            m_ResourceTypes.erase(type_it);
+            m_ResourceNames.erase(res_it);
+        }
+    }
+
     const std::unordered_set<INode*>& PassNode::GetConsumers() const {
         return m_Consumers;
     }
-
-    uint32_t PassNode::GetProducersCount() const {
-        return m_Producers.size();
-    }
-    uint32_t PassNode::GetConsumersCount() const {
-        return m_Consumers.size();
+    const std::unordered_set<INode*>& PassNode::GetProducers() const {
+        return m_Producers;
     }
 
-    void PassNode::AddExternalResource(const std::string& name, ResourceNode& resource, DependencyType dependency_type) {
-        bool inserted = m_Resources.emplace(name, std::pair<ResourceNode*, DependencyType>(&resource, dependency_type)).second;
-        DE_ASSERT(inserted == true, "Resource with name {} already exists", name);
-        if (dependency_type == DependencyType::Output) {
-            m_Consumers.emplace(&resource);
-        } else {
-            m_Producers.emplace(&resource);
+    IResourceNode* PassNode::GetUnderlyingResource(IResourceNode* resource) const {
+        if (resource->Is<IProxyResourceNode>()) {
+            return resource->As<IProxyResourceNode>()->GetUnderlyingNode();
         }
-        resource.AddDependency(*this, dependency_type);
+        return resource;
     }
-    ResourceNode* PassNode::GetExternalResource(const std::string& name, DependencyType dependency_type) const {
-        auto it = m_Resources.find(name);
-        if (it == m_Resources.end() || it->second.second != dependency_type) {
-            return nullptr;
-        }
-        return it->second.first;
-    }
+
 }  // namespace Engine::Vulkan::RenderGraph

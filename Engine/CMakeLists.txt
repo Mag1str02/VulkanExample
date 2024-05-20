@@ -17,9 +17,11 @@ add_library(VulkanHelpers
     Vulkan/Managed/Image.cpp
 
     Vulkan/RenderGraph/PassNode.cpp
-    Vulkan/RenderGraph/ResourceNode.cpp
     Vulkan/RenderGraph/RenderGraph.cpp
     Vulkan/RenderGraph/TaskBuilder.cpp
+    Vulkan/RenderGraph/ResourceNode.cpp
+    Vulkan/RenderGraph/ProxyResourceNode.cpp
+    Vulkan/RenderGraph/ExternalDependencyManager.cpp
     
     Vulkan/RenderGraph/FrameGraph/FrameGraph.cpp
     Vulkan/RenderGraph/FrameGraph/SwapChainAquirePassNode.cpp

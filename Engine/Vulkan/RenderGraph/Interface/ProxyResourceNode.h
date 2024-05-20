@@ -4,8 +4,9 @@
 
 namespace Engine::Vulkan::RenderGraph::Interface {
 
-    class StaticResourceNode {
+    class ProxyResourceNode {
     public:
-        virtual void Instantiate() = 0;
+        virtual IResourceNode* GetUnderlyingNode() const = 0;
     };
+
 }  // namespace Engine::Vulkan::RenderGraph::Interface

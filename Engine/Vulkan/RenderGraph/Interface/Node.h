@@ -1,22 +1,16 @@
 #pragma once
 
-#include "DynamicType.h"
+#include "DependencyType.h"
+#include "Entry.h"
 
 namespace Engine::Vulkan::RenderGraph::Interface {
 
-    class Node : virtual public DynamicType {
+    class Node : public virtual IEntry {
     public:
-        virtual ~Node() = default;
+        virtual void RemoveDependency(INode* dependency) = 0;
 
-    protected:
-        virtual const std::unordered_set<Node*>& GetProducers() const = 0;
         virtual const std::unordered_set<Node*>& GetConsumers() const = 0;
-
-        virtual uint32_t GetProducersCount() const = 0;
-        virtual uint32_t GetConsumersCount() const = 0;
-
-    private:
-        friend class ::Engine::Vulkan::RenderGraph::TaskBuilder;
+        virtual const std::unordered_set<Node*>& GetProducers() const = 0;
     };
 
 }  // namespace Engine::Vulkan::RenderGraph::Interface

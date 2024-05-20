@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Engine/Utils/Base.h"
+
 namespace Engine {
 
     class Window;
@@ -30,12 +32,17 @@ namespace Engine {
                 class DynamicType;
                 class Entry;
                 class Node;
+
                 class Pass;
+                class PassFactory;
                 class PassNode;
-                class PassEntry;
                 class PassCluster;
+
                 class StaticResourceNode;
                 class ImageResourceNode;
+                class ProxyResourceNode;
+                class ResourceNode;
+                class RemovableDependency;
             }  // namespace Interface
 
             using Interface::DependencyType;
@@ -43,17 +50,24 @@ namespace Engine {
             using Interface::ImageResourceNode;
             using Interface::StaticResourceNode;
 
-            using IEntry       = Interface::Entry;
-            using INode        = Interface::Node;
+            using IEntry = Interface::Entry;
+            using INode  = Interface::Node;
+
             using IPass        = Interface::Pass;
+            using IPassFactory = Interface::PassFactory;
             using IPassNode    = Interface::PassNode;
-            using IPassEntry   = Interface::PassEntry;
             using IPassCluster = Interface::PassCluster;
+
+            using IRemoveDependency  = Interface::RemovableDependency;
+            using IProxyResourceNode = Interface::ProxyResourceNode;
+            using IResourceNode      = Interface::ResourceNode;
 
             class ResourceNode;
             class PassNode;
             class RenderGraph;
             class TaskBuilder;
+            class ProxyResourceNode;
+            class ExternalDependencyManager;
 
             class SwapChainNodesState;
             class SwapChainAquirePassNode;
