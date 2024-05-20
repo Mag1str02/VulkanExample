@@ -13,7 +13,7 @@ namespace Engine {
            << "Expected:\t" << expr_str << "\n"
            << "Source:\t\t" << file << ", line " << line << "\n";
         std::cerr << ss.str() << std::endl;
-        exit(1);
+        std::abort();
     }
 
 }  // namespace Engine

@@ -47,8 +47,6 @@ namespace Engine {
 
             using Interface::DependencyType;
             using Interface::DynamicType;
-            using Interface::ImageResourceNode;
-            using Interface::StaticResourceNode;
 
             using IEntry = Interface::Entry;
             using INode  = Interface::Node;
@@ -58,9 +56,11 @@ namespace Engine {
             using IPassNode    = Interface::PassNode;
             using IPassCluster = Interface::PassCluster;
 
-            using IRemoveDependency  = Interface::RemovableDependency;
-            using IProxyResourceNode = Interface::ProxyResourceNode;
-            using IResourceNode      = Interface::ResourceNode;
+            using IRemoveDependency   = Interface::RemovableDependency;
+            using IProxyResourceNode  = Interface::ProxyResourceNode;
+            using IResourceNode       = Interface::ResourceNode;
+            using IStaticResourceNode = Interface::StaticResourceNode;
+            using IImageResourceNode  = Interface::ImageResourceNode;
 
             class ResourceNode;
             class PassNode;

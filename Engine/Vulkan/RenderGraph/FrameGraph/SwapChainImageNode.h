@@ -5,7 +5,7 @@
 
 namespace Engine::Vulkan::RenderGraph {
 
-    class SwapChainImageNode : public ImageResourceNode, public ResourceNode {
+    class SwapChainImageNode : public IImageResourceNode, public ResourceNode {
     public:
         SwapChainImageNode(Ref<SwapChainNodesState> state);
 

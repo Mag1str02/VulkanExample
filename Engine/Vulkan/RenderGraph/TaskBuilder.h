@@ -7,16 +7,11 @@
 namespace Engine::Vulkan::RenderGraph {
 
     class TaskBuilder {
-    private:
-        using Graph = std::unordered_map<INode*, std::unordered_set<INode*>>;
-
     public:
         TaskBuilder(RenderGraph* graph, Ref<SemaphorePool> semaphore_pool);
         Ref<Task> Build();
 
     private:
-        std::vector<INode*> TopologicalSort(const std::unordered_set<INode*>& nodes) const;
-
         class Task : public ITask {
         public:
             Task() = default;

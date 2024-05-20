@@ -7,7 +7,6 @@
 #include <Engine/Vulkan/Concrete/SmartCommandBuffer.h>
 #include <Engine/Vulkan/ImageView.h>
 
-
 #include <GLFW/glfw3.h>
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
