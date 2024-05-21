@@ -14,16 +14,17 @@ namespace Engine::Vulkan::RenderGraph {
     private:
         class Task : public ITask {
         public:
-            Task() = default;
+            Task(std::vector<Scope<IPassCluster>> clusters, std::vector<Scope<IPass>> passes);
 
             virtual bool IsCompleted() const override;
             virtual void Run(Executor* executor) override;
+
+        private:
+            std::vector<Scope<IPassCluster>> m_PassClusters;
+            std::vector<Scope<IPass>>        m_Passes;
         };
 
     private:
-        std::vector<Scope<IPassCluster>> m_PassClusters;
-        std::vector<Scope<IPass>>        m_Passes;
-
         RenderGraph*       m_Graph;
         Ref<SemaphorePool> m_SemaphorePool;
     };

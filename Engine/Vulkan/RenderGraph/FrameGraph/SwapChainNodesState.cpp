@@ -13,7 +13,7 @@ namespace Engine::Vulkan::RenderGraph {
     bool SwapChainNodesState::Iteration::AquireNextImage(VkSemaphore signal_semaphore) {
         auto res    = m_SwapChain->AcquireImage(signal_semaphore, VK_NULL_HANDLE);
         m_OutOfDate = res == VK_SUBOPTIMAL_KHR;
-        return res == VK_ERROR_OUT_OF_DATE_KHR;
+        return res != VK_ERROR_OUT_OF_DATE_KHR;
     }
 
     void SwapChainNodesState::Iteration::SetCurrentPresentSemaphore(Ref<Semaphore> semaphore) {

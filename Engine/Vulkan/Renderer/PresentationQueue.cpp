@@ -6,7 +6,6 @@ namespace Engine::Vulkan {
 
     PresentationQueue::PresentationQueue(Device* device, VkQueue queue, uint32_t queue_family_index) : Queue(device, queue, queue_family_index) {}
     VkResult PresentationQueue::Present(Ref<SwapChain::Image> image, VkSemaphore wait_semaphore) {
-        VkResult res;
         uint32_t index = image->GetIndex();
 
         VkPresentInfoKHR info{};
@@ -14,11 +13,13 @@ namespace Engine::Vulkan {
         info.swapchainCount     = 1;
         info.pSwapchains        = &image->GetSwapChainHandle();
         info.pImageIndices      = &index;
-        info.pResults           = &res;
+        info.pResults           = nullptr;
         info.waitSemaphoreCount = 1;
         info.pWaitSemaphores    = &wait_semaphore;
 
-        VK_CHECK(vkQueuePresentKHR(m_Queue, &info));
+        VkResult res = vkQueuePresentKHR(m_Queue, &info);
+        DE_ASSERT(res == VK_SUCCESS || res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR, "Failed to present swapcahin image");
+
         return res;
     }
 

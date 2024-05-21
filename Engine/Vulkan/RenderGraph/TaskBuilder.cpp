@@ -57,8 +57,9 @@ namespace Engine::Vulkan::RenderGraph {
     Ref<Task> TaskBuilder::Build() {
         PROFILER_SCOPE("Engine::Vulkan::RenderGraph::TaskBuilder::Build");
 
-        auto& m_Passes        = this->m_Passes;
-        auto& m_PassClusters  = this->m_PassClusters;
+        std::vector<Scope<IPassCluster>> pass_clusters;
+        std::vector<Scope<IPass>>        passes;
+
         auto& m_SemaphorePool = this->m_SemaphorePool;
 
         //* function declaration
@@ -107,12 +108,12 @@ namespace Engine::Vulkan::RenderGraph {
                 }
             }
 
-            std::sort(nodes.begin(), nodes.end(), [&counters](INode* a, INode* b) { return counters[a] < counters[b]; });
+            std::sort(nodes.begin(), nodes.end(), [&counters](INode* a, INode* b) { return counters[a] > counters[b]; });
+
             return nodes;
         };
-
-        auto BuildClusters = [&m_PassClusters](const Graph&                              graph,
-                                               const std::unordered_map<INode*, IPass*>& passes) -> std::unordered_map<INode*, IPassCluster*> {
+        auto BuildClusters = [&pass_clusters](const Graph&                              graph,
+                                              const std::unordered_map<INode*, IPass*>& passes) -> std::unordered_map<INode*, IPassCluster*> {
             std::unordered_map<INode*, IPassCluster*> pass_node_to_cluster;
             std::unordered_set<INode*>                front_line;
 
@@ -125,8 +126,8 @@ namespace Engine::Vulkan::RenderGraph {
             }
 
             while (!front_line.empty()) {
-                m_PassClusters.emplace_back((*front_line.begin())->As<IPassFactory>()->CreatePassCluster());
-                IPassCluster*      cluster = m_PassClusters.back().get();
+                pass_clusters.emplace_back((*front_line.begin())->As<IPassFactory>()->CreatePassCluster());
+                IPassCluster*      cluster = pass_clusters.back().get();
                 std::queue<INode*> candidates(front_line.begin(), front_line.end());
                 bool               cluster_non_empty = false;
                 while (!candidates.empty()) {
@@ -158,12 +159,12 @@ namespace Engine::Vulkan::RenderGraph {
                 }
             }
         };
-        auto InstantiatePasses = [&m_Passes](const Graph& graph) -> std::unordered_map<INode*, IPass*> {
+        auto InstantiatePasses = [&passes](const Graph& graph) -> std::unordered_map<INode*, IPass*> {
             std::unordered_map<INode*, IPass*> result;
             for (const auto& [node, consumer] : graph) {
                 if (node->Is<PassNode>()) {
-                    m_Passes.emplace_back(node->As<PassNode>()->CreatePass());
-                    result[node] = m_Passes.back().get();
+                    passes.emplace_back(node->As<PassNode>()->CreatePass());
+                    result[node] = passes.back().get();
                 }
             }
             return result;
@@ -186,6 +187,16 @@ namespace Engine::Vulkan::RenderGraph {
                 }
             }
         };
+        auto PreparePasses = [](const std::vector<INode*>& nodes, const std::unordered_map<INode*, IPass*>& node_to_pass) -> void {
+            for (const auto& node : nodes) {
+                node_to_pass.at(node)->Prepare();
+            }
+        };
+        auto FinalizeClusters = [](const std::vector<Scope<IPassCluster>>& clusters) -> void {
+            for (const auto& cluster : clusters) {
+                cluster->Finalize();
+            }
+        };
 
         //* 0
         auto all_nodes = m_Graph->GetNodes();
@@ -204,14 +215,26 @@ namespace Engine::Vulkan::RenderGraph {
         auto cluster_graph   = BuildClusterGraph(graph, node_to_cluster);
         BuildClusterDependencies(cluster_graph);
 
-        // auto sorted_nodes          = TopologicalSort(graph);
+        //*4
+        auto sorted_nodes = TopologicalSort(graph);
+        PreparePasses(sorted_nodes, node_to_pass);
 
-        return Ref<Task>(new Task());
+        //*5
+        FinalizeClusters(pass_clusters);
+
+        return Ref<Task>(new Task(std::move(pass_clusters), std::move(passes)));
     }
+
+    TaskBuilder::Task::Task(std::vector<Scope<IPassCluster>> clusters, std::vector<Scope<IPass>> passes) :
+        m_PassClusters(std::move(clusters)), m_Passes(std::move(passes)) {}
 
     bool TaskBuilder::Task::IsCompleted() const {
         return true;
     }
-    void TaskBuilder::Task::Run(Executor* executor) {}
+    void TaskBuilder::Task::Run(Executor* executor) {
+        for (const auto& cluster : m_PassClusters) {
+            cluster->Submit(executor);
+        }
+    }
 
 }  // namespace Engine::Vulkan::RenderGraph
