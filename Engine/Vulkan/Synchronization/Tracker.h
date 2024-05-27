@@ -12,8 +12,6 @@ namespace Engine::Vulkan::Synchronization {
 
         void Reset();
 
-        bool HasImage(Ref<IImage> image) const;
-
     private:
         std::unordered_map<Ref<IImage>, ImageTracker> m_ImageStates;
     };

@@ -21,7 +21,8 @@ namespace Engine::Vulkan::RenderGraph {
     private:
         class Pass : public IPass {
         public:
-            void SetSignalSemaphore(Ref<Semaphore> semaphore);
+            void SetSignalSemaphore(Ref<IBinarySemaphore> semaphore);
+            bool IsCompleted() const;
 
         protected:
             virtual void Prepare() override;
@@ -32,9 +33,10 @@ namespace Engine::Vulkan::RenderGraph {
         private:
             friend SwapChainAquirePassNode;
 
-            Ref<Semaphore>                      m_SignalSemaphore;
+            Ref<IBinarySemaphore>               m_SignalSemaphore;
             Ref<SwapChainNodesState>            m_State;
             Ref<SwapChainNodesState::Iteration> m_Iteration;
+            Ref<IFence>                         m_SignalFence;
         };
 
         class Cluster : public IPassCluster {
@@ -43,11 +45,11 @@ namespace Engine::Vulkan::RenderGraph {
 
         protected:
             virtual void Submit(Executor* executor) override;
-            virtual void Finalize() override;
             virtual bool AddPass(IPass* pass) override;
 
-            virtual void AddWaitSemaphore(Ref<Semaphore> semaphore) override;
-            virtual void AddSignalSemaphore(Ref<Semaphore> semaphore) override;
+            virtual void AddWaitSemaphore(Ref<IBinarySemaphore> semaphore) override;
+            virtual void AddSignalSemaphore(Ref<IBinarySemaphore> semaphore) override;
+            virtual bool IsCompleted() const override;
 
         private:
             SwapChainAquirePassNode::Pass* m_AquirePass = nullptr;

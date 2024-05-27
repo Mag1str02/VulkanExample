@@ -4,16 +4,8 @@ add_library(VulkanHelpers
 
     Utils/Assert.cpp
 
-    Vulkan/Concrete/Fence.cpp
-    Vulkan/Concrete/CommandBuffer.cpp
-    Vulkan/Concrete/Image.cpp
-    Vulkan/Concrete/SmartCommandBuffer.cpp
-
-    Vulkan/Interface/Fence.cpp
-    Vulkan/Interface/Image.cpp
-
     Vulkan/Managed/Fence.cpp
-    Vulkan/Managed/CommandBuffer.cpp
+    Vulkan/Managed/RawCommandBuffer.cpp
     Vulkan/Managed/Image.cpp
 
     Vulkan/RenderGraph/PassNode.cpp
@@ -41,17 +33,21 @@ add_library(VulkanHelpers
     Vulkan/Renderer/PresentationQueue.cpp
     Vulkan/Renderer/Queue.cpp
     Vulkan/Renderer/Renderer.cpp
-    Vulkan/Renderer/SemaphorePool.cpp
-    Vulkan/Renderer/Task.cpp
     Vulkan/Renderer/Executor.cpp
 
     Vulkan/Window/SwapChain.cpp
     Vulkan/Window/Surface.cpp
     Vulkan/Window/Window.cpp
 
+    Vulkan/Fence.cpp
+    Vulkan/FencePool.cpp
+    Vulkan/CommandBuffer.cpp
+    Vulkan/Image.cpp
+    Vulkan/RawCommandBuffer.cpp
     Vulkan/Buffer.cpp
     Vulkan/CommandPool.cpp
     Vulkan/ImageSampler.cpp
+    Vulkan/BinarySemaphorePool.cpp
     Vulkan/ImageView.cpp
 
     Vulkan/Helpers.cpp

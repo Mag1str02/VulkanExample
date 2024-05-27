@@ -3,7 +3,6 @@
 #include "Config.h"
 #include "Device.h"
 #include "Executor.h"
-#include "Task.h"
 
 namespace Engine::Vulkan {
 
@@ -28,7 +27,6 @@ namespace Engine::Vulkan {
         Ref<Instance>            m_Instance;
         Ref<Debugger>            m_Debugger;
         Ref<Device>              m_Device;
-        Ref<SemaphorePool>       m_SemaphorePool;
         ManualLifetime<Executor> m_Executor;
     };
 

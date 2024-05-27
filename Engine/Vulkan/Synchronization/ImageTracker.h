@@ -24,23 +24,19 @@ namespace Engine::Vulkan::Synchronization {
             VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
             ReadAccesses  read_accesses;
             AccessScope   write;
+
+            bool HasWrite() const;
         };
 
     public:
         std::optional<VkImageMemoryBarrier2> AccessRequest(AccessScope scope, VkImageLayout layout);
 
-        const State&                GetPrefix() const;
-        const std::optional<State>& GetSuffix() const;
+        const State& GetPrefix() const;
+        const State& GetSuffix() const;
 
     private:
-        VkImageLayout GetCurrentLayout() const;
-
-    private:
-        State                m_Prefix;
-        std::optional<State> m_Suffix;
+        State m_Prefix;
+        State m_Suffix;
     };
-
-    std::vector<VkImageMemoryBarrier2> ConnectSyncStates(const IImage& image, const ImageTracker::State& suffix, const ImageTracker::State& prefix);
-    void UpdateImageState(IImage& image, const ImageTracker::State& prefix, const std::optional<ImageTracker::State>& suffix);
 
 }  // namespace Engine::Vulkan::Synchronization

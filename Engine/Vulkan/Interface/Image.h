@@ -7,6 +7,8 @@ namespace Engine::Vulkan::Interface {
 
     class Image {
     public:
+        using SyncState = Synchronization::ImageTracker::State;
+
         virtual ~Image() = default;
 
         virtual uint32_t GetHeight() const = 0;
@@ -18,5 +20,10 @@ namespace Engine::Vulkan::Interface {
 
         virtual VkImage     Handle() const    = 0;
         virtual Ref<Device> GetDevice() const = 0;
+
+    protected:
+        virtual SyncState& GetSyncState() = 0;
+
+        friend class ::Engine::Vulkan::Executor;
     };
 };  // namespace Engine::Vulkan::Interface

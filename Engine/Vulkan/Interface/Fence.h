@@ -8,8 +8,8 @@ namespace Engine::Vulkan::Interface {
     public:
         virtual ~Fence() = default;
 
-        virtual VkFence Handle()           = 0;
-        virtual bool    IsSignaled() const = 0;
+        virtual const VkFence& Handle() const     = 0;
+        virtual bool           IsSignaled() const = 0;
 
         virtual void Wait() const = 0;
         virtual void Reset()      = 0;

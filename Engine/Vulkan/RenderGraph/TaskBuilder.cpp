@@ -1,5 +1,7 @@
 #include "TaskBuilder.h"
 
+#include "Engine/Vulkan/BinarySemaphorePool.h"
+#include "Engine/Vulkan/Fence.h"
 #include "Engine/Vulkan/RenderGraph/Interface/Node.h"
 #include "Engine/Vulkan/RenderGraph/Interface/Pass.h"
 #include "Engine/Vulkan/RenderGraph/Interface/PassCluster.h"
@@ -7,16 +9,18 @@
 #include "Engine/Vulkan/RenderGraph/Interface/PassNode.h"
 #include "Engine/Vulkan/RenderGraph/Interface/StaticResourceNode.h"
 #include "Engine/Vulkan/RenderGraph/PassNode.h"
+#include "Engine/Vulkan/RenderGraph/RenderGraph.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
     namespace {
 
-        using Graph        = std::unordered_map<INode*, std::unordered_set<INode*>>;
-        using ClusterGraph = std::unordered_map<IPassCluster*, std::unordered_set<IPassCluster*>>;
+        template <typename T>
+        using Graph = std::unordered_map<T*, std::unordered_set<T*>>;
 
-        Graph BuildReverseGraph(const Graph& graph) {
-            Graph result;
+        template <typename T>
+        Graph<T> BuildReverseGraph(const Graph<T>& graph) {
+            Graph<T> result;
             for (const auto& [node, _] : graph) {
                 result[node] = {};
             }
@@ -27,12 +31,12 @@ namespace Engine::Vulkan::RenderGraph {
             }
             return result;
         };
-        template <typename T>
-        void RemoveNodes(Graph& graph) {
+        template <typename TGraph, typename TNode>
+        void RemoveNodes(Graph<TGraph>& graph) {
             auto                reversed_graph = BuildReverseGraph(graph);
             std::vector<INode*> nodes;
             for (const auto& [node, _] : graph) {
-                if (node->Is<T>()) {
+                if (node->template Is<TNode>()) {
                     nodes.emplace_back(node);
                 }
             }
@@ -49,49 +53,19 @@ namespace Engine::Vulkan::RenderGraph {
                 graph.erase(node);
             }
         }
+        template <typename T>
+        std::vector<T*> TopologicalSort(const Graph<T>& graph) {
+            uint64_t                         counter = 2;
+            std::unordered_map<T*, uint64_t> counters;
 
-    }  // namespace
-
-    TaskBuilder::TaskBuilder(RenderGraph* graph, Ref<SemaphorePool> semaphore_pool) : m_Graph(graph), m_SemaphorePool(semaphore_pool) {};
-
-    Ref<Task> TaskBuilder::Build() {
-        PROFILER_SCOPE("Engine::Vulkan::RenderGraph::TaskBuilder::Build");
-
-        std::vector<Scope<IPassCluster>> pass_clusters;
-        std::vector<Scope<IPass>>        passes;
-
-        auto& m_SemaphorePool = this->m_SemaphorePool;
-
-        //* function declaration
-        auto BuildFullGraph = [](const std::unordered_set<INode*>& nodes) -> Graph {
-            Graph graph;
-            for (const auto& node : nodes) {
-                graph[node] = {};
-            }
-            for (const auto& node : nodes) {
-                for (const auto& consumer : node->GetConsumers()) {
-                    DE_CHECK(graph.contains(consumer));
-                    graph[node].emplace(consumer);
-                }
-                for (const auto& producer : node->GetProducers()) {
-                    DE_CHECK(graph.contains(producer));
-                    graph[producer].emplace(node);
-                }
-            }
-            return graph;
-        };
-        auto TopologicalSort = [](const Graph& graph) -> std::vector<INode*> {
-            uint64_t                             counter = 2;
-            std::unordered_map<INode*, uint64_t> counters;
-
-            std::vector<INode*> nodes;
+            std::vector<T*> nodes;
             for (const auto& [node, _] : graph) {
                 counters.emplace(node, 0);
                 nodes.emplace_back(node);
             }
 
-            std::function<void(INode*)> dfs;
-            dfs = [&counter, &counters, &dfs, &graph](INode* current_node) {
+            std::function<void(T*)> dfs;
+            dfs = [&counter, &counters, &dfs, &graph](T* current_node) {
                 counters[current_node] = 1;
                 for (const auto& consumer : graph.at(current_node)) {
                     DE_ASSERT(counters.contains(consumer), "Found unknow node");  // TODO: move to validation
@@ -108,11 +82,43 @@ namespace Engine::Vulkan::RenderGraph {
                 }
             }
 
-            std::sort(nodes.begin(), nodes.end(), [&counters](INode* a, INode* b) { return counters[a] > counters[b]; });
+            std::sort(nodes.begin(), nodes.end(), [&counters](T* a, T* b) { return counters[a] > counters[b]; });
 
             return nodes;
         };
-        auto BuildClusters = [&pass_clusters](const Graph&                              graph,
+
+    }  // namespace
+
+    TaskBuilder::TaskBuilder(RenderGraph* graph, Ref<BinarySemaphorePool> semaphore_pool) : m_Graph(graph), m_SemaphorePool(semaphore_pool) {};
+
+    TaskBuilder::TaskObjects TaskBuilder::Build() {
+        PROFILER_SCOPE("Engine::Vulkan::RenderGraph::TaskBuilder::Build");
+
+        std::vector<Scope<IPassCluster>> pass_clusters;
+        std::vector<Scope<IPass>>        passes;
+
+        auto& m_SemaphorePool = this->m_SemaphorePool;
+
+        //* function declaration
+        auto BuildFullGraph = [](const std::unordered_set<INode*>& nodes) -> Graph<INode> {
+            Graph<INode> graph;
+            for (const auto& node : nodes) {
+                graph[node] = {};
+            }
+            for (const auto& node : nodes) {
+                for (const auto& consumer : node->GetConsumers()) {
+                    DE_CHECK(graph.contains(consumer));
+                    graph[node].emplace(consumer);
+                }
+                for (const auto& producer : node->GetProducers()) {
+                    DE_CHECK(graph.contains(producer));
+                    graph[producer].emplace(node);
+                }
+            }
+            return graph;
+        };
+
+        auto BuildClusters = [&pass_clusters](const Graph<INode>&                       graph,
                                               const std::unordered_map<INode*, IPass*>& passes) -> std::unordered_map<INode*, IPassCluster*> {
             std::unordered_map<INode*, IPassCluster*> pass_node_to_cluster;
             std::unordered_set<INode*>                front_line;
@@ -152,14 +158,14 @@ namespace Engine::Vulkan::RenderGraph {
             DE_ASSERT(pass_node_to_cluster.size() == passes.size(), "{} {}", pass_node_to_cluster.size(), passes.size());
             return pass_node_to_cluster;
         };
-        auto InstantiateResources = [](const Graph& graph) -> void {
+        auto InstantiateResources = [](const Graph<INode>& graph) -> void {
             for (const auto& [node, _] : graph) {
                 if (node->Is<IStaticResourceNode>()) {
                     node->As<IStaticResourceNode>()->Instantiate();
                 }
             }
         };
-        auto InstantiatePasses = [&passes](const Graph& graph) -> std::unordered_map<INode*, IPass*> {
+        auto InstantiatePasses = [&passes](const Graph<INode>& graph) -> std::unordered_map<INode*, IPass*> {
             std::unordered_map<INode*, IPass*> result;
             for (const auto& [node, consumer] : graph) {
                 if (node->Is<PassNode>()) {
@@ -169,21 +175,24 @@ namespace Engine::Vulkan::RenderGraph {
             }
             return result;
         };
-        auto BuildClusterGraph = [](const Graph& graph, std::unordered_map<INode*, IPassCluster*>& node_to_cluster) -> ClusterGraph {
-            ClusterGraph result;
+        auto BuildClusterGraph = [](const Graph<INode>& graph, std::unordered_map<INode*, IPassCluster*>& node_to_cluster) -> Graph<IPassCluster> {
+            Graph<IPassCluster> result;
+            for (const auto& [node, _] : graph) {
+                result[node_to_cluster.at(node)] = {};
+            }
             for (const auto& [node, consumers] : graph) {
                 for (const auto& consumer : consumers) {
-                    result[node_to_cluster.at(node)].emplace(node_to_cluster.at(consumer));
+                    result.at(node_to_cluster.at(node)).emplace(node_to_cluster.at(consumer));
                 }
             }
             return result;
         };
-        auto BuildClusterDependencies = [&m_SemaphorePool](const ClusterGraph& graph) -> void {
-            for (const auto& [cluster, consumers] : graph) {
-                for (const auto& consumer : consumers) {
+        auto BuildClusterDependencies = [&m_SemaphorePool](const std::vector<IPassCluster*>& clusters) -> void {
+            for (size_t i = 0; i < clusters.size(); ++i) {
+                if (i + 1 < clusters.size()) {
                     auto semaphore = m_SemaphorePool->CreateSemaphore();
-                    cluster->AddSignalSemaphore(semaphore);
-                    consumer->AddWaitSemaphore(std::move(semaphore));
+                    clusters[i]->AddSignalSemaphore(semaphore);
+                    clusters[i + 1]->AddWaitSemaphore(std::move(semaphore));
                 }
             }
         };
@@ -192,49 +201,35 @@ namespace Engine::Vulkan::RenderGraph {
                 node_to_pass.at(node)->Prepare();
             }
         };
-        auto FinalizeClusters = [](const std::vector<Scope<IPassCluster>>& clusters) -> void {
-            for (const auto& cluster : clusters) {
-                cluster->Finalize();
-            }
-        };
 
         //* 0
         auto all_nodes = m_Graph->GetNodes();
 
         //* 1
-        Graph graph = BuildFullGraph(all_nodes);
-        RemoveNodes<IProxyResourceNode>(graph);
+        Graph<INode> graph = BuildFullGraph(all_nodes);
+        RemoveNodes<INode, IProxyResourceNode>(graph);
 
         //*2
         InstantiateResources(graph);
         auto node_to_pass = InstantiatePasses(graph);
 
         //*3
-        RemoveNodes<IResourceNode>(graph);
+        RemoveNodes<INode, IResourceNode>(graph);
         auto node_to_cluster = BuildClusters(graph, node_to_pass);
         auto cluster_graph   = BuildClusterGraph(graph, node_to_cluster);
-        BuildClusterDependencies(cluster_graph);
 
         //*4
+        auto sorted_clusters = TopologicalSort(cluster_graph);
+        BuildClusterDependencies(sorted_clusters);
+
+        //*5
         auto sorted_nodes = TopologicalSort(graph);
         PreparePasses(sorted_nodes, node_to_pass);
 
-        //*5
-        FinalizeClusters(pass_clusters);
-
-        return Ref<Task>(new Task(std::move(pass_clusters), std::move(passes)));
-    }
-
-    TaskBuilder::Task::Task(std::vector<Scope<IPassCluster>> clusters, std::vector<Scope<IPass>> passes) :
-        m_PassClusters(std::move(clusters)), m_Passes(std::move(passes)) {}
-
-    bool TaskBuilder::Task::IsCompleted() const {
-        return true;
-    }
-    void TaskBuilder::Task::Run(Executor* executor) {
-        for (const auto& cluster : m_PassClusters) {
-            cluster->Submit(executor);
-        }
+        TaskObjects result;
+        result.pass_clusters = std::move(pass_clusters);
+        result.passes        = std::move(passes);
+        return result;
     }
 
 }  // namespace Engine::Vulkan::RenderGraph

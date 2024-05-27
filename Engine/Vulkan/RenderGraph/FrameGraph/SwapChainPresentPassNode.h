@@ -23,7 +23,7 @@ namespace Engine::Vulkan::RenderGraph {
         public:
             virtual void Prepare() override;
 
-            void SetWaitSemaphore(Ref<Semaphore> semaphore);
+            void SetWaitSemaphore(Ref<IBinarySemaphore> semaphore);
 
             VkSwapchainKHR        GetSwapChainHandle();
             Ref<SwapChain::Image> GetPresentImage();
@@ -35,7 +35,7 @@ namespace Engine::Vulkan::RenderGraph {
         private:
             friend SwapChainPresentPassNode;
 
-            Ref<Semaphore>                      m_WaitSemaphore;
+            Ref<IBinarySemaphore>               m_WaitSemaphore;
             Ref<SwapChainNodesState>            m_State;
             Ref<SwapChainNodesState::Iteration> m_Iteration;
         };
@@ -46,11 +46,11 @@ namespace Engine::Vulkan::RenderGraph {
 
         protected:
             virtual void Submit(Executor* executor) override;
-            virtual void Finalize() override;
             virtual bool AddPass(IPass* pass) override;
 
-            virtual void AddWaitSemaphore(Ref<Semaphore> semaphore) override;
-            virtual void AddSignalSemaphore(Ref<Semaphore> semaphore) override;
+            virtual void AddWaitSemaphore(Ref<IBinarySemaphore> semaphore) override;
+            virtual void AddSignalSemaphore(Ref<IBinarySemaphore> semaphore) override;
+            virtual bool IsCompleted() const override;
 
         private:
             SwapChainPresentPassNode::Pass* m_PresentPass = nullptr;

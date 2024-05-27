@@ -3,7 +3,7 @@
 #include "Engine/Vulkan/Interface/Image.h"
 
 namespace Engine::Vulkan::Managed {
-    class Image : public Interface::Image {
+    class Image : public IImage {
     public:
         Image(VkImage image, VkFormat format, VkImageUsageFlags usage_flags, VkExtent2D extent, Device* device);
         Image()          = default;
@@ -28,6 +28,11 @@ namespace Engine::Vulkan::Managed {
         VkExtent2D        m_Extent{};
 
         Device* m_Device;
+
+    private:
+        virtual SyncState& GetSyncState() override;
+
+        SyncState m_SyncState;
     };
 
 }  // namespace Engine::Vulkan::Managed

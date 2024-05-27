@@ -3,7 +3,7 @@
 #include "Engine/Vulkan/Helpers.h"
 #include "Engine/Vulkan/Renderer/Device.h"
 
-namespace Engine::Vulkan::Concrete {
+namespace Engine::Vulkan {
     Ref<Image> Image::Create(
         Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
         return Ref<Image>(new Image(device, width, height, format, usage, properties));
@@ -49,4 +49,4 @@ namespace Engine::Vulkan::Concrete {
         vkDestroyImage(m_Device->GetLogicDevice(), m_Image, nullptr);
     }
 
-}  // namespace Engine::Vulkan::Concrete
+}  // namespace Engine::Vulkan

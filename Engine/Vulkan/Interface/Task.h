@@ -2,7 +2,7 @@
 
 #include "Engine/Vulkan/Common.h"
 
-namespace Engine::Vulkan {
+namespace Engine::Vulkan::Interface {
 
     class Task {
     public:
@@ -13,7 +13,7 @@ namespace Engine::Vulkan {
         virtual void Run(Executor* executor) = 0;
 
     private:
-        friend class Executor;
+        friend class ::Engine::Vulkan::Executor;
     };
 
-}  // namespace Engine::Vulkan
+}  // namespace Engine::Vulkan::Interface

@@ -10,17 +10,24 @@ namespace Engine {
 
         namespace Interface {
             class Image;
+            class Fence;
+            class BinarySemaphore;
+            class RawCommandBuffer;
+            class Task;
         }  // namespace Interface
+
+        using IRawCommandBuffer = Interface::RawCommandBuffer;
+        using IImage            = Interface::Image;
+        using IFence            = Interface::Fence;
+        using ITask             = Interface::Task;
+        using IBinarySemaphore  = Interface::BinarySemaphore;
+
         namespace Managed {
             class Fence;
             class Image;
             class CommandBuffer;
         }  // namespace Managed
-        namespace Concrete {
-            class Fence;
-            class Image;
-            class CommandBuffer;
-        }  // namespace Concrete
+
         namespace Synchronization {
             class AccessScope;
             class ImageTracker;
@@ -81,23 +88,21 @@ namespace Engine {
         class Device;
         class Queue;
         class CommandPool;
+        class CommandBuffer;
         class Buffer;
         class ImageSampler;
         class ImageView;
         class Surface;
         class SwapChain;
+        class Fence;
+        class Image;
 
         class Config;
         class Renderer;
         class Window;
 
-        class Task;
         class Executor;
-        class Semaphore;
-        class SemaphorePool;
-
-        using IImage = Interface::Image;
-        using ITask  = Task;
+        class BinarySemaphorePool;
 
     }  // namespace Vulkan
 

@@ -1,10 +1,9 @@
 #include <Engine/Application/Application.h>
 #include <Engine/Vulkan/Renderer/Renderer.h>
 
+#include <Engine/Vulkan/CommandBuffer.h>
 #include <Engine/Vulkan/CommandPool.h>
-#include <Engine/Vulkan/Concrete/CommandBuffer.h>
-#include <Engine/Vulkan/Concrete/Fence.h>
-#include <Engine/Vulkan/Concrete/SmartCommandBuffer.h>
+#include <Engine/Vulkan/Fence.h>
 #include <Engine/Vulkan/ImageView.h>
 
 #include <GLFW/glfw3.h>
@@ -21,7 +20,7 @@ public:
 
     virtual void OnStartUp() override {
         auto command_pool = Vulkan::CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetGraphicsQueue()->FamilyIndex());
-        m_CommandBuffer   = Vulkan::Concrete::SmartCommandBuffer::Create(command_pool);
+        m_CommandBuffer   = Vulkan::CommandBuffer::Create(command_pool);
     }
     virtual void OnShutDown() override {
         vkDeviceWaitIdle(m_Renderer->GetDevice()->GetLogicDevice());
@@ -68,7 +67,7 @@ public:
     }
 
 private:
-    Ref<Vulkan::Concrete::SmartCommandBuffer> m_CommandBuffer;
+    Ref<Vulkan::CommandBuffer> m_CommandBuffer;
 };
 
 int main() {

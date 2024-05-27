@@ -5,11 +5,12 @@
 #include "SwapChainPresentPassNode.h"
 
 #include "Engine/Vulkan/RenderGraph/ResourceNode.h"
+#include "Engine/Vulkan/Window/Surface.h"
 #include "Engine/Vulkan/Window/SwapChain.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
-    FrameGraph::FrameGraph(Ref<Surface> surface) {
+    FrameGraph::FrameGraph(Ref<Surface> surface) : RenderGraph(surface->GetDevice()) {
         auto shared_state = CreateRef<SwapChainNodesState>(surface);
 
         // auto* auquire_pass_node  = CreateEnrty<SwapChainAquirePassNode>(shared_state);

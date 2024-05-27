@@ -4,12 +4,13 @@
 
 namespace Engine::Vulkan::Managed {
 
-    class Fence : public Interface::Fence {
+    class Fence : public IFence {
     public:
+        Fence(VkDevice device, VkFence fence);
         virtual ~Fence() = default;
 
-        virtual VkFence Handle() override;
-        virtual bool    IsSignaled() const override;
+        virtual const VkFence& Handle() const override;
+        virtual bool           IsSignaled() const override;
 
         virtual void Wait() const override;
         virtual void Reset() override;
@@ -17,11 +18,11 @@ namespace Engine::Vulkan::Managed {
     protected:
         Fence() = default;
 
-        void Init(Ref<Device> device, VkFence fence);
+        void Init(VkDevice device, VkFence fence);
 
     protected:
-        Ref<Device> m_Device;
-        VkFence     m_Handle = VK_NULL_HANDLE;
+        VkDevice m_Device;
+        VkFence  m_Handle = VK_NULL_HANDLE;
     };
 
 }  // namespace Engine::Vulkan::Managed

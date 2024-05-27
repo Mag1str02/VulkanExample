@@ -1,31 +1,21 @@
 #pragma once
 
-#include "RenderGraph.h"
-
 #include "Engine/Vulkan/RenderGraph/Interface/PassCluster.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
     class TaskBuilder {
     public:
-        TaskBuilder(RenderGraph* graph, Ref<SemaphorePool> semaphore_pool);
-        Ref<Task> Build();
-
-    private:
-        class Task : public ITask {
-        public:
-            Task(std::vector<Scope<IPassCluster>> clusters, std::vector<Scope<IPass>> passes);
-
-            virtual bool IsCompleted() const override;
-            virtual void Run(Executor* executor) override;
-
-        private:
-            std::vector<Scope<IPassCluster>> m_PassClusters;
-            std::vector<Scope<IPass>>        m_Passes;
+        struct TaskObjects {
+            std::vector<Scope<IPass>>        passes;
+            std::vector<Scope<IPassCluster>> pass_clusters;
         };
 
+        TaskBuilder(RenderGraph* graph, Ref<BinarySemaphorePool> semaphore_pool);
+        TaskObjects Build();
+
     private:
-        RenderGraph*       m_Graph;
-        Ref<SemaphorePool> m_SemaphorePool;
+        RenderGraph*             m_Graph;
+        Ref<BinarySemaphorePool> m_SemaphorePool;
     };
 }  // namespace Engine::Vulkan::RenderGraph

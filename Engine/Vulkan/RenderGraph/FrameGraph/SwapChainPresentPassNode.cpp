@@ -1,12 +1,14 @@
 #include "SwapChainPresentPassNode.h"
 
+#include "Engine/Vulkan/Interface/BinarySemaphore.h"
 #include "Engine/Vulkan/Renderer/Device.h"
 #include "Engine/Vulkan/Renderer/Executor.h"
-#include "Engine/Vulkan/Renderer/SemaphorePool.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
-    void SwapChainPresentPassNode::Cluster::Finalize() {}
+    bool SwapChainPresentPassNode::Cluster::IsCompleted() const {
+        return true;
+    }
     bool SwapChainPresentPassNode::Cluster::AddPass(IPass* pass) {
         if (!pass->Is<SwapChainPresentPassNode::Pass>()) {
             return false;
@@ -21,11 +23,11 @@ namespace Engine::Vulkan::RenderGraph {
         auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(), m_PresentPass->GetWaitSemaphore());
     }
 
-    void SwapChainPresentPassNode::Cluster::AddWaitSemaphore(Ref<Semaphore> semaphore) {
+    void SwapChainPresentPassNode::Cluster::AddWaitSemaphore(Ref<IBinarySemaphore> semaphore) {
         DE_ASSERT(m_PresentPass != nullptr, "No present pass");
         m_PresentPass->SetWaitSemaphore(std::move(semaphore));
     }
-    void SwapChainPresentPassNode::Cluster::AddSignalSemaphore(Ref<Semaphore> semaphore) {
+    void SwapChainPresentPassNode::Cluster::AddSignalSemaphore(Ref<IBinarySemaphore> semaphore) {
         DE_ASSERT_FAIL("Cannot add singla semaphore to swapchain present pass cluster");
     }
 
@@ -35,7 +37,7 @@ namespace Engine::Vulkan::RenderGraph {
         m_State.reset();
     }
 
-    void SwapChainPresentPassNode::Pass::SetWaitSemaphore(Ref<Semaphore> semaphore) {
+    void SwapChainPresentPassNode::Pass::SetWaitSemaphore(Ref<IBinarySemaphore> semaphore) {
         DE_ASSERT(m_WaitSemaphore == nullptr, "Cannot set multiple wait semaphores for swapchain present pass");
         m_WaitSemaphore = std::move(semaphore);
     }

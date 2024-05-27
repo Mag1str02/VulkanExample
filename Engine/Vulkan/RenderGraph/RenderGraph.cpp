@@ -3,24 +3,35 @@
 #include "PassNode.h"
 #include "TaskBuilder.h"
 
+#include "Engine/Vulkan/BinarySemaphorePool.h"
 #include "Engine/Vulkan/RenderGraph/Interface/ResourceNode.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
-    std::expected<Ref<Task>, std::string> RenderGraph::CreateTask(Ref<SemaphorePool> semaphore_pool) {
+    RenderGraph::RenderGraph(Ref<Device> device) : m_TaskBuilder(this, BinarySemaphorePool::Create(std::move(device))) {}
+
+    std::expected<Ref<ITask>, std::string> RenderGraph::CreateTask() {
         PROFILER_SCOPE("Engine::Vulkan::RenderGraph::RenderGraph::CreateTask");
 
+        auto error = CreateTaskCheck();
+        if (error.has_value()) {
+            return std::unexpected<std::string>(error.value());
+        }
+
+        auto objects = m_TaskBuilder.Build();
+        return Ref<Task>(new Task(std::move(objects)));
+    }
+
+    std::optional<std::string> RenderGraph::CreateTaskCheck() {
         if (m_Parent != nullptr) {
-            return std::unexpected<std::string>("Cannot create task because render graph is used in other render graph");
+            return "Cannot create task because render graph is used in other render graph";
         }
 
         auto error = Validate();
         if (error) {
-            return std::unexpected<std::string>(std::format("Graph contains error: {}", *error));
+            return std::format("Graph contains error: {}", *error);
         }
-
-        TaskBuilder builder(this, semaphore_pool);
-        return builder.Build();
+        return std::nullopt;
     }
 
     std::optional<std::string> RenderGraph::Validate() const {
@@ -86,4 +97,22 @@ namespace Engine::Vulkan::RenderGraph {
         m_ExternalDependencyManager.RemoveExternalResourceRequest(pass, resource_name);
     }
 
+    RenderGraph::Task::Task(TaskBuilder::TaskObjects task_objects) :
+        m_Passes(std::move(task_objects.passes)), m_PassClusters(std::move(task_objects.pass_clusters)) {}
+
+    bool RenderGraph::Task::IsCompleted() const {
+        bool completed = true;
+        for (const auto& cluster : m_PassClusters) {
+            if (!cluster->IsCompleted()) {
+                completed = false;
+                break;
+            }
+        }
+        return completed;
+    }
+    void RenderGraph::Task::Run(Executor* executor) {
+        for (const auto& cluster : m_PassClusters) {
+            cluster->Submit(executor);
+        }
+    }
 }  // namespace Engine::Vulkan::RenderGraph

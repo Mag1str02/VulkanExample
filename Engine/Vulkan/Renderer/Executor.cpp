@@ -1,5 +1,7 @@
 #include "Executor.h"
 
+#include "Engine/Vulkan/Interface/Task.h"
+
 namespace Engine::Vulkan {
 
     Executor::Executor(Ref<Device> device) : m_Device(device) {}
@@ -7,7 +9,7 @@ namespace Engine::Vulkan {
         m_Device->WaitIdle();
     }
 
-    void Executor::Submit(Ref<Task> task) {
+    void Executor::Submit(Ref<ITask> task) {
         PROFILER_SCOPE("Engine::Vulkan::Renderer::Executor::Submit");
 
         task->Run(this);

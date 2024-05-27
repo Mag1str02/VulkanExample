@@ -2,14 +2,14 @@
 
 #include "ExternalDependencyManager.h"
 #include "ResourceNode.h"
+#include "TaskBuilder.h"
 
+#include "Engine/Vulkan/Interface/Task.h"
 #include "Engine/Vulkan/RenderGraph/Interface/Entry.h"
 #include "Engine/Vulkan/RenderGraph/Interface/Node.h"
 #include "Engine/Vulkan/RenderGraph/Interface/Pass.h"
 #include "Engine/Vulkan/RenderGraph/Interface/PassNode.h"
 #include "Engine/Vulkan/RenderGraph/Interface/ProxyResourceNode.h"
-
-#include "Engine/Vulkan/Renderer/Task.h"
 
 namespace Engine::Vulkan::RenderGraph {
 
@@ -18,9 +18,10 @@ namespace Engine::Vulkan::RenderGraph {
 
     class RenderGraph : public IPassNode {
     public:
-        std::expected<Ref<Task>, std::string> CreateTask(Ref<SemaphorePool> semaphore_pool);
+        RenderGraph(Ref<Device> device);
 
-        virtual std::optional<std::string> Validate() const override;
+        virtual std::expected<Ref<ITask>, std::string> CreateTask();
+        virtual std::optional<std::string>             Validate() const override;
 
         template <CRenderGraphEntry T, typename... Args>
         T* CreateEnrty(Args&&... args) {
@@ -49,6 +50,20 @@ namespace Engine::Vulkan::RenderGraph {
         void RemoveDependency(IPassNode* pass, const std::string& name);
 
     protected:
+        class Task : public ITask {
+        public:
+            Task(TaskBuilder::TaskObjects task_objects);
+
+            virtual bool IsCompleted() const override;
+            virtual void Run(Executor* executor) override;
+
+        private:
+            std::vector<Scope<IPass>>        m_Passes;
+            std::vector<Scope<IPassCluster>> m_PassClusters;
+        };
+
+        std::optional<std::string> CreateTaskCheck();
+
         virtual IResourceNode* GetExternalResource(const std::string& name, DependencyType dependency_type) const final override;
 
     private:
@@ -64,6 +79,8 @@ namespace Engine::Vulkan::RenderGraph {
 
         std::unordered_map<Entry*, Scope<Entry>> m_OwnedEntries;
         RenderGraph*                             m_Parent = nullptr;
+
+        TaskBuilder m_TaskBuilder;
     };
 
 }  // namespace Engine::Vulkan::RenderGraph

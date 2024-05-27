@@ -37,5 +37,8 @@ namespace Engine::Vulkan::Managed {
     VkImageUsageFlags Image::GetUsageFlags() const {
         return m_UsageFlags;
     }
+    Image::SyncState& Image::GetSyncState() {
+        return m_SyncState;
+    }
 
 };  // namespace Engine::Vulkan::Managed

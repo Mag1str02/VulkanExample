@@ -2,7 +2,7 @@
 
 #include "Engine/Vulkan/Managed/Image.h"
 
-namespace Engine::Vulkan::Concrete {
+namespace Engine::Vulkan {
     class Image : public Managed::Image {
     public:
         static Ref<Image> Create(
@@ -15,4 +15,4 @@ namespace Engine::Vulkan::Concrete {
     private:
         VkDeviceMemory m_Memory;
     };
-};  // namespace Engine::Vulkan::Concrete
+};  // namespace Engine::Vulkan

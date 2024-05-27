@@ -21,8 +21,4 @@ namespace Engine::Vulkan::Synchronization {
         m_ImageStates.clear();
     }
 
-    bool Tracker::HasImage(Ref<IImage> image) const {
-        return m_ImageStates.contains(std::move(image));
-    }
-
 }  // namespace Engine::Vulkan::Synchronization

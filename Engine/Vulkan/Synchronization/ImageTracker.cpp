@@ -57,26 +57,26 @@ namespace Engine::Vulkan::Synchronization {
 
     std::optional<VkImageMemoryBarrier2> ImageTracker::AccessRequest(AccessScope scope, VkImageLayout layout) {
         PROFILER_SCOPE("Engine::Vulkan::Synchronization::ImageTracker::AccessRequest");
-
         DE_ASSERT(layout != VK_IMAGE_LAYOUT_UNDEFINED, "Access with image layout undefined is not supported");
 
         // Sets initial layout on first access request
         if (m_Prefix.layout == VK_IMAGE_LAYOUT_UNDEFINED) {
             m_Prefix.layout = layout;
+            m_Suffix.layout = layout;
         }
 
-        bool is_write = scope.GetWriteAccess() != 0 || GetCurrentLayout() != layout;
+        bool is_write = scope.GetWriteAccess() != 0 || m_Suffix.layout != layout;
 
         std::optional<VkImageMemoryBarrier2> result;
         VkImageMemoryBarrier2                barrier = CreateImageBarrier();
-        barrier.oldLayout                            = GetCurrentLayout();
+        barrier.oldLayout                            = m_Suffix.layout;
         barrier.newLayout                            = layout;
-        if (m_Suffix.has_value()) {
+        if (m_Prefix.HasWrite()) {
             if (is_write) {
-                barrier.srcAccessMask = m_Suffix->write.GetWriteAccess();  // TODO: Maybe access op should only be performed once
-                barrier.srcStageMask  = m_Suffix->write.GetStages() | m_Suffix->read_accesses.GetStages();
+                barrier.srcAccessMask = m_Suffix.write.GetWriteAccess();  // TODO: Maybe access op should only be performed once
+                barrier.srcStageMask  = m_Suffix.write.GetStages() | m_Suffix.read_accesses.GetStages();
 
-                barrier.oldLayout = GetCurrentLayout();
+                barrier.oldLayout = m_Suffix.layout;
                 barrier.newLayout = layout;
 
                 barrier.dstAccessMask = scope.GetAccess();
@@ -84,15 +84,18 @@ namespace Engine::Vulkan::Synchronization {
 
                 result = barrier;
 
-                m_Suffix         = State();
-                m_Suffix->write  = scope;
-                m_Suffix->layout = layout;
+                m_Suffix        = State();
+                m_Suffix.write  = scope;
+                m_Suffix.layout = layout;
             } else {
-                auto [access, stages] = m_Suffix->read_accesses.AddAccess(scope);
+                auto [access, stages] = m_Suffix.read_accesses.AddAccess(scope);
 
                 if (stages != VK_PIPELINE_STAGE_2_NONE || access != VK_ACCESS_2_NONE) {
-                    barrier.srcAccessMask = m_Suffix->write.GetWriteAccess();
-                    barrier.srcStageMask  = m_Suffix->write.GetReadAccess();
+                    barrier.srcAccessMask = m_Suffix.write.GetWriteAccess();
+                    barrier.srcStageMask  = m_Suffix.write.GetReadAccess();
+
+                    barrier.oldLayout = m_Suffix.layout;
+                    barrier.newLayout = layout;
 
                     barrier.dstAccessMask = access;
                     barrier.dstStageMask  = stages;
@@ -105,18 +108,19 @@ namespace Engine::Vulkan::Synchronization {
                 barrier.srcStageMask = m_Prefix.read_accesses.GetStages();
                 barrier.dstStageMask = scope.GetStages();
 
-                barrier.oldLayout = GetCurrentLayout();
+                barrier.oldLayout = m_Suffix.layout;
                 barrier.newLayout = layout;
 
                 result = barrier;
 
                 m_Prefix.write = scope;
 
-                m_Suffix         = State();
-                m_Suffix->write  = scope;
-                m_Suffix->layout = layout;
+                m_Suffix        = State();
+                m_Suffix.write  = scope;
+                m_Suffix.layout = layout;
             } else {
                 m_Prefix.read_accesses.AddAccess(scope);
+                m_Suffix.read_accesses.AddAccess(scope);
             }
         }
 
@@ -126,15 +130,12 @@ namespace Engine::Vulkan::Synchronization {
     const ImageTracker::State& ImageTracker::GetPrefix() const {
         return m_Prefix;
     }
-    const std::optional<ImageTracker::State>& ImageTracker::GetSuffix() const {
+    const ImageTracker::State& ImageTracker::GetSuffix() const {
         return m_Suffix;
     }
 
-    VkImageLayout ImageTracker::GetCurrentLayout() const {
-        if (m_Suffix.has_value()) {
-            return m_Suffix->layout;
-        }
-        return m_Prefix.layout;
+    bool ImageTracker::State::HasWrite() const {
+        return !write.Empty();
     }
 
     std::vector<VkImageMemoryBarrier2> ConnectSyncStates(const IImage& image, const ImageTracker::State& suffix, const ImageTracker::State& prefix) {

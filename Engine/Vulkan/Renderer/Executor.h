@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Device.h"
-#include "Task.h"
 
 namespace Engine::Vulkan {
     class Executor final : NonCopyMoveable {
@@ -9,14 +8,14 @@ namespace Engine::Vulkan {
         Executor(Ref<Device> device);
         ~Executor();
 
-        void        Submit(Ref<Task> task);
+        void        Submit(Ref<ITask> task);
         Ref<Device> GetDevice();
 
     private:
         void RemoveCompleted();
 
     private:
-        Ref<Device>            m_Device;
-        std::vector<Ref<Task>> m_RunningTasks;
+        Ref<Device>             m_Device;
+        std::vector<Ref<ITask>> m_RunningTasks;
     };
 }  // namespace Engine::Vulkan

@@ -70,6 +70,7 @@ namespace Engine::Vulkan {
     }
 
     Device::~Device() {
+        WaitIdle();
         TracyVkDestroy(m_TracyContext);
         m_GraphicsQueue.Destruct();
         m_PresentationQueue.Destruct();
