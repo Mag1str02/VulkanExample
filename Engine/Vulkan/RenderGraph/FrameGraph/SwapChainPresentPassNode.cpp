@@ -23,6 +23,12 @@ namespace Engine::Vulkan::RenderGraph {
         auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(),
                                                                           m_PresentPass->GetWaitSemaphore(),
                                                                           m_PresentPass->GetSignalFence());
+        switch (res) {
+            case VK_SUCCESS: break;
+            case VK_SUBOPTIMAL_KHR: m_PresentPass->m_Iteration->SetOutOfDate(); break;
+            case VK_ERROR_OUT_OF_DATE_KHR: m_PresentPass->m_Iteration->SetOutOfDate(); break;
+            default: DE_ASSERT_FAIL("Present result {}", (int64_t)res);
+        }
     }
 
     void SwapChainPresentPassNode::Cluster::AddWaitSemaphore(Ref<IBinarySemaphore> semaphore) {
@@ -34,8 +40,7 @@ namespace Engine::Vulkan::RenderGraph {
     }
 
     void SwapChainPresentPassNode::Pass::Prepare() {
-        m_Iteration = m_State->GetCurrentIteration();
-        m_Iteration->SetCurrentPresentSemaphore(m_WaitSemaphore);
+        m_Iteration   = m_State->GetCurrentIteration();
         m_SinglaFence = m_State->CreateFence();
         m_State.reset();
     }

@@ -45,7 +45,6 @@ namespace Engine::Vulkan::RenderGraph {
             m_State->CreateNewIteration();
         }
         m_Iteration = m_State->GetCurrentIteration();
-        m_Iteration->SetCurrentAquireFence(m_SignalFence);
         m_State.reset();
     }
 

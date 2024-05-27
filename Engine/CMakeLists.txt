@@ -47,6 +47,7 @@ add_library(VulkanHelpers
     Vulkan/Buffer.cpp
     Vulkan/CommandPool.cpp
     Vulkan/ImageSampler.cpp
+    Vulkan/BinarySemaphore.cpp
     Vulkan/BinarySemaphorePool.cpp
     Vulkan/ImageView.cpp
 

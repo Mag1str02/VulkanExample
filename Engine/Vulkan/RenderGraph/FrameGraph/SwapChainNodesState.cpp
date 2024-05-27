@@ -16,22 +16,9 @@ namespace Engine::Vulkan::RenderGraph {
         return res != VK_ERROR_OUT_OF_DATE_KHR;
     }
 
-    void SwapChainNodesState::Iteration::SetCurrentPresentSemaphore(Ref<IBinarySemaphore> semaphore) {
-        m_ImagePresentSemaphores[m_SwapChain->GetCurrentImage()->GetIndex()] = std::move(semaphore);
+    void SwapChainNodesState::Iteration::SetOutOfDate() {
+        m_OutOfDate = true;
     }
-    void SwapChainNodesState::Iteration::SetCurrentAquireFence(Ref<IFence> fence) {
-        auto& sema = m_ImagePresentSemaphores[GetCurrentImage()->GetIndex()];
-        if (sema != nullptr) {
-            m_FenceToPresentSemaphore.emplace_back(std::move(fence), std::move(sema));
-        }
-        for (int64_t i = 0; i < m_FenceToPresentSemaphore.size(); ++i) {
-            if (m_FenceToPresentSemaphore[i].first->IsSignaled()) {
-                m_FenceToPresentSemaphore.erase(m_FenceToPresentSemaphore.begin() + i);
-                --i;
-            }
-        }
-    }
-
     bool SwapChainNodesState::Iteration::IsOutOfDate() const {
         return m_OutOfDate;
     }
@@ -43,9 +30,7 @@ namespace Engine::Vulkan::RenderGraph {
         return m_SwapChain->Handle();
     }
 
-    SwapChainNodesState::Iteration::Iteration(Ref<SwapChain> swapchain) : m_SwapChain(swapchain) {
-        m_ImagePresentSemaphores.resize(m_SwapChain->GetImageCount());
-    }
+    SwapChainNodesState::Iteration::Iteration(Ref<SwapChain> swapchain) : m_SwapChain(swapchain) {}
 
     SwapChainNodesState::SwapChainNodesState(Ref<Surface> surface) : m_Surface(surface) {
         m_Iteration = Ref<Iteration>(new Iteration(SwapChain::Create(m_Surface, nullptr)));

@@ -17,8 +17,7 @@ namespace Engine::Vulkan::RenderGraph {
             ~Iteration();
 
             bool AquireNextImage(VkSemaphore signal_semaphore, VkFence fence);
-            void SetCurrentPresentSemaphore(Ref<IBinarySemaphore> semaphore);
-            void SetCurrentAquireFence(Ref<IFence> fence);
+            void SetOutOfDate();
 
             bool                  IsOutOfDate() const;
             Ref<SwapChain::Image> GetCurrentImage() const;
@@ -30,10 +29,8 @@ namespace Engine::Vulkan::RenderGraph {
         private:
             friend class SwapChainNodesState;
 
-            std::vector<Ref<IBinarySemaphore>>                         m_ImagePresentSemaphores;
-            std::vector<std::pair<Ref<IFence>, Ref<IBinarySemaphore>>> m_FenceToPresentSemaphore;
-            Ref<SwapChain>                                             m_SwapChain;
-            bool                                                       m_OutOfDate = false;
+            Ref<SwapChain> m_SwapChain;
+            bool           m_OutOfDate = false;
         };
 
         SwapChainNodesState(Ref<Surface> surface);
