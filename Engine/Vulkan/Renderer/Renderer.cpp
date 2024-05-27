@@ -38,6 +38,7 @@ namespace Engine::Vulkan {
         m_Config.AddDeviceExtension(VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
         m_Config.AddDeviceExtension(VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME);
         m_Config.AddDeviceExtension(VK_EXT_CALIBRATED_TIMESTAMPS_EXTENSION_NAME);
+        m_Config.AddDeviceExtension(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
     }
 
     std::optional<std::string> Renderer::SubmitRenderGraph(RenderGraph::RenderGraph& graph) {

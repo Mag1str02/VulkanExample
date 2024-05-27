@@ -7,7 +7,7 @@
 namespace Engine::Vulkan::RenderGraph {
 
     bool SwapChainPresentPassNode::Cluster::IsCompleted() const {
-        return true;
+        return m_PresentPass->IsCompleted();
     }
     bool SwapChainPresentPassNode::Cluster::AddPass(IPass* pass) {
         if (!pass->Is<SwapChainPresentPassNode::Pass>()) {
@@ -20,7 +20,9 @@ namespace Engine::Vulkan::RenderGraph {
         return false;
     }
     void SwapChainPresentPassNode::Cluster::Submit(Executor* executor) {
-        auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(), m_PresentPass->GetWaitSemaphore());
+        auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(),
+                                                                          m_PresentPass->GetWaitSemaphore(),
+                                                                          m_PresentPass->GetSignalFence());
     }
 
     void SwapChainPresentPassNode::Cluster::AddWaitSemaphore(Ref<IBinarySemaphore> semaphore) {
@@ -34,6 +36,7 @@ namespace Engine::Vulkan::RenderGraph {
     void SwapChainPresentPassNode::Pass::Prepare() {
         m_Iteration = m_State->GetCurrentIteration();
         m_Iteration->SetCurrentPresentSemaphore(m_WaitSemaphore);
+        m_SinglaFence = m_State->CreateFence();
         m_State.reset();
     }
 
@@ -51,6 +54,12 @@ namespace Engine::Vulkan::RenderGraph {
     }
     VkSemaphore SwapChainPresentPassNode::Pass::GetWaitSemaphore() {
         return m_WaitSemaphore->Handle();
+    }
+    VkFence SwapChainPresentPassNode::Pass::GetSignalFence() {
+        return m_SinglaFence->Handle();
+    }
+    bool SwapChainPresentPassNode::Pass::IsCompleted() const {
+        return m_SinglaFence->IsSignaled();
     }
 
     SwapChainPresentPassNode::Pass::Pass(Ref<SwapChainNodesState> state) : m_State(state) {}

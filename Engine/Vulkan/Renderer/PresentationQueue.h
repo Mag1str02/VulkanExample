@@ -9,6 +9,6 @@ namespace Engine::Vulkan {
         PresentationQueue(Device* device, VkQueue queue, uint32_t queue_family_index);
         ~PresentationQueue() = default;
 
-        VkResult Present(Ref<SwapChain::Image> image, VkSemaphore wait_semaphore);
+        VkResult Present(Ref<SwapChain::Image> image, VkSemaphore wait_semaphore, VkFence signal_fence);
     };
 }  // namespace Engine::Vulkan

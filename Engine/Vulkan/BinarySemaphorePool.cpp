@@ -32,7 +32,6 @@ namespace Engine::Vulkan {
             info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
             VK_CHECK(vkCreateSemaphore(m_Device->GetLogicDevice(), &info, nullptr, &semaphore));
             m_Semaphores.push_back(semaphore);
-            std::println("Created semaphore");
         }
         VkSemaphore semaphore = m_Semaphores.front();
         m_Semaphores.pop_front();
