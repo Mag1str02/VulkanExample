@@ -10,7 +10,7 @@ namespace Engine::Vulkan {
         return Ref<SwapChain>(new SwapChain(surface, old_swapchain));
     }
     SwapChain::SwapChain(Ref<Surface> surface, Ref<SwapChain> old_swapchain) : m_Surface(surface) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::SwapChain::SwapChain");
+        PROFILER_SCOPE("Engine::Vulkan::SwapChain::SwapChain");
 
         m_Surface->UpdateCapabilities();
 
@@ -53,7 +53,7 @@ namespace Engine::Vulkan {
         }
     }
     SwapChain::~SwapChain() {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::SwapChain::~SwapChain");
+        PROFILER_SCOPE("Engine::Vulkan::SwapChain::~SwapChain");
         vkDestroySwapchainKHR(m_Surface->GetDevice()->GetLogicDevice(), m_SwapChain, nullptr);
     }
 

@@ -10,7 +10,7 @@ namespace Engine::Vulkan {
     }
 
     Image::Image(Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::Image::Image");
+        PROFILER_SCOPE("Engine::Vulkan::Image::Image");
         VkImageCreateInfo imageInfo{};
         imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType     = VK_IMAGE_TYPE_2D;
@@ -44,7 +44,7 @@ namespace Engine::Vulkan {
         Init(handle, format, usage, {.width = width, .height = height}, device.get());
     }
     Image::~Image() {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::Image::~Image");
+        PROFILER_SCOPE("Engine::Vulkan::Image::~Image");
         vkFreeMemory(m_Device->GetLogicDevice(), m_Memory, nullptr);
         vkDestroyImage(m_Device->GetLogicDevice(), m_Image, nullptr);
     }

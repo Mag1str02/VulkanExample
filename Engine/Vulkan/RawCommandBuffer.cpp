@@ -9,7 +9,7 @@ namespace Engine::Vulkan {
         return Ref<RawCommandBuffer>(new RawCommandBuffer(pool, secondary));
     }
     RawCommandBuffer::RawCommandBuffer(Ref<CommandPool> pool, bool secondary) : m_Pool(pool) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::RawCommandBuffer::RawCommandBuffer");
+        PROFILER_SCOPE("Engine::Vulkan::RawCommandBuffer::RawCommandBuffer");
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.commandPool        = m_Pool->Handle();
@@ -23,7 +23,7 @@ namespace Engine::Vulkan {
     }
 
     RawCommandBuffer::~RawCommandBuffer() {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::RawCommandBuffer::~RawCommandBuffer");
+        PROFILER_SCOPE("Engine::Vulkan::RawCommandBuffer::~RawCommandBuffer");
         vkFreeCommandBuffers(m_Pool->GetDevice()->GetLogicDevice(), m_Pool->Handle(), 1, &Handle());
     }
 

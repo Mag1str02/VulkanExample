@@ -16,7 +16,7 @@ namespace Engine::Vulkan {
     }
 
     void CommandBuffer::Begin() {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::Begin");
+        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::Begin");
         DE_ASSERT(m_CurrentCommandBuffer == nullptr, "Command Buffer was already begun");
 
         m_Tracker.Reset();
@@ -26,7 +26,7 @@ namespace Engine::Vulkan {
         m_CurrentCommandBuffer = m_MainCommandBuffer.get();
     }
     void CommandBuffer::End() {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::End");
+        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::End");
         DE_ASSERT(m_CurrentCommandBuffer == m_MainCommandBuffer.get(), "Command Buffer was not yet begun or rendering was not ended");
 
         m_MainCommandBuffer->End();
@@ -34,7 +34,7 @@ namespace Engine::Vulkan {
     }
 
     void CommandBuffer::BeginRendering(const std::vector<Ref<ImageView>>& color_attachments) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::BeginRendering");
+        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::BeginRendering");
         DE_ASSERT(m_CurrentCommandBuffer == m_MainCommandBuffer.get(), "Command Buffer was not yet begun or rendering was not ended");
 
         for (auto& image_view : color_attachments) {
@@ -50,7 +50,7 @@ namespace Engine::Vulkan {
         m_SecondaryCommandBuffers.emplace_back(std::move(secondary_command_buffer));
     }
     void CommandBuffer::EndRendering() {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::EndRendering");
+        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::EndRendering");
         DE_ASSERT(m_CurrentCommandBuffer == m_SecondaryCommandBuffers.back().get(), "Rendering was not started");
 
         m_SecondaryCommandBuffers.back()->EndRendering();
@@ -60,7 +60,7 @@ namespace Engine::Vulkan {
         m_CurrentCommandBuffer = m_MainCommandBuffer.get();
     }
     void CommandBuffer::ClearImage(Ref<IImage> image, Vec4 clear_color) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::ClearImage");
+        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::ClearImage");
         DE_ASSERT(m_CurrentCommandBuffer == m_MainCommandBuffer.get(), "Command Buffer was not yet begun or rendering was not ended");
 
         IImage& pimage = *image;
@@ -69,25 +69,25 @@ namespace Engine::Vulkan {
     }
 
     void CommandBuffer::PreparePresent(Ref<IImage> image) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::PreparePresent");
+        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::PreparePresent");
 
         RequestImageAccess(std::move(image), {VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK_ACCESS_2_NONE}, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
     }
     void CommandBuffer::PrepareColorAttachment(Ref<IImage> image) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::PrepareColorAttachment");
+        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::PrepareColorAttachment");
 
         RequestImageAccess(std::move(image),
                            {VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT},
                            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     }
     void CommandBuffer::PrepareClear(Ref<IImage> image) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::PrepareClear");
+        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::PrepareClear");
 
         RequestImageAccess(std::move(image), {VK_PIPELINE_STAGE_2_CLEAR_BIT, VK_ACCESS_2_TRANSFER_WRITE_BIT}, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     }
 
     void CommandBuffer::RequestImageAccess(Ref<IImage> image, Synchronization::AccessScope scope, VkImageLayout layout) {
-        PROFILER_SCOPE("Engine::Vulkan::Concrete::CommandBuffer::RequestImageAccess");
+        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::RequestImageAccess");
 
         auto barrier = m_Tracker.RequestAccess(std::move(image), scope, layout);
         if (barrier) {

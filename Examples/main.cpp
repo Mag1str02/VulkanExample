@@ -59,7 +59,7 @@ public:
         //     info.pCommandBuffers            = &handle;
         //     info.signalSemaphoreCount       = 0;
         //     info.pSignalSemaphores          = nullptr;
-        //     Vulkan::Concrete::Fence fence(m_Renderer->GetDevice());
+        //     Vulkan::Fence fence(m_Renderer->GetDevice());
 
         //     VK_CHECK(vkQueueSubmit(m_Renderer->GetQueue()->Handle(), 1, &info, fence.Handle()));
         //     fence.Wait();

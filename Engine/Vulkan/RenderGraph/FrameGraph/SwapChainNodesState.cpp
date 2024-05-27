@@ -7,7 +7,7 @@
 namespace Engine::Vulkan::RenderGraph {
 
     SwapChainNodesState::Iteration::~Iteration() {
-        m_SwapChain->GetSurface()->GetDevice()->GetPresentationQueue()->WaitIdle();
+        // m_SwapChain->GetSurface()->GetDevice()->GetPresentationQueue()->WaitIdle();
     }
 
     bool SwapChainNodesState::Iteration::AquireNextImage(VkSemaphore signal_semaphore, VkFence fence) {
