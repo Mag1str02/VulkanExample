@@ -6,6 +6,7 @@ namespace Engine::Vulkan {
 
     PresentationQueue::PresentationQueue(Device* device, VkQueue queue, uint32_t queue_family_index) : Queue(device, queue, queue_family_index) {}
     VkResult PresentationQueue::Present(Ref<SwapChain::Image> image, VkSemaphore wait_semaphore) {
+        PROFILER_SCOPE("Engine::Vulkan::PresentationQueue::Present");
         uint32_t index = image->GetIndex();
 
         VkPresentInfoKHR info{};

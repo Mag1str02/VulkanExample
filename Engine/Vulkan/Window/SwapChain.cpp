@@ -2,8 +2,6 @@
 
 #include "Surface.h"
 
-#include "Engine/Vulkan/CommandPool.h"
-#include "Engine/Vulkan/RawCommandBuffer.h"
 #include "Engine/Vulkan/Renderer/Device.h"
 #include "Engine/Vulkan/Renderer/GraphicsQueue.h"
 
@@ -53,34 +51,6 @@ namespace Engine::Vulkan {
             for (uint32_t i = 0; i < actual_image_count; ++i) {
                 m_Images.emplace_back(Image(m_Surface.get(), m_SwapChain, m_ImageHandles[i], i));
             }
-        }
-
-        {
-            auto cmd_pool = CommandPool::Create(m_Surface->GetDevice(), m_Surface->GetDevice()->GetGraphicsQueue()->FamilyIndex());
-            auto cmd      = RawCommandBuffer::Create(cmd_pool);
-            cmd->Begin();
-            for (const auto& image : m_Images) {
-                VkImageMemoryBarrier2 barrier{};
-                barrier.sType     = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
-                barrier.image     = image.m_Image;
-                barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-                barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-                barrier.subresourceRange.baseMipLevel   = 0;
-                barrier.subresourceRange.levelCount     = VK_REMAINING_MIP_LEVELS;
-                barrier.subresourceRange.baseArrayLayer = 0;
-                barrier.subresourceRange.layerCount     = VK_REMAINING_ARRAY_LAYERS;
-                cmd->AddImageMemoryBarrier(barrier);
-            }
-            cmd->End();
-            VkSubmitInfo info{};
-            info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            info.commandBufferCount = 1;
-            info.pCommandBuffers    = &cmd->Handle();
-
-            VK_CHECK(vkQueueSubmit(m_Surface->GetDevice()->GetGraphicsQueue()->Handle(), 1, &info, VK_NULL_HANDLE));
-            m_Surface->GetDevice()->GetGraphicsQueue()->WaitIdle();
         }
     }
     SwapChain::~SwapChain() {

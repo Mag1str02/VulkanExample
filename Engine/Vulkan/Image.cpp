@@ -9,7 +9,8 @@ namespace Engine::Vulkan {
         return Ref<Image>(new Image(device, width, height, format, usage, properties));
     }
 
-    Image::Image(Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) {
+    Image::Image(Ref<Device> device, uint32_t width, uint32_t height, VkFormat format, VkImageUsageFlags usage, VkMemoryPropertyFlags properties) :
+        m_Device(std::move(device)) {
         PROFILER_SCOPE("Engine::Vulkan::Image::Image");
         VkImageCreateInfo imageInfo{};
         imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -27,26 +28,26 @@ namespace Engine::Vulkan {
         imageInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
 
         VkImage handle;
-        VK_CHECK(vkCreateImage(device->GetLogicDevice(), &imageInfo, nullptr, &handle));
+        VK_CHECK(vkCreateImage(m_Device->GetLogicDevice(), &imageInfo, nullptr, &handle));
 
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(device->GetLogicDevice(), handle, &memRequirements);
+        vkGetImageMemoryRequirements(m_Device->GetLogicDevice(), handle, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize  = memRequirements.size;
-        allocInfo.memoryTypeIndex = Helpers::FindMemoryType(memRequirements.memoryTypeBits, properties, device->GetPhysicalDevice());
+        allocInfo.memoryTypeIndex = Helpers::FindMemoryType(memRequirements.memoryTypeBits, properties, m_Device->GetPhysicalDevice());
 
         VkDeviceMemory memory;
-        VK_CHECK(vkAllocateMemory(device->GetLogicDevice(), &allocInfo, nullptr, &memory));
-        VK_CHECK(vkBindImageMemory(device->GetLogicDevice(), handle, memory, 0));
+        VK_CHECK(vkAllocateMemory(m_Device->GetLogicDevice(), &allocInfo, nullptr, &memory));
+        VK_CHECK(vkBindImageMemory(m_Device->GetLogicDevice(), handle, memory, 0));
 
-        Init(handle, format, usage, {.width = width, .height = height}, device.get());
+        Init(handle, format, usage, {.width = width, .height = height}, m_Device.get());
     }
     Image::~Image() {
         PROFILER_SCOPE("Engine::Vulkan::Image::~Image");
         vkFreeMemory(m_Device->GetLogicDevice(), m_Memory, nullptr);
-        vkDestroyImage(m_Device->GetLogicDevice(), m_Image, nullptr);
+        vkDestroyImage(m_Device->GetLogicDevice(), Handle(), nullptr);
     }
 
 }  // namespace Engine::Vulkan

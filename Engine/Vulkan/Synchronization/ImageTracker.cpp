@@ -25,7 +25,9 @@ namespace Engine::Vulkan::Synchronization {
     VkPipelineStageFlags2 ImageTracker::ReadAccesses::GetStages() const {
         return m_Stages;
     }
-
+    VkAccessFlags2 ImageTracker::ReadAccesses::GetAccess() const {
+        return m_Access;
+    }
     const ImageTracker::ReadAccesses::Readers& ImageTracker::ReadAccesses::GetReaders() const {
         return m_Readers;
     }
@@ -33,6 +35,9 @@ namespace Engine::Vulkan::Synchronization {
     std::pair<VkAccessFlags2, VkPipelineStageFlags2> ImageTracker::ReadAccesses::AddAccess(const AccessScope& scope) {
         VkAccessFlags2        access = VK_ACCESS_2_NONE;
         VkPipelineStageFlags2 stages = VK_PIPELINE_STAGE_2_NONE;
+
+        m_Stages |= scope.GetStages();
+        m_Access |= scope.GetAccess();
 
         if (scope.GetAccess() == VK_ACCESS_2_NONE) {
             return {access, stages};
@@ -43,13 +48,11 @@ namespace Engine::Vulkan::Synchronization {
             access = scope.GetReadAccess();
             stages = scope.GetStages();
 
-            m_Stages |= stages;
             m_Readers[scope.GetReadAccess()] = scope.GetStages();
         } else if ((it->second & scope.GetStages()) != scope.GetStages()) {
             access = scope.GetReadAccess();
             stages = (it->second & scope.GetStages()) ^ scope.GetStages();
 
-            m_Stages |= stages;
             it->second |= scope.GetStages();
         }
         return {access, stages};
@@ -136,6 +139,9 @@ namespace Engine::Vulkan::Synchronization {
 
     bool ImageTracker::State::HasWrite() const {
         return !write.Empty();
+    }
+    bool ImageTracker::State::Empty() const {
+        return layout == VK_IMAGE_LAYOUT_UNDEFINED;
     }
 
     std::vector<VkImageMemoryBarrier2> ConnectSyncStates(const IImage& image, const ImageTracker::State& suffix, const ImageTracker::State& prefix) {

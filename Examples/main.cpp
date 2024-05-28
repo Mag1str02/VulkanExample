@@ -19,8 +19,8 @@ public:
     TestApplication() = default;
 
     virtual void OnStartUp() override {
-        auto command_pool = Vulkan::CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetGraphicsQueue()->FamilyIndex());
-        m_CommandBuffer   = Vulkan::CommandBuffer::Create(command_pool);
+        // auto command_pool = Vulkan::CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetGraphicsQueue()->FamilyIndex());
+        // m_CommandBuffer   = Vulkan::CommandBuffer::Create(command_pool);
     }
     virtual void OnShutDown() override {
         vkDeviceWaitIdle(m_Renderer->GetDevice()->GetLogicDevice());

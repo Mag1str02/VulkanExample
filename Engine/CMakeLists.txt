@@ -7,6 +7,7 @@ add_library(VulkanHelpers
     Vulkan/Managed/Fence.cpp
     Vulkan/Managed/RawCommandBuffer.cpp
     Vulkan/Managed/Image.cpp
+    Vulkan/Managed/CommandPool.cpp
 
     Vulkan/RenderGraph/PassNode.cpp
     Vulkan/RenderGraph/RenderGraph.cpp

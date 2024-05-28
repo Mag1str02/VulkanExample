@@ -6,10 +6,13 @@ namespace Engine::Vulkan {
 
     class BinarySemaphore : public IBinarySemaphore, NonCopyMoveable {
     public:
-        BinarySemaphore(Ref<Device> device);
+        static Ref<BinarySemaphore> Create(Ref<Device> device);
         ~BinarySemaphore();
 
         virtual const VkSemaphore& Handle() const override;
+
+    private:
+        BinarySemaphore(Ref<Device> device);
 
     private:
         VkSemaphore m_Handle = VK_NULL_HANDLE;

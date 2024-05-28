@@ -15,7 +15,7 @@ namespace Engine::Vulkan::Managed {
         m_Device     = device;
     }
 
-    VkImage Image::Handle() const {
+    const VkImage& Image::Handle() const {
         return m_Image;
     }
 
@@ -31,8 +31,8 @@ namespace Engine::Vulkan::Managed {
     VkFormat Image::GetFormat() const {
         return m_Format;
     }
-    Ref<Device> Image::GetDevice() const {
-        return m_Device->shared_from_this();
+    Device* Image::GetDevice() const {
+        return m_Device;
     }
     VkImageUsageFlags Image::GetUsageFlags() const {
         return m_UsageFlags;

@@ -1,5 +1,6 @@
 #include "SwapChainPresentPassNode.h"
 
+#include "Engine/Vulkan/BinarySemaphore.h"
 #include "Engine/Vulkan/Interface/BinarySemaphore.h"
 #include "Engine/Vulkan/Renderer/Device.h"
 #include "Engine/Vulkan/Renderer/Executor.h"
@@ -20,7 +21,16 @@ namespace Engine::Vulkan::RenderGraph {
         return false;
     }
     void SwapChainPresentPassNode::Cluster::Submit(Executor* executor) {
-        auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(), m_PresentPass->GetWaitSemaphore());
+        VkSemaphore present_wait_semaphore = m_PresentPass->GetWaitSemaphore();
+        m_Tracker.RequestAccess(m_PresentPass->GetPresentImage(), Synchronization::AccessScope(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+        auto patch_cmd_buf = executor->GeneratePatchCommandBuffer(m_Tracker);
+        if (patch_cmd_buf != nullptr) {
+            m_PatchSignalSemaphore = BinarySemaphore::Create(executor->GetDevice()->shared_from_this());
+            executor->GetDevice()->GetGraphicsQueue()->Submit(*patch_cmd_buf, m_PresentPass->GetWaitSemaphore(), m_PatchSignalSemaphore->Handle());
+            present_wait_semaphore = m_PatchSignalSemaphore->Handle();
+        }
+
+        auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(), present_wait_semaphore);
         switch (res) {
             case VK_SUCCESS: break;
             case VK_SUBOPTIMAL_KHR: m_PresentPass->m_Iteration->SetOutOfDate(); break;

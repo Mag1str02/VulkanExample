@@ -17,7 +17,6 @@ namespace Engine::Vulkan::Managed {
 
     protected:
         Fence() = default;
-
         void Init(VkDevice device, VkFence fence);
 
     protected:

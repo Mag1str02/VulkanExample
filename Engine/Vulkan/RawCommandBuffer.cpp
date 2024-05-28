@@ -17,14 +17,14 @@ namespace Engine::Vulkan {
         allocInfo.commandBufferCount = 1;
 
         VkCommandBuffer handle;
-        VK_CHECK(vkAllocateCommandBuffers(m_Pool->GetDevice()->GetLogicDevice(), &allocInfo, &handle));
+        VK_CHECK(vkAllocateCommandBuffers(m_Pool->GetQueue()->GetDevice()->GetLogicDevice(), &allocInfo, &handle));
 
         Init(handle, secondary);
     }
 
     RawCommandBuffer::~RawCommandBuffer() {
         PROFILER_SCOPE("Engine::Vulkan::RawCommandBuffer::~RawCommandBuffer");
-        vkFreeCommandBuffers(m_Pool->GetDevice()->GetLogicDevice(), m_Pool->Handle(), 1, &Handle());
+        vkFreeCommandBuffers(m_Pool->GetQueue()->GetDevice()->GetLogicDevice(), m_Pool->Handle(), 1, &Handle());
     }
 
 }  // namespace Engine::Vulkan

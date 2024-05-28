@@ -4,6 +4,10 @@
 
 namespace Engine::Vulkan {
 
+    Ref<BinarySemaphore> BinarySemaphore::Create(Ref<Device> device) {
+        return Ref<BinarySemaphore>(new BinarySemaphore(std::move(device)));
+    }
+
     BinarySemaphore::BinarySemaphore(Ref<Device> device) : m_Device(std::move(device)) {
         VkSemaphoreCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

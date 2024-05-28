@@ -87,14 +87,14 @@ namespace Engine::Vulkan {
         return m_PhysicalDevice;
     }
 
-    Ref<Instance> Device::GetInstance() {
-        return m_Instance;
+    Instance* Device::GetInstance() const {
+        return m_Instance.get();
     }
-    Ref<GraphicsQueue> Device::GetGraphicsQueue() {
-        return Ref<GraphicsQueue>(shared_from_this(), m_GraphicsQueue.Get());
+    GraphicsQueue* Device::GetGraphicsQueue() {
+        return m_GraphicsQueue.Get();
     }
-    Ref<PresentationQueue> Device::GetPresentationQueue() {
-        return Ref<PresentationQueue>(shared_from_this(), m_PresentationQueue.Get());
+    PresentationQueue* Device::GetPresentationQueue() {
+        return m_PresentationQueue.Get();
     }
     tracy::VkCtx* Device::GetTracyCtx() {
         return m_TracyContext;

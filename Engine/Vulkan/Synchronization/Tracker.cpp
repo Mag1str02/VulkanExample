@@ -4,6 +4,7 @@
 
 #include "Engine/Vulkan/Helpers.h"
 #include "Engine/Vulkan/Interface/Image.h"
+#include "Engine/Vulkan/Renderer/Executor.h"
 
 namespace Engine::Vulkan::Synchronization {
 
@@ -19,6 +20,17 @@ namespace Engine::Vulkan::Synchronization {
 
     void Tracker::Reset() {
         m_ImageStates.clear();
+    }
+
+    std::vector<VkImageMemoryBarrier2> Tracker::SynchronizeImages(Executor* executor) const {
+        std::vector<VkImageMemoryBarrier2> result;
+        for (const auto& [image, tracker] : m_ImageStates) {
+            auto barrier = executor->UpdateImageState(*image, tracker);
+            if (barrier.has_value()) {
+                result.push_back(*barrier);
+            }
+        }
+        return result;
     }
 
 }  // namespace Engine::Vulkan::Synchronization

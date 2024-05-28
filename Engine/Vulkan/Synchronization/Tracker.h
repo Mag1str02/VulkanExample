@@ -12,6 +12,8 @@ namespace Engine::Vulkan::Synchronization {
 
         void Reset();
 
+        std::vector<VkImageMemoryBarrier2> SynchronizeImages(Executor* executor) const;
+
     private:
         std::unordered_map<Ref<IImage>, ImageTracker> m_ImageStates;
     };

@@ -9,11 +9,13 @@ namespace Engine::Vulkan {
         Queue(Device* device, VkQueue queue, uint32_t queue_family_index);
         virtual ~Queue();
 
-        void WaitIdle();
+        Ref<Queue> CreateRef();
 
-        Ref<Device> GetDevice();
-        uint32_t    FamilyIndex();
-        VkQueue     Handle();
+        void WaitIdle() const;
+
+        Device*        GetDevice() const;
+        uint32_t       FamilyIndex() const;
+        const VkQueue& Handle() const;
 
     protected:
         Device* const  m_Device;

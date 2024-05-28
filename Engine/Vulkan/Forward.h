@@ -13,10 +13,12 @@ namespace Engine {
             class Fence;
             class BinarySemaphore;
             class RawCommandBuffer;
+            class CommandPool;
             class Task;
         }  // namespace Interface
 
         using IRawCommandBuffer = Interface::RawCommandBuffer;
+        using ICommandPool      = Interface::CommandPool;
         using IImage            = Interface::Image;
         using IFence            = Interface::Fence;
         using ITask             = Interface::Task;
@@ -31,6 +33,7 @@ namespace Engine {
         namespace Synchronization {
             class AccessScope;
             class ImageTracker;
+            class Tracker;
         }  // namespace Synchronization
 
         namespace RenderGraph {

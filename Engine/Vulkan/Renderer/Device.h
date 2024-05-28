@@ -17,9 +17,9 @@ namespace Engine::Vulkan {
         VkPhysicalDevice GetPhysicalDevice();
         tracy::VkCtx*    GetTracyCtx();
 
-        Ref<Instance>          GetInstance();
-        Ref<GraphicsQueue>     GetGraphicsQueue();
-        Ref<PresentationQueue> GetPresentationQueue();
+        Instance*          GetInstance() const;
+        GraphicsQueue*     GetGraphicsQueue();
+        PresentationQueue* GetPresentationQueue();
 
     private:
         Device(VkPhysicalDevice device, Ref<Instance> instance, const Config& config);

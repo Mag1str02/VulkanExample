@@ -4,8 +4,8 @@
 
 #include "Engine/Vulkan/RenderGraph/Interface/Pass.h"
 #include "Engine/Vulkan/RenderGraph/Interface/PassCluster.h"
-
 #include "Engine/Vulkan/RenderGraph/PassNode.h"
+#include "Engine/Vulkan/Synchronization/Tracker.h"
 
 namespace Engine::Vulkan::RenderGraph {
     class SwapChainPresentPassNode : public PassNode {
@@ -54,6 +54,9 @@ namespace Engine::Vulkan::RenderGraph {
 
         private:
             SwapChainPresentPassNode::Pass* m_PresentPass = nullptr;
+            Ref<IRawCommandBuffer>          m_PatchCommandBuffer;
+            Ref<IBinarySemaphore>           m_PatchSignalSemaphore;
+            Synchronization::Tracker        m_Tracker;
         };
 
     private:

@@ -4,36 +4,29 @@
 
 namespace Engine::Vulkan {
 
-    Ref<CommandPool> CommandPool::Create(Ref<Device> device, uint32_t family_index) {
-        return Ref<CommandPool>(new CommandPool(device, family_index));
+    Ref<CommandPool> CommandPool::Create(Ref<Queue> queue, bool transient) {
+        return Ref<CommandPool>(new CommandPool(std::move(queue), transient));
     }
-    CommandPool::CommandPool(Ref<Device> device, uint32_t familyIndex) {
+    CommandPool::CommandPool(Ref<Queue> queue, bool transient) : m_Queue(std::move(queue)) {
         PROFILER_SCOPE("Engine::Vulkan::CommandPool::CommandPool");
-        DE_ASSERT(device, "Bad device");
-        m_Device      = device;
-        m_FamilyIndex = familyIndex;
 
+        VkCommandPool           handle;
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        poolInfo.queueFamilyIndex = m_FamilyIndex;
-        VK_CHECK(vkCreateCommandPool(m_Device->GetLogicDevice(), &poolInfo, nullptr, &m_Handle));
+        poolInfo.queueFamilyIndex = m_Queue->FamilyIndex();
+        if (transient) {
+            poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+        }
+
+        VK_CHECK(vkCreateCommandPool(m_Queue->GetDevice()->GetLogicDevice(), &poolInfo, nullptr, &handle));
+
+        Init(m_Queue.get(), handle);
     }
 
     CommandPool::~CommandPool() {
         PROFILER_SCOPE("Engine::Vulkan::CommandPool::~CommandPool");
-        vkDestroyCommandPool(m_Device->GetLogicDevice(), m_Handle, nullptr);
-    }
-
-    const VkCommandPool& CommandPool::Handle() {
-        return m_Handle;
-    }
-    uint32_t CommandPool::FamilyIndex() {
-        return m_FamilyIndex;
-    }
-
-    Ref<Device> CommandPool::GetDevice() {
-        return m_Device;
+        vkDestroyCommandPool(m_Queue->GetDevice()->GetLogicDevice(), Handle(), nullptr);
     }
 
 }  // namespace Engine::Vulkan

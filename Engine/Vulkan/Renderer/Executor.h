@@ -8,13 +8,19 @@ namespace Engine::Vulkan {
         Executor(Ref<Device> device);
         ~Executor();
 
-        void        Submit(Ref<ITask> task);
-        Ref<Device> GetDevice();
+        void    Submit(Ref<ITask> task);
+        Device* GetDevice();
+
+        Ref<IRawCommandBuffer> CreatePatchCommandBuffer();
+        Ref<IRawCommandBuffer> GeneratePatchCommandBuffer(const Synchronization::Tracker& tracker);
+
+        std::optional<VkImageMemoryBarrier2> UpdateImageState(IImage& image, const Synchronization::ImageTracker& tracker);
 
     private:
         void RemoveCompleted();
 
     private:
+        Ref<CommandPool>        m_PatchCommandPool;
         Ref<Device>             m_Device;
         std::vector<Ref<ITask>> m_RunningTasks;
     };

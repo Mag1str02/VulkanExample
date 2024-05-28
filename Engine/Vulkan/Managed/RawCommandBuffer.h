@@ -7,7 +7,6 @@ namespace Engine::Vulkan::Managed {
     class RawCommandBuffer : public IRawCommandBuffer {
     public:
         RawCommandBuffer(VkCommandBuffer handle, bool secondary = false);
-        RawCommandBuffer()          = default;
         virtual ~RawCommandBuffer() = default;
 
         virtual void Begin() override;
@@ -28,6 +27,7 @@ namespace Engine::Vulkan::Managed {
         virtual const bool             IsSecondary() const override;
 
     protected:
+        RawCommandBuffer() = default;
         void Init(VkCommandBuffer handle, bool secondary = false);
 
     private:
