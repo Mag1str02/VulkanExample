@@ -28,8 +28,6 @@ namespace Engine::Vulkan::RenderGraph {
             VkSwapchainKHR        GetSwapChainHandle();
             Ref<SwapChain::Image> GetPresentImage();
             VkSemaphore           GetWaitSemaphore();
-            VkFence               GetSignalFence();
-            bool                  IsCompleted() const;
 
         private:
             Pass(Ref<SwapChainNodesState> state);
@@ -38,7 +36,6 @@ namespace Engine::Vulkan::RenderGraph {
             friend SwapChainPresentPassNode;
 
             Ref<IBinarySemaphore>               m_WaitSemaphore;
-            Ref<IFence>                         m_SinglaFence;
             Ref<SwapChainNodesState>            m_State;
             Ref<SwapChainNodesState::Iteration> m_Iteration;
         };

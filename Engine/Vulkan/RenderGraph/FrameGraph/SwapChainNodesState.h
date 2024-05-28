@@ -36,13 +36,11 @@ namespace Engine::Vulkan::RenderGraph {
         SwapChainNodesState(Ref<Surface> surface);
 
         Ref<Iteration> GetCurrentIteration();
-        Ref<IFence>    CreateFence();
         void           CreateNewIteration();
 
     private:
         Ref<Iteration> m_Iteration;
         Ref<Surface>   m_Surface;
-        Ref<FencePool> m_FencePool;
     };
 
 }  // namespace Engine::Vulkan::RenderGraph

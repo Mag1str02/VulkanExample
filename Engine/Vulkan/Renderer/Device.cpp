@@ -26,14 +26,9 @@ namespace Engine::Vulkan {
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
-        VkPhysicalDeviceSwapchainMaintenance1FeaturesEXT swapchainFeatures{};
-        swapchainFeatures.sType                 = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SWAPCHAIN_MAINTENANCE_1_FEATURES_EXT;
-        swapchainFeatures.swapchainMaintenance1 = VK_FALSE;
-
         VkPhysicalDeviceHostQueryResetFeatures hostQueryFeature{};
         hostQueryFeature.sType          = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES;
         hostQueryFeature.hostQueryReset = VK_TRUE;
-        hostQueryFeature.pNext          = &swapchainFeatures;
 
         VkPhysicalDeviceSynchronization2Features synchronization2Feature{};
         synchronization2Feature.sType            = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;

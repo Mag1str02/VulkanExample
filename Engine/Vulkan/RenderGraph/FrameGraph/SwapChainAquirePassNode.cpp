@@ -23,7 +23,7 @@ namespace Engine::Vulkan::RenderGraph {
     }
 
     bool SwapChainAquirePassNode::Cluster::IsCompleted() const {
-        return m_AquirePass->IsCompleted();
+        return true;
     }
 
     SwapChainAquirePassNode::Pass::Pass(Ref<SwapChainNodesState> state) : m_State(state) {}
@@ -32,16 +32,12 @@ namespace Engine::Vulkan::RenderGraph {
         DE_ASSERT(m_SignalSemaphore == nullptr, "Cannot sey multiple signal semaphores for swapchain aquire pass");
         m_SignalSemaphore = std::move(semaphore);
     }
-    bool SwapChainAquirePassNode::Pass::IsCompleted() const {
-        return m_SignalFence->IsSignaled();
-    }
     void SwapChainAquirePassNode::Pass::Prepare() {
         DE_ASSERT(m_SignalSemaphore != nullptr, "No semaphore");
-        m_SignalFence = m_State->CreateFence();
         if (m_State->GetCurrentIteration()->IsOutOfDate()) {
             m_State->CreateNewIteration();
         }
-        while (!m_State->GetCurrentIteration()->AquireNextImage(m_SignalSemaphore->Handle(), m_SignalFence->Handle())) {
+        while (!m_State->GetCurrentIteration()->AquireNextImage(m_SignalSemaphore->Handle(), VK_NULL_HANDLE)) {
             m_State->CreateNewIteration();
         }
         m_Iteration = m_State->GetCurrentIteration();

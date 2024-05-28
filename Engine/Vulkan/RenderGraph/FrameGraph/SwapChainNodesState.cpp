@@ -34,16 +34,12 @@ namespace Engine::Vulkan::RenderGraph {
 
     SwapChainNodesState::SwapChainNodesState(Ref<Surface> surface) : m_Surface(surface) {
         m_Iteration = Ref<Iteration>(new Iteration(SwapChain::Create(m_Surface, nullptr)));
-        m_FencePool = FencePool::Create(surface->GetDevice());
     }
 
     Ref<SwapChainNodesState::Iteration> SwapChainNodesState::GetCurrentIteration() {
         return m_Iteration;
     }
 
-    Ref<IFence> SwapChainNodesState::CreateFence() {
-        return m_FencePool->CreateFence();
-    }
     void SwapChainNodesState::CreateNewIteration() {
         m_Iteration = Ref<Iteration>(new Iteration(SwapChain::Create(m_Surface, m_Iteration->m_SwapChain)));
     }

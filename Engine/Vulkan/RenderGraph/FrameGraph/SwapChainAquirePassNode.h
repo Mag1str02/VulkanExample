@@ -22,7 +22,6 @@ namespace Engine::Vulkan::RenderGraph {
         class Pass : public IPass {
         public:
             void SetSignalSemaphore(Ref<IBinarySemaphore> semaphore);
-            bool IsCompleted() const;
 
         protected:
             virtual void Prepare() override;
@@ -36,7 +35,6 @@ namespace Engine::Vulkan::RenderGraph {
             Ref<IBinarySemaphore>               m_SignalSemaphore;
             Ref<SwapChainNodesState>            m_State;
             Ref<SwapChainNodesState::Iteration> m_Iteration;
-            Ref<IFence>                         m_SignalFence;
         };
 
         class Cluster : public IPassCluster {

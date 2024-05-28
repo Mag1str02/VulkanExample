@@ -7,7 +7,7 @@
 namespace Engine::Vulkan::RenderGraph {
 
     bool SwapChainPresentPassNode::Cluster::IsCompleted() const {
-        return m_PresentPass->IsCompleted();
+        return true;
     }
     bool SwapChainPresentPassNode::Cluster::AddPass(IPass* pass) {
         if (!pass->Is<SwapChainPresentPassNode::Pass>()) {
@@ -20,15 +20,14 @@ namespace Engine::Vulkan::RenderGraph {
         return false;
     }
     void SwapChainPresentPassNode::Cluster::Submit(Executor* executor) {
-        auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(),
-                                                                          m_PresentPass->GetWaitSemaphore(),
-                                                                          m_PresentPass->GetSignalFence());
+        auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(), m_PresentPass->GetWaitSemaphore());
         switch (res) {
             case VK_SUCCESS: break;
             case VK_SUBOPTIMAL_KHR: m_PresentPass->m_Iteration->SetOutOfDate(); break;
             case VK_ERROR_OUT_OF_DATE_KHR: m_PresentPass->m_Iteration->SetOutOfDate(); break;
             default: DE_ASSERT_FAIL("Present result {}", (int64_t)res);
         }
+        executor->GetDevice()->GetPresentationQueue()->WaitIdle();
     }
 
     void SwapChainPresentPassNode::Cluster::AddWaitSemaphore(Ref<IBinarySemaphore> semaphore) {
@@ -40,8 +39,7 @@ namespace Engine::Vulkan::RenderGraph {
     }
 
     void SwapChainPresentPassNode::Pass::Prepare() {
-        m_Iteration   = m_State->GetCurrentIteration();
-        m_SinglaFence = m_State->CreateFence();
+        m_Iteration = m_State->GetCurrentIteration();
         m_State.reset();
     }
 
@@ -59,12 +57,6 @@ namespace Engine::Vulkan::RenderGraph {
     }
     VkSemaphore SwapChainPresentPassNode::Pass::GetWaitSemaphore() {
         return m_WaitSemaphore->Handle();
-    }
-    VkFence SwapChainPresentPassNode::Pass::GetSignalFence() {
-        return m_SinglaFence->Handle();
-    }
-    bool SwapChainPresentPassNode::Pass::IsCompleted() const {
-        return m_SinglaFence->IsSignaled();
     }
 
     SwapChainPresentPassNode::Pass::Pass(Ref<SwapChainNodesState> state) : m_State(state) {}
