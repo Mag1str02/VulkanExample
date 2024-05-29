@@ -15,13 +15,8 @@ add_library(VulkanHelpers
     Vulkan/RenderGraph/ResourceNode.cpp
     Vulkan/RenderGraph/ProxyResourceNode.cpp
     Vulkan/RenderGraph/ExternalDependencyManager.cpp
+    Vulkan/RenderGraph/CommandBufferPassNode.cpp
     
-    Vulkan/RenderGraph/FrameGraph/FrameGraph.cpp
-    Vulkan/RenderGraph/FrameGraph/SwapChainAquirePassNode.cpp
-    Vulkan/RenderGraph/FrameGraph/SwapChainPresentPassNode.cpp
-    Vulkan/RenderGraph/FrameGraph/SwapChainImageNode.cpp
-    Vulkan/RenderGraph/FrameGraph/SwapChainNodesState.cpp
-
     Vulkan/Synchronization/AccessScope.cpp
     Vulkan/Synchronization/ImageTracker.cpp
     Vulkan/Synchronization/Tracker.cpp
@@ -39,6 +34,13 @@ add_library(VulkanHelpers
     Vulkan/Window/SwapChain.cpp
     Vulkan/Window/Surface.cpp
     Vulkan/Window/Window.cpp
+
+    Vulkan/Window/FrameGraph/FrameGraph.cpp
+    Vulkan/Window/FrameGraph/SwapChainAquirePassNode.cpp
+    Vulkan/Window/FrameGraph/SwapChainPresentPassNode.cpp
+    Vulkan/Window/FrameGraph/SwapChainImageNode.cpp
+    Vulkan/Window/FrameGraph/SwapChainNodesState.cpp
+
 
     Vulkan/Fence.cpp
     Vulkan/FencePool.cpp

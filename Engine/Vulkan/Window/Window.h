@@ -2,7 +2,7 @@
 
 #include "Engine/Application/Window.h"
 #include "Engine/Vulkan/Common.h"
-#include "Engine/Vulkan/RenderGraph/FrameGraph/FrameGraph.h"
+#include "Engine/Vulkan/Window/FrameGraph/FrameGraph.h"
 
 namespace Engine::Vulkan {
 

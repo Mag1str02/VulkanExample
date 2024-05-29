@@ -14,6 +14,8 @@ namespace Engine::Vulkan {
         Ref<IRawCommandBuffer> CreatePatchCommandBuffer();
         Ref<IRawCommandBuffer> GeneratePatchCommandBuffer(const Synchronization::Tracker& tracker);
 
+        void RecordSynchronizationBarriers(CommandBuffer& buffer, const Synchronization::Tracker& tracker);
+
         std::optional<VkImageMemoryBarrier2> UpdateImageState(IImage& image, const Synchronization::ImageTracker& tracker);
 
     private:

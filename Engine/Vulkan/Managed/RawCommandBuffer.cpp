@@ -15,7 +15,7 @@ namespace Engine::Vulkan::Managed {
     }
 
     void RawCommandBuffer::Begin() {
-        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::Begin");
+        PROFILER_SCOPE("Engine::Vulkan::RawCommandBuffer::Begin");
 
         VkCommandBufferInheritanceInfo inheritance_info{};
         inheritance_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
@@ -30,12 +30,12 @@ namespace Engine::Vulkan::Managed {
         VK_CHECK(vkBeginCommandBuffer(m_Handle, &beginInfo));
     }
     void RawCommandBuffer::End() {
-        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::End");
+        PROFILER_SCOPE("Engine::Vulkan::RawCommandBuffer::End");
         FlushBariers();
         VK_CHECK(vkEndCommandBuffer(m_Handle));
     }
     void RawCommandBuffer::Reset() {
-        PROFILER_SCOPE("Engine::Vulkan::CommandBuffer::Reset");
+        PROFILER_SCOPE("Engine::Vulkan::RawCommandBuffer::Reset");
         VK_CHECK(vkResetCommandBuffer(m_Handle, 0));
     }
 

@@ -20,16 +20,21 @@ namespace Engine::Vulkan {
 
         void ClearImage(Ref<IImage> image, Vec4 clear_color);
 
+        void RequestImageAccess(Ref<IImage> image, Synchronization::AccessScope scope, VkImageLayout layout);
+
+        const IRawCommandBuffer&        GetRawCommandBuffer() const;
+        const Synchronization::Tracker& GetSynchronizationTracker() const;
+
     private:
         CommandBuffer(Ref<CommandPool> pool);
-
-        void RequestImageAccess(Ref<IImage> image, Synchronization::AccessScope scope, VkImageLayout layout);
 
         void PreparePresent(Ref<IImage> image);
         void PrepareColorAttachment(Ref<IImage> image);
         void PrepareClear(Ref<IImage> image);
 
     private:
+        friend class Executor;
+
         Ref<CommandPool>                   m_Pool;
         Ref<RawCommandBuffer>              m_MainCommandBuffer;
         std::vector<Ref<RawCommandBuffer>> m_SecondaryCommandBuffers;

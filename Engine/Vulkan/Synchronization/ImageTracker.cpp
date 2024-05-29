@@ -116,7 +116,9 @@ namespace Engine::Vulkan::Synchronization {
 
                 result = barrier;
 
-                m_Prefix.write = scope;
+                if (m_Suffix.layout == layout) {
+                    m_Prefix.write = scope;
+                }
 
                 m_Suffix        = State();
                 m_Suffix.write  = scope;

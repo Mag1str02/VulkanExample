@@ -5,6 +5,9 @@
 #include <Engine/Vulkan/CommandPool.h>
 #include <Engine/Vulkan/Fence.h>
 #include <Engine/Vulkan/ImageView.h>
+#include <Engine/Vulkan/Interface/Image.h>
+#include <Engine/Vulkan/RenderGraph/CommandBufferPassNode.h>
+#include <Engine/Vulkan/RenderGraph/Interface/ImageResourceNode.h>
 
 #include <GLFW/glfw3.h>
 #include <backends/imgui_impl_vulkan.h>
@@ -14,13 +17,49 @@
 
 using namespace Engine;
 
+class ClearColorPassNode : public Vulkan::RenderGraph::CommandBufferPassNode {
+public:
+    ClearColorPassNode(Ref<Vulkan::Device> device) : Vulkan::RenderGraph::CommandBufferPassNode(std::move(device)) {}
+
+private:
+    class Pass : public Vulkan::RenderGraph::CommandBufferPassNode::Pass {
+    public:
+        Pass(ClearColorPassNode* node, Vulkan::RenderGraph::IImageResourceNode* image_node) :
+            Vulkan::RenderGraph::CommandBufferPassNode::Pass(node), m_ImageNode(image_node) {}
+
+        virtual void Record(Vulkan::CommandBuffer& buffer) {
+            float time = glfwGetTime();
+            Vec4  clearValue;
+            clearValue.r = (cos(time) + 1) / 2;
+            clearValue.g = (sin(time) + 1) / 2;
+            clearValue.b = 0;
+            clearValue.a = 1;
+            buffer.RequestImageAccess(m_ImageNode->GetImage(), {}, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+            buffer.ClearImage(m_ImageNode->GetImage(), clearValue);
+            buffer.RequestImageAccess(m_ImageNode->GetImage(), {}, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+        }
+
+    private:
+        Vulkan::RenderGraph::IImageResourceNode* m_ImageNode;
+    };
+
+protected:
+    virtual Scope<Vulkan::RenderGraph::IPass> CreatePass() override {
+        auto* resource_node = GetExternalResource("SwapChainAquireImage", Vulkan::RenderGraph::DependencyType::ReadWriteInput);
+        DE_ASSERT(resource_node->Is<Vulkan::RenderGraph::IImageResourceNode>(), "Bad input resource node");
+        return CreateScope<Pass>(this, resource_node->As<Vulkan::RenderGraph::IImageResourceNode>());
+    }
+};
+
 class TestApplication : public Engine::Application {
 public:
     TestApplication() = default;
 
     virtual void OnStartUp() override {
-        // auto command_pool = Vulkan::CommandPool::Create(m_Renderer->GetDevice(), m_Renderer->GetDevice()->GetGraphicsQueue()->FamilyIndex());
-        // m_CommandBuffer   = Vulkan::CommandBuffer::Create(command_pool);
+        auto* graph = m_Window->GetRenderGraph();
+        auto* pass  = graph->CreateEnrty<ClearColorPassNode>(m_Renderer->GetDevice());
+        graph->CreateDependency(pass, "SwapChainAquireImage", Vulkan::RenderGraph::DependencyType::ReadWriteInput);
+        graph->CreateDependency(pass, "SwapChainPresentImage", Vulkan::RenderGraph::DependencyType::Output);
     }
     virtual void OnShutDown() override {
         vkDeviceWaitIdle(m_Renderer->GetDevice()->GetLogicDevice());

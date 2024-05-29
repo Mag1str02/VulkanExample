@@ -1,5 +1,6 @@
 #include "Executor.h"
 
+#include "Engine/Vulkan/CommandBuffer.h"
 #include "Engine/Vulkan/CommandPool.h"
 #include "Engine/Vulkan/Helpers.h"
 #include "Engine/Vulkan/Interface/Task.h"
@@ -78,6 +79,13 @@ namespace Engine::Vulkan {
         }
         cmd->End();
         return cmd;
+    }
+
+    void Executor::RecordSynchronizationBarriers(CommandBuffer& buffer, const Synchronization::Tracker& tracker) {
+        auto barriers = tracker.SynchronizeImages(this);
+        for (const auto& barrier : barriers) {
+            buffer.m_MainCommandBuffer->AddImageMemoryBarrier(barrier);
+        }
     }
 
     std::optional<VkImageMemoryBarrier2> Executor::UpdateImageState(IImage& image, const Synchronization::ImageTracker& tracker) {

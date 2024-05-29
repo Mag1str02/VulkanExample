@@ -25,9 +25,9 @@ namespace Engine::Vulkan::RenderGraph {
 
             void SetWaitSemaphore(Ref<IBinarySemaphore> semaphore);
 
-            VkSwapchainKHR        GetSwapChainHandle();
-            Ref<SwapChain::Image> GetPresentImage();
-            VkSemaphore           GetWaitSemaphore();
+            VkSwapchainKHR          GetSwapChainHandle();
+            Ref<SwapChain::Image>   GetPresentImage();
+            const IBinarySemaphore& GetWaitSemaphore();
 
         private:
             Pass(Ref<SwapChainNodesState> state);

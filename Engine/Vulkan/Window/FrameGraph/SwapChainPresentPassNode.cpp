@@ -21,16 +21,22 @@ namespace Engine::Vulkan::RenderGraph {
         return false;
     }
     void SwapChainPresentPassNode::Cluster::Submit(Executor* executor) {
-        VkSemaphore present_wait_semaphore = m_PresentPass->GetWaitSemaphore();
+        const IBinarySemaphore* present_wait_semaphore = &m_PresentPass->GetWaitSemaphore();
         m_Tracker.RequestAccess(m_PresentPass->GetPresentImage(), Synchronization::AccessScope(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
         auto patch_cmd_buf = executor->GeneratePatchCommandBuffer(m_Tracker);
         if (patch_cmd_buf != nullptr) {
             m_PatchSignalSemaphore = BinarySemaphore::Create(executor->GetDevice()->shared_from_this());
-            executor->GetDevice()->GetGraphicsQueue()->Submit(*patch_cmd_buf, m_PresentPass->GetWaitSemaphore(), m_PatchSignalSemaphore->Handle());
-            present_wait_semaphore = m_PatchSignalSemaphore->Handle();
+            present_wait_semaphore = m_PatchSignalSemaphore.get();
+
+            GraphicsQueue::SubmitInfo info;
+            info.AddWaitSemaphore(m_PresentPass->GetWaitSemaphore());
+            info.AddSignalSemaphore(*m_PatchSignalSemaphore);
+            info.AddCommandBuffer(*patch_cmd_buf);
+
+            executor->GetDevice()->GetGraphicsQueue()->Submit(info);
         }
 
-        auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(), present_wait_semaphore);
+        auto res = executor->GetDevice()->GetPresentationQueue()->Present(m_PresentPass->GetPresentImage(), present_wait_semaphore->Handle());
         switch (res) {
             case VK_SUCCESS: break;
             case VK_SUBOPTIMAL_KHR: m_PresentPass->m_Iteration->SetOutOfDate(); break;
@@ -65,8 +71,8 @@ namespace Engine::Vulkan::RenderGraph {
     Ref<SwapChain::Image> SwapChainPresentPassNode::Pass::GetPresentImage() {
         return m_Iteration->GetCurrentImage();
     }
-    VkSemaphore SwapChainPresentPassNode::Pass::GetWaitSemaphore() {
-        return m_WaitSemaphore->Handle();
+    const IBinarySemaphore& SwapChainPresentPassNode::Pass::GetWaitSemaphore() {
+        return *m_WaitSemaphore;
     }
 
     SwapChainPresentPassNode::Pass::Pass(Ref<SwapChainNodesState> state) : m_State(state) {}

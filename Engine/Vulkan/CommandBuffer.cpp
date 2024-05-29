@@ -94,5 +94,11 @@ namespace Engine::Vulkan {
             m_MainCommandBuffer->AddImageMemoryBarrier(*barrier);
         }
     }
+    const IRawCommandBuffer& CommandBuffer::GetRawCommandBuffer() const {
+        return *m_MainCommandBuffer;
+    }
+    const Synchronization::Tracker& CommandBuffer::GetSynchronizationTracker() const {
+        return m_Tracker;
+    }
 
 }  // namespace Engine::Vulkan
