@@ -1,0 +1,6 @@
+
+set(TRACY_ON_DEMAND ON)
+set(TRACY_TIMER_FALLBACK ON)
+set(TRACY_FIBERS ON)
+
+add_subdirectory(TRACY)
